@@ -8,7 +8,7 @@ import { Token } from 'models';
 import ApiError from 'utils/ApiError';
 import config from 'config/config';
 import _ from 'lodash';
-import { userService } from 'services';
+import {sellerUserService, userService} from 'services';
 import { EnumTypeOfToken, EnumCodeTypeOfCode } from 'models/enum.model';
 /**
  * Generate token
@@ -112,6 +112,24 @@ export const verifyOtp = async (email, otp) => {
   return user.save();
 };
 
+export const verifySellerOtp = async (email, otp) => {
+  const user = await sellerUserService.getOne({ email });
+  if (!user) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'no user found with this email');
+  }
+  if (user.isEmailVerified) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'your email is already verified!');
+  }
+  // eslint-disable-next-line eqeqeq
+  const otpCode = _.find(user.codes, (code) => code.code == otp && code.codeType === EnumCodeTypeOfCode.LOGIN);
+  if (!otpCode || otpCode.expirationDate < Date.now()) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'otp is Invalid');
+  }
+  user.codes = _.filter(user.codes, (code) => code.code != otp);
+  user.isEmailVerified = true;
+  user.active = true;
+  return user.save();
+};
 /**
  * Generate token
  * @returns {string}
@@ -250,4 +268,18 @@ export const invalidateToken = async (invalidReq) => {
   } else {
     return Token.findByIdAndDelete(tokenDoc._id);
   }
+};
+
+export const generatesellerVerifyEmailToken = async (email) => {
+  const user = await sellerUserService.getOne({ email });
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'No users found with this email');
+  } else if (user.emailVerified) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Email is already Verified');
+  }
+  const expires = moment().add(config.jwt.verifyEmailExpirationMinutes, 'minutes');
+  const token = generateToken(user.id, expires);
+  await Token.deleteMany({ user, type: EnumTypeOfToken.VERIFY_EMAIL });
+  await saveToken(token, user.id, expires, EnumTypeOfToken.VERIFY_EMAIL);
+  return token;
 };

@@ -33,3 +33,4 @@ module.exports.testController = require('./test.controller');
 module.exports.storeNotificationController = require('./storeNotification.controller');
 module.exports.storeConfigController = require('./storeConfig.controller');
 module.exports.authController = require('./auth.controller');
+module.exports.sellerAuthController = require('./sellerAuth.controller');
