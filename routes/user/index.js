@@ -31,7 +31,7 @@ import testRoutes from './v1/test/test.route';
 import storeNotificationRoutes from './v1/storeNotification/storeNotification.route';
 import storeConfigRoutes from './v1/storeConfig/storeConfig.route';
 import authRoutes from './v1/auth/auth.route';
-import SellerauthRoutes from './v1/sellerAuth/sellerAuth.route'
+import SellerauthRoutes from './v1/sellerAuth/sellerAuth.route';
 
 const router = express.Router();
 router.use('/user', userRoutes);

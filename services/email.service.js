@@ -534,8 +534,8 @@ export const sendCongratulationEmail = async (user) => {
 </html>`;
 
   await sendEmail({ to, subject, text, isHtml: true })
-      .then(() => logger.info('email sent successfully'))
-      .catch((error) => logger.warn(`Unable to send mail ${error}`));
+    .then(() => logger.info('email sent successfully'))
+    .catch((error) => logger.warn(`Unable to send mail ${error}`));
 };
 /**
  * Send Verification email

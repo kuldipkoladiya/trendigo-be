@@ -1,8 +1,10 @@
 import ApiError from 'utils/ApiError';
 import httpStatus from 'http-status';
 import { SellerUser } from 'models';
+import _ from 'lodash';
 import { logger } from '../config/logger';
-import _ from "lodash";
+import { notificationService } from './index';
+import { updateUser } from './user.service';
 
 export async function getSellerUserById(id, options = {}) {
   const sellerUser = await SellerUser.findById(id, options.projection, options);
@@ -24,7 +26,7 @@ export async function getSellerUserListWithPagination(filter, options = {}) {
   return sellerUser;
 }
 
-export async function createSellerUser(body, options = {}) {
+export async function createSellerUser(body = {}) {
   try {
     const sellerUser = await SellerUser.create(body);
     return sellerUser;
@@ -81,14 +83,14 @@ export async function aggregateSellerUser(query) {
   return sellerUser;
 }
 
-export async function aggregateSellerUserWithPagination(query, options = {}) {
-  const aggregate = SellerUser.aggregate();
-  query.map((obj) => {
-    aggregate._pipeline.push(obj);
-  });
-  const sellerUser = await SellerUser.aggregatePaginate(aggregate, options);
-  return sellerUser;
-}
+// export async function aggregateSellerUserWithPagination(query, options = {}) {
+//   const aggregate = SellerUser.aggregate();
+//   query.map((obj) => {
+//     aggregate._pipeline.push(obj);
+//   });
+//   const sellerUser = await SellerUser.aggregatePaginate(aggregate, options);
+//   return sellerUser;
+// }
 
 export async function addDeviceToken(user, body) {
   const { deviceToken, platform } = body;
@@ -111,11 +113,11 @@ export async function updatesellerUserForAuth(filter, body, options = {}, user) 
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
   }
   // --- Hash password if provided ---
-  if (body && body.password) {
-    // eslint-disable-next-line no-param-reassign
-    body.password = await bcrypt.hash(body.password, 10);
-  }
+  // if (body && body.password) {
+  //   // eslint-disable-next-line no-param-reassign
+  //   body.password = await bcrypt.hash(body.password, 10);
+  // }
   // --- Update user ---
-  await SellerUser.updateOne(filter, body, options)
+  await SellerUser.updateOne(filter, body, options);
   return getOne(filter);
 }

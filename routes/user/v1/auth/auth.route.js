@@ -56,7 +56,7 @@ router.get('/me', auth(), authController.userInfo);
 /**
  * update the Current UserInfo
  */
-router.put('/me', auth(), authController.updateUserInfo);
+router.put('/update-user', auth(), authController.updateUserInfo);
 /**
  * OTP-based verification
  * When User Forgot Password call this API and he get the OTP in his Email to reset Password

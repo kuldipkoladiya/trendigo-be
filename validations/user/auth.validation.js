@@ -8,16 +8,16 @@ import config from '../../config/config';
 
 export const register = {
   body: Joi.object()
-      .keys({
-        email: Joi.string().email().optional(), // Optional, but should be a valid email if provided
-        password: Joi.string(),
-        name: Joi.string(), // Name is required
-        mobileNumber: Joi.string()
-            .pattern(/^[0-9]{10,15}$/)
-            .optional(), // Optional, but should be valid if provided (between 10-15 digits)
-        countryCodeId: Joi.objectId().optional(),
-      })
-      .xor('email', 'mobileNumber'),
+    .keys({
+      email: Joi.string().email().optional(), // Optional, but should be a valid email if provided
+      password: Joi.string(),
+      name: Joi.string(), // Name is required
+      mobileNumber: Joi.string()
+        .pattern(/^[0-9]{10,15}$/)
+        .optional(), // Optional, but should be valid if provided (between 10-15 digits)
+      countryCodeId: Joi.objectId().optional(),
+    })
+    .xor('email', 'mobileNumber'),
 };
 
 export const login = {
@@ -42,16 +42,16 @@ export const forgotPassword = {
 
 export const verifyOtp = {
   body: Joi.object()
-      .keys({
-        email: Joi.string().email(),
-        mobileNumber: Joi.string().pattern(/^\d+$/), // Allow only digits
-        otp: Joi.number().required(),
-        deviceToken: Joi.string().allow(''),
-      })
-      .or('email', 'mobileNumber') // At least one is required
-      .messages({
-        'object.missing': 'Please provide either email or mobileNumber to verify OTP',
-      }),
+    .keys({
+      email: Joi.string().email(),
+      mobileNumber: Joi.string().pattern(/^\d+$/), // Allow only digits
+      otp: Joi.number().required(),
+      deviceToken: Joi.string().allow(''),
+    })
+    .or('email', 'mobileNumber') // At least one is required
+    .messages({
+      'object.missing': 'Please provide either email or mobileNumber to verify OTP',
+    }),
 };
 
 // Token-based Verification when user select forgotPassword

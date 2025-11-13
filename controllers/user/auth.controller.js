@@ -11,8 +11,13 @@ import { EnumTypeOfToken, EnumCodeTypeOfCode } from 'models/enum.model';
 
 export const register = catchAsync(async (req, res) => {
   const { body } = req;
+  const { email } = body;
+  let user = await userService.getOne({ email });
 
-  const user = await userService.createUser(body);
+  // If no user, create new one
+  if (!user) {
+    user = await userService.createUser(body);
+  }
   const otp = generateOtp();
   user.codes.push({
     code: otp,
@@ -94,10 +99,23 @@ export const verifyResetCode = catchAsync(async (req, res) => {
 });
 
 export const verifyOtp = catchAsync(async (req, res) => {
-  const { body } = req;
-  const { otp, email } = body;
-  await tokenService.verifyOtp(email, otp);
-  res.status(httpStatus.OK).send({ results: { success: true } });
+  const { otp, email } = req.body;
+
+  const user = await tokenService.verifyOtp(email, otp);
+
+  const tokens = await tokenService.generateAuthTokens(user);
+
+  res.status(httpStatus.OK).send({
+    results: {
+      success: true,
+      message: 'Login successful',
+      user: {
+        id: user._id,
+        email: user.email,
+      },
+      tokens,
+    },
+  });
 });
 
 export const resetPasswordOtp = catchAsync(async (req, res) => {
@@ -134,8 +152,15 @@ export const userInfo = catchAsync(async (req, res) => {
  */
 export const updateUserInfo = catchAsync(async (req, res) => {
   const filter = { _id: req.user._id };
-  const user = await userService.updateUser(filter, req.body);
-  res.status(httpStatus.OK).send({ user });
+  const { body } = req;
+
+  const userData = await userService.updateUserForAuth(
+    filter,
+    body,
+    { returnNewDocument: true, new: true, upsert: true },
+    req.user
+  );
+  res.status(httpStatus.OK).send({ userData });
 });
 
 export const sendVerifyOtp = catchAsync(async (req, res) => {

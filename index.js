@@ -2,11 +2,12 @@ import mongoose from 'mongoose';
 // TODO: implement in the future
 import config from 'config/config';
 import { logger } from 'config/logger';
-import socketAPI from 'appEvents/socketAPI';
-import redisAdapter from 'socket.io-redis';
-import app from './app';
+// import socketAPI from 'appEvents/socketAPI';
+// import redisAdapter from 'socket.io-redis';
 import startNgrok from 'utils/ngrok';
 import dotenv from 'dotenv';
+import app from './app';
+
 dotenv.config();
 const { initSockets } = require('appEvents/handler');
 

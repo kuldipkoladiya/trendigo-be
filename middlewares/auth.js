@@ -3,8 +3,8 @@ import httpStatus from 'http-status';
 import ApiError from 'utils/ApiError';
 import { TokenExpiredError } from 'jsonwebtoken';
 
-const verifyCallback = (req, resolve, reject, role) => async (err, user, info ,seller) => {
-  if (err || info || !  user || ! seller) {
+const verifyCallback = (req, resolve, reject, role) => async (err, user, info) => {
+  if (err || info || !user) {
     if (info instanceof TokenExpiredError) {
       // This state that token is Invalid and we can send status code 498 so that user can call the refresh token if we have any
       return reject(new ApiError(httpStatus.extra.unofficial.INVALID_TOKEN, 'Token Expired'));
