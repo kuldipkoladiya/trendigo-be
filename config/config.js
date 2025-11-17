@@ -23,7 +23,7 @@ const envVarsSchema = Joi.object()
     REDIS_PASSWORD: Joi.string().required().description('Redis Password is required'),
     AWS_BUCKET_NAME: Joi.string().required().description('Aws Bucket Name is required'),
     AWS_BUCKET_REGION: Joi.string().required().description('Aws Bucket Region is required'),
-    // AWS_ACCESS_KEY: Joi.string().required().description('Aws Access Key is required'),
+    AWS_ACCESS_KEY: Joi.string().required().description('Aws Access Key is required'),
     AWS_SECRET_ACCESS_KEY: Joi.string().required().description('Aws Secret Access Key is required'),
     PARTY_USER_LIMIT: Joi.number().default(8),
     RESET_PASSWORD_CODE_SIZE: Joi.number().default(6),
@@ -94,7 +94,7 @@ export default {
     limit: envVars.PARTY_USER_LIMIT,
   },
   aws: {
-    // accessKeyId: envVars.AWS_ACCESS_KEY,
+    accessKeyId: envVars.AWS_ACCESS_KEY,
     secretAccessKey: envVars.AWS_SECRET_ACCESS_KEY,
     bucket: envVars.AWS_BUCKET_NAME,
     region: envVars.AWS_BUCKET_REGION,
