@@ -12,7 +12,7 @@
     "start-pm2": "pm2 start ecosystem.config.js --env development",
     "start-prod": "npm run build && pm2 start ecosystem.config.js --env production",
     "start": "nodemon --delay 3 --inspect index.js --exec babel-node -e js node ngrok.js",
-    "build": "babel . --ignore node_modules --source-type module --out-dir build && cp utils/content-type.json build/utils/ && cp config/firebase.json build/config/",
+    "build": "babel . --ignore node_modules --source-type module --out-dir build && cp -r config build/ && cp -r utils build/",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "prettier": "prettier --check **/*.js",
