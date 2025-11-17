@@ -6,13 +6,13 @@
       {
         "root": ["./"],
         "alias": {
-          "config": "./config",
-          "routes": "./routes",
-          "utils": "./utils",
-          "middlewares": "./middlewares",
-          "models": "./models",
-          "services": "./services",
-          "controllers": "./controllers"
+          "config": "./build/config",
+          "models": "./build/models",
+          "controllers": "./build/controllers",
+          "middlewares": "./build/middlewares",
+          "services": "./build/services",
+          "utils": "./build/utils",
+          "routes": "./build/routes"
         }
       }
     ]
