@@ -7,6 +7,7 @@ const errorStackFormat = winston.format((info) => {
   }
   return info;
 });
+
 const logger = winston.createLogger({
   level: config.logging.level,
   format: winston.format.combine(winston.format.timestamp(), winston.format.simple(), errorStackFormat()),
@@ -15,7 +16,8 @@ const logger = winston.createLogger({
       json: true,
       colorize: true,
     }),
-    new winston.transports.Console({ filename: 'error.log', level: 'error' }),
+    new winston.transports.File({ filename: 'error.log', level: 'error' }),
   ],
 });
-module.exports = logger;
+
+export default logger;
