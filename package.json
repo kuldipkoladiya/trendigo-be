@@ -2,7 +2,7 @@
   "name": "trendigo",
   "version": "1.0.0",
   "description": "Generated Project",
-  "main": "build/index.js",
+  "main": "index.js",
   "repository": "",
   "author": "",
   "engines": {
@@ -11,8 +11,8 @@
   "scripts": {
     "start-pm2": "pm2 start ecosystem.config.js --env development",
     "start-prod": "npm run build && pm2 start ecosystem.config.js --env production",
-    "start": "node build/index.js",
-    "build": "babel . --ignore node_modules --source-type module --out-dir build && npx cpx \"config/**/*\" build/config && npx cpx \"utils/**/*\" build/utils && npx cpx \"models/**/*\" build/models",
+    "start": "nodemon --delay 3 --inspect index.js --exec babel-node -e js node ngrok.js",
+    "build": "babel . --ignore node_modules --source-type module --out-dir build && cp .env build/ && cp utils/content-type.json build/utils/ && cp config/firebase.json build/config/ ",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "prettier": "prettier --check **/*.js",
@@ -83,7 +83,6 @@
     "@babel/preset-env": "^7.9.0",
     "babel-loader": "^8.1.0",
     "babel-plugin-module-resolver": "^4.1.0",
-    "cpx": "^1.5.0",
     "eslint": "^7.0.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-config-prettier": "^6.4.0",
