@@ -36,6 +36,7 @@ export const login = {
     .keys({
       email: Joi.string().email(),
       mobileNumber: Joi.number(),
+      password: Joi.string().required(),
     })
     .or('email', 'mobileNumber'),
 };

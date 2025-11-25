@@ -244,6 +244,26 @@ export const generateAuthTokens = async (user) => {
     },
   };
 };
+export const generateSellerTokens = async (seller) => {
+  const accessTokenExpires = moment().add(config.jwt.accessExpirationMinutes, 'minutes');
+  const accessToken = generateToken(seller.id, accessTokenExpires);
+
+  const refreshTokenExpires = moment().add(config.jwt.refreshExpirationDays, 'days');
+  const refreshToken = generateToken(seller.id, refreshTokenExpires);
+
+  await saveToken(refreshToken, seller.id, refreshTokenExpires, EnumTypeOfToken.REFRESH);
+
+  return {
+    access: {
+      token: accessToken,
+      expires: accessTokenExpires.toDate(),
+    },
+    refresh: {
+      token: refreshToken,
+      expires: refreshTokenExpires.toDate(),
+    },
+  };
+};
 
 /**
  * Get auth tokens

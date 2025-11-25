@@ -11,6 +11,7 @@ import fileUpload from 'express-fileupload';
 import expressWinston from 'express-winston';
 import winstonInstance from 'config/winston';
 import passport from 'passport';
+import sellerJwtStrategy from 'config/passport-seller';
 import jwtStrategy from 'config/passport';
 // eslint-disable-next-line import/named
 import { globalLimiter } from 'middlewares/rateLimiter';
@@ -53,6 +54,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 // jwt authentication
 app.use(passport.initialize());
 passport.use('jwt', jwtStrategy);
+passport.use('seller-jwt', sellerJwtStrategy);
 // limit repeated failed requests to auth endpoints
 if (config.env !== 'development') {
   app.use('/v1', globalLimiter);

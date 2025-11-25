@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import mongoosePaginateV2 from 'mongoose-paginate-v2';
+import bcrypt from 'bcryptjs';
 import { toJSON, softDelete } from './plugins';
 import enumModel from './enum.model';
 
@@ -85,27 +86,26 @@ SellerUserSchema.plugin(softDelete, {
   deletedBy: 'deletedBy',
   deletedAt: 'deletedAt',
 });
-// SellerUserSchema.pre('save', async function (next) {
-//   const User = this;
-//   if (User.isModified('password')) {
-//     User.password = await bcrypt.hash(User.password, 8);
-//   }
-//   next();
-// });
-/**
- * When user reset password or change password then it save in bcrypt format
- */
-// SellerUserSchema.pre('findOneAndUpdate', async function (next) {
-//   const update = this.getUpdate(); // {password: "..."}
-//   if (update && update.password) {
-//     const passwordHash = await bcrypt.hash(update.password, 10);
-//     this.setUpdate({
-//       $set: {
-//         password: passwordHash,
-//       },
-//     });
-//   }
-//   next();
-// });
+SellerUserSchema.pre('save', async function (next) {
+  const User = this;
+  if (User.isModified('password')) {
+    User.password = await bcrypt.hash(User.password, 8);
+  }
+  next();
+});
+
+// * When user reset password or change password then it save in bcrypt format
+SellerUserSchema.pre('findOneAndUpdate', async function (next) {
+  const update = this.getUpdate(); // {password: "..."}
+  if (update && update.password) {
+    const passwordHash = await bcrypt.hash(update.password, 10);
+    this.setUpdate({
+      $set: {
+        password: passwordHash,
+      },
+    });
+  }
+  next();
+});
 const SellerUserModel = mongoose.models.SellerUser || mongoose.model('SellerUser', SellerUserSchema, 'SellerUser');
 module.exports = SellerUserModel;

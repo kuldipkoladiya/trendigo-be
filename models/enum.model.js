@@ -53,6 +53,7 @@ const EnumTypeOfToken = {
   RESET_PASSWORD: 'resetPassword',
   VERIFY_EMAIL: 'verifyEmail',
   REFRESH: 'refresh',
+  SELLER_REFRESH: 'sellerRefresh',
 };
 module.exports = {
   EnumContentType,

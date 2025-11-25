@@ -111,7 +111,7 @@ export const verifyOtp = catchAsync(async (req, res) => {
   }
 
   // Generate tokens
-  const tokens = await tokenService.generateAuthTokens(seller, 'seller');
+  const tokens = await tokenService.generateSellerTokens(seller, 'seller');
 
   let updatedSeller = seller;
 
@@ -130,8 +130,20 @@ export const verifyOtp = catchAsync(async (req, res) => {
 
 export const login = catchAsync(async (req, res) => {
   const { email, password } = req.body;
-  const seller = await sellerAuthService.loginUserWithEmailAndPassword(email, password);
-  res.status(httpStatus.OK).send({ seller });
+
+  const seller = await sellerAuthService.SellerloginUserWithEmailAndPassword(email, password);
+  if (!seller.isEmailVerified) {
+    throw new ApiError(400, 'Please verify your email first');
+  }
+
+  const tokens = await tokenService.generateSellerTokens(seller);
+
+  return res.status(200).send({
+    results: {
+      seller,
+      tokens,
+    },
+  });
 });
 
 export const refreshTokens = catchAsync(async (req, res) => {

@@ -2,6 +2,7 @@ import ApiError from 'utils/ApiError';
 import httpStatus from 'http-status';
 import { SellerUser } from 'models';
 import _ from 'lodash';
+import bcrypt from 'bcryptjs';
 import { logger } from '../config/logger';
 import { notificationService } from './index';
 import { updateUser } from './user.service';
@@ -113,10 +114,10 @@ export async function updatesellerUserForAuth(filter, body, options = {}, user) 
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
   }
   // --- Hash password if provided ---
-  // if (body && body.password) {
-  //   // eslint-disable-next-line no-param-reassign
-  //   body.password = await bcrypt.hash(body.password, 10);
-  // }
+  if (body && body.password) {
+    // eslint-disable-next-line no-param-reassign
+    body.password = await bcrypt.hash(body.password, 10);
+  }
   // --- Update user ---
   await SellerUser.updateOne(filter, body, options);
   return getOne(filter);

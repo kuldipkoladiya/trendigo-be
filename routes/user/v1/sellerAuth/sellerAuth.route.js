@@ -2,7 +2,7 @@ import express from 'express';
 import validate from 'middlewares/validate';
 import { sellerAuthValidation } from 'validations/user';
 import { sellerAuthController } from 'controllers/user';
-import auth from 'middlewares/auth';
+import sellerAuth from 'middlewares/sellerAuth';
 
 const router = express.Router();
 
@@ -18,9 +18,9 @@ router.post('/verify-otp', validate(sellerAuthValidation.verifyOtp), sellerAuthC
  * update the Current UserInfo
  * /
  */
-router.put('/update-user', auth(), sellerAuthController.updateUserInfo);
+router.put('/update-user', sellerAuth(), sellerAuthController.updateUserInfo);
 // Login
-router.post('/login', auth(), validate(sellerAuthValidation.login), sellerAuthController.login);
+router.post('/login', validate(sellerAuthValidation.login), sellerAuthController.login);
 
 // Refresh tokens
 router.post('/refresh-tokens', validate(sellerAuthValidation.refreshTokens), sellerAuthController.refreshTokens);
