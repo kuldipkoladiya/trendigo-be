@@ -35,4 +35,10 @@ router
    * deleteUserAddressById
    * */
   .delete(auth('user'), validate(userAddressValidation.deleteUserAddressById), userAddressController.removeUserAddress);
+router
+  .route('/get-by-user/:userId')
+  /**
+   * getUserAddressById
+   * */
+  .get(auth('user'), validate(userAddressValidation.getUserAddressByuserId), userAddressController.getUserAddressByuserId);
 export default router;

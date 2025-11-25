@@ -9,19 +9,23 @@ Joi.objectId = require('joi-objectid')(Joi);
 export const createUserAddress = {
   body: Joi.object().keys({
     userId: Joi.objectId(),
+    name: Joi.string(),
+    mobileNumber: Joi.number(),
     pincode: Joi.number().integer().required(),
     addressLineOne: Joi.string().required(),
     addressLineTwo: Joi.string(),
-    state: Joi.string().required(),
+    state: Joi.string(),
     city: Joi.string().required(),
     isDefaultAddress: Joi.bool(),
-    country: Joi.string().required(),
+    country: Joi.string(),
   }),
 };
 
 export const updateUserAddress = {
   body: Joi.object().keys({
     userId: Joi.objectId(),
+    name: Joi.string(),
+    mobileNumber: Joi.number(),
     pincode: Joi.number().integer(),
     addressLineOne: Joi.string(),
     addressLineTwo: Joi.string(),
@@ -38,6 +42,11 @@ export const updateUserAddress = {
 export const getUserAddressById = {
   params: Joi.object().keys({
     userAddressId: Joi.objectId().required(),
+  }),
+};
+export const getUserAddressByuserId = {
+  params: Joi.object().keys({
+    userId: Joi.objectId().required(),
   }),
 };
 
