@@ -2,7 +2,7 @@ import express from 'express';
 import { pickupAddressController } from 'controllers/user';
 import { pickupAddressValidation } from 'validations/user';
 import validate from 'middlewares/validate';
-import auth from 'middlewares/auth';
+import sellerAuth from 'middlewares/sellerAuth';
 
 const router = express.Router();
 router
@@ -10,18 +10,18 @@ router
   /**
    * createPickupAddress
    * */
-  .post(auth('user'), validate(pickupAddressValidation.createPickupAddress), pickupAddressController.createPickupAddress)
+  .post(sellerAuth(), validate(pickupAddressValidation.createPickupAddress), pickupAddressController.createPickupAddress)
   /**
    * getPickupAddress
    * */
-  .get(auth('user'), validate(pickupAddressValidation.getPickupAddress), pickupAddressController.listPickupAddress);
+  .get(sellerAuth(), validate(pickupAddressValidation.getPickupAddress), pickupAddressController.listPickupAddress);
 router
   .route('/paginated')
   /**
    * getPickupAddressPaginated
    * */
   .get(
-    auth('user'),
+    sellerAuth(),
     validate(pickupAddressValidation.paginatedPickupAddress),
     pickupAddressController.paginatePickupAddress
   );
@@ -30,16 +30,16 @@ router
   /**
    * getPickupAddressById
    * */
-  .get(auth('user'), validate(pickupAddressValidation.getPickupAddressById), pickupAddressController.getPickupAddress)
+  .get(sellerAuth(), validate(pickupAddressValidation.getPickupAddressById), pickupAddressController.getPickupAddress)
   /**
    * updatePickupAddress
    * */
-  .put(auth('user'), validate(pickupAddressValidation.updatePickupAddress), pickupAddressController.updatePickupAddress)
+  .put(sellerAuth(), validate(pickupAddressValidation.updatePickupAddress), pickupAddressController.updatePickupAddress)
   /**
    * deletePickupAddressById
    * */
   .delete(
-    auth('user'),
+    sellerAuth(),
     validate(pickupAddressValidation.deletePickupAddressById),
     pickupAddressController.removePickupAddress
   );

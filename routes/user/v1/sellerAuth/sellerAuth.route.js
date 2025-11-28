@@ -21,7 +21,10 @@ router.post('/verify-otp', validate(sellerAuthValidation.verifyOtp), sellerAuthC
 router.put('/update-user', sellerAuth(), sellerAuthController.updateUserInfo);
 // Login
 router.post('/login', validate(sellerAuthValidation.login), sellerAuthController.login);
-
+/**
+ * get the Current LoggedIn UserInfo
+ */
+router.get('/me', sellerAuth(), sellerAuthController.userInfo);
 // Refresh tokens
 router.post('/refresh-tokens', validate(sellerAuthValidation.refreshTokens), sellerAuthController.refreshTokens);
 

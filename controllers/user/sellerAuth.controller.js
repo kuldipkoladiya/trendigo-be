@@ -168,3 +168,8 @@ export const updateUserInfo = catchAsync(async (req, res) => {
   );
   res.status(httpStatus.OK).send({ userData });
 });
+
+export const userInfo = catchAsync(async (req, res) => {
+  const user = await sellerUserService.getSellerUserById(req.user._id);
+  res.status(httpStatus.OK).send({ results: { user } });
+});

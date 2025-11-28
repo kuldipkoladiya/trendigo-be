@@ -26,7 +26,7 @@ export async function getPickupAddressListWithPagination(filter, options = {}) {
   return pickupAddress;
 }
 
-export async function createPickupAddress(body, options = {}) {
+export async function createPickupAddress(body = {}) {
   if (body.storeId) {
     const storeId = await Store.findOne({ _id: body.storeId });
     if (!storeId) {
@@ -68,11 +68,11 @@ export async function aggregatePickupAddress(query) {
   return pickupAddress;
 }
 
-export async function aggregatePickupAddressWithPagination(query, options = {}) {
-  const aggregate = PickupAddress.aggregate();
-  query.map((obj) => {
-    aggregate._pipeline.push(obj);
-  });
-  const pickupAddress = await PickupAddress.aggregatePaginate(aggregate, options);
-  return pickupAddress;
-}
+// export async function aggregatePickupAddressWithPagination(query, options = {}) {
+//   const aggregate = PickupAddress.aggregate();
+//   query.map((obj) => {
+//     aggregate._pipeline.push(obj);
+//   });
+//   const pickupAddress = await PickupAddress.aggregatePaginate(aggregate, options);
+//   return pickupAddress;
+// }
