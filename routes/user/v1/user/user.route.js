@@ -2,7 +2,7 @@ import express from 'express';
 import { userController } from 'controllers/user';
 import { userValidation } from 'validations/user';
 import validate from 'middlewares/validate';
-import { auth } from 'firebase-admin';
+import auth from 'middlewares/auth';
 
 const router = express.Router();
 router
@@ -14,7 +14,7 @@ router
   /**
    * getUser
    * */
-  .get(auth(), validate(userValidation.getUser), userController.listUser)
+  .get(validate(userValidation.getUser), userController.listUser)
   /**
    * deleteUserById
    * */
