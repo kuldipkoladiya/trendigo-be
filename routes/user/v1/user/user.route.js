@@ -2,6 +2,7 @@ import express from 'express';
 import { userController } from 'controllers/user';
 import { userValidation } from 'validations/user';
 import validate from 'middlewares/validate';
+import { auth } from 'firebase-admin';
 
 const router = express.Router();
 router
@@ -13,11 +14,11 @@ router
   /**
    * getUser
    * */
-  .get(validate(userValidation.getUser), userController.listUser)
+  .get(auth(), validate(userValidation.getUser), userController.listUser)
   /**
    * deleteUserById
    * */
-  .delete(validate(userValidation.deleteUserById), userController.removeUser);
+  .delete(auth(), validate(userValidation.deleteUserById), userController.removeUser);
 router
   .route('/paginated')
   /**
