@@ -13,7 +13,11 @@ router
   /**
    * getUser
    * */
-  .get(validate(userValidation.getUser), userController.listUser);
+  .get(validate(userValidation.getUser), userController.listUser)
+  /**
+   * deleteUserById
+   * */
+  .delete(validate(userValidation.deleteUserById), userController.removeUser);
 router
   .route('/paginated')
   /**
@@ -29,9 +33,6 @@ router
   /**
    * updateUser
    * */
-  .put(validate(userValidation.updateUser), userController.updateUser)
-  /**
-   * deleteUserById
-   * */
-  .delete(validate(userValidation.deleteUserById), userController.removeUser);
+  .put(validate(userValidation.updateUser), userController.updateUser);
+
 export default router;
