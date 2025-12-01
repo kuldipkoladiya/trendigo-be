@@ -77,9 +77,7 @@ export const getUserById = {
 };
 
 export const deleteUserById = {
-  params: Joi.object().keys({
-    userId: Joi.objectId().required(),
-  }),
+  params: Joi.object().keys({}),
 };
 
 export const getUser = {
