@@ -253,3 +253,57 @@ export const createSocialUser = async (accessToken, refreshToken, profile, provi
     });
   });
 };
+
+export const updateEmailAndMobile = async ({ email, mobileNumber, user }) => {
+  const otp = generateOtp();
+  const body = {
+    $push: {
+      codes: {
+        code: otp,
+        expirationDate: Date.now() + 10 * 60 * 1000,
+        used: false,
+        codeType: EnumCodeTypeOfCode.RESET_LOGIN_CRED,
+      },
+    },
+  };
+  if (email && email.currentEmail === user.email) {
+    await userService.updateUser({ email: user.email }, body, { new: true });
+    await emailService.sendResetEmailOtp(email.newEmail, otp, 'Email');
+    // create jwt payload with otp data
+  }
+  if (mobileNumber && mobileNumber.currentMobileNumber === user.mobileNumber) {
+    try {
+      await userService.updateUser({ mobileNumber: user.mobileNumber }, body, { new: true });
+      // await sendOtpToMobile(`${user.countryCode}${mobileNumber.newMobileNumber}`, otp);
+      console.log('OTP sent to mobile via MSG91');
+    } catch (error) {
+      console.error('Error sending OTP to mobile:', error);
+      throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Error sending OTP to mobile');
+    }
+  }
+  return user;
+};
+
+export const verifyOtpForUpdatePasswordEnaEmail = async ({ email, mobileNumber, user }) => {
+  // console.log('=== var mobileNumber ===>', mobileNumber);
+
+  // Handle email update
+  if (email && email.currentEmail === user.email) {
+    // verify email OTP
+    await tokenService.verifyResetOtpForChangeEmailOrNumber(user, email.otp);
+
+    // update email
+    await userService.updateUser({ _id: user._id }, { email: email.newEmail });
+  }
+
+  // Handle mobile number update
+  if (mobileNumber && mobileNumber.currentMobileNumber === user.mobileNumber) {
+    // verify mobile OTP
+    await tokenService.verifyResetOtpForChangeEmailOrNumber(user, mobileNumber.otp);
+
+    // update mobile number
+    await userService.updateUser({ _id: user._id }, { mobileNumber: mobileNumber.newMobileNumber });
+  }
+
+  return user;
+};

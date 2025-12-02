@@ -148,4 +148,25 @@ router.post(
   passport.authenticate('github', { session: false }),
   authController.socialLogin
 );
+/**
+ * send otp for change email and mobile number
+ *
+ */
+router.post(
+  '/send-otp-change-email',
+  auth(),
+  validate(authValidation.updateEmailAndMobile),
+  authController.updateEmailAndMobile
+);
+
+/**
+ * verify otp for change email and number
+ *
+ */
+router.post(
+  '/verify-otp-change-email',
+  auth(),
+  validate(authValidation.verifyEmailAndMobile),
+  authController.verifyEmailAndMobile
+);
 module.exports = router;

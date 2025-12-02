@@ -162,3 +162,31 @@ export const updateDeviceToken = {
     deviceToken: Joi.string().required(),
   }),
 };
+
+export const updateEmailAndMobile = {
+  body: Joi.object().keys({
+    email: Joi.object().keys({
+      currentEmail: Joi.string().email().required(),
+      newEmail: Joi.string().email().required(),
+    }),
+    mobileNumber: Joi.object().keys({
+      currentMobileNumber: Joi.number().required(),
+      newMobileNumber: Joi.number().required(),
+    }),
+  }),
+};
+
+export const verifyEmailAndMobile = {
+  body: Joi.object().keys({
+    email: Joi.object().keys({
+      currentEmail: Joi.string().email().required(),
+      newEmail: Joi.string().email().required(),
+      otp: Joi.number().required(),
+    }),
+    mobileNumber: Joi.object().keys({
+      currentMobileNumber: Joi.number().required(),
+      newMobileNumber: Joi.number().required(),
+      otp: Joi.number().required(),
+    }),
+  }),
+};
