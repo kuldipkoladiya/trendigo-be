@@ -316,3 +316,16 @@ export const generatesellerVerifyEmailToken = async (email) => {
   await saveToken(token, user.id, expires, EnumTypeOfToken.VERIFY_EMAIL);
   return token;
 };
+
+export const verifyResetOtpForChangeEmailOrNumber = async (user, otp) => {
+  // Find the OTP code in the user's codes array
+  const otpCodeIndex = _.findIndex(
+    user.codes,
+    (code) => code.code === otp.toString() && code.codeType === EnumCodeTypeOfCode.RESET_LOGIN_CRED
+  );
+  if (otpCodeIndex === -1 || user.codes[otpCodeIndex].expirationDate < Date.now()) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'OTP is invalid');
+  }
+  // Update the user document // todo : check if update user needed ot not.
+  return user;
+};
