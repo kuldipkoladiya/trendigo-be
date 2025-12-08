@@ -19,6 +19,19 @@ const CodeSchema = new mongoose.Schema({
     enum: Object.values(enumModel.EnumCodeTypeOfCode),
   },
 });
+const SellerImagesSchema = new mongoose.Schema(
+  {
+    url: {
+      type: String,
+    },
+    name: {
+      type: String,
+    },
+    isDeleted: Boolean,
+    deleted: Boolean,
+  },
+  { timestamps: { createdAt: true, updatedAt: true } }
+);
 const SellerUserSchema = new mongoose.Schema(
   {
     /**
@@ -74,6 +87,10 @@ const SellerUserSchema = new mongoose.Schema(
     codes: {
       type: [CodeSchema],
     },
+    SellerSign: {
+      type: String,
+    },
+    SellerSignImg: [SellerImagesSchema],
   },
   { timestamps: { createdAt: true, updatedAt: true } }
 );

@@ -56,6 +56,14 @@ const EnumTypeOfToken = {
   REFRESH: 'refresh',
   SELLER_REFRESH: 'sellerRefresh',
 };
+const EnumOfImageTypes = {
+  LISTING: 'listing',
+  PROFILE_IMAGE: 'profileImage',
+  STATUS_IMAGE: 'statusImage',
+  PROFILE_VIDEO: 'profileVideo',
+  BUSINESS_COVER: 'businessCover',
+  SELLERSIGN: 'sellerSing',
+};
 module.exports = {
   EnumContentType,
   EnumCodeTypeOfCode,
@@ -69,4 +77,5 @@ module.exports = {
   EnumPerformanceReportTimeOfStoreNotification,
   EnumBannerOfStoreConfig,
   EnumTypeOfToken,
+  EnumOfImageTypes,
 };
