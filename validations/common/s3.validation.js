@@ -1,9 +1,8 @@
-import JoiImport from 'joi';
-import joiObjectId from 'joi-objectid';
+import Joi from 'joi';
 import enumFields from '../../models/enum.model';
 
-// Extend Joi with objectId before using
-const Joi = JoiImport.extend(joiObjectId(JoiImport));
+Joi.objectId = require('joi-objectid')(Joi);
+// eslint-disable-next-line import/prefer-default-export
 
 export const preSignedPutUrl = {
   body: Joi.object().keys({
