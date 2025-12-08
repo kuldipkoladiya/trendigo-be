@@ -1,11 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 import httpStatus from 'http-status';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { S3Client, PutObjectCommand, CopyObjectCommand, DeleteObjectsCommand } from '@aws-sdk/client-s3';
+import { CopyObjectCommand, DeleteObjectsCommand } from '@aws-sdk/client-s3';
 import mongoose from 'mongoose';
 import axios from 'axios';
 import jimp from 'jimp';
+import AWS from 'aws-sdk';
 import { asyncForEach } from 'utils/common';
 import ApiError from 'utils/ApiError';
 import { SellerUser, TempS3, User } from 'models';
@@ -13,21 +13,32 @@ import config from 'config/config';
 import allowedContentType from 'utils/content-type.json';
 import { EnumOfImageTypes } from '../models/enum.model';
 
-const s3 = new S3Client({
-  credentials: {
-    accessKeyId: config.aws.accessKeyId, // stored in the .env file
-    secretAccessKey: config.aws.secretAccessKey, // stored in the .env file
-  },
-  region: config.aws.region, // This refers to your bucket configuration.
+AWS.config = new AWS.Config({
+  accessKeyId: config.aws.accessKeyId, // stored in the .env file
+  secretAccessKey: config.aws.secretAccessKey, // stored in the .env file
+  region: process.env.AWS_BUCKET_REGION, // This refers to your bucket configuration.
 });
-export const getSignedUrlPutObject = async (key, contentType, isPublic) => {
-  const signedURL = new PutObjectCommand({
+// AWS.config.update({ region: 'us-east-1' });
+const s3 = new AWS.S3({ apiVersion: '2006-03-01', signatureVersion: 'v4' });
+export const getSignedUrl = (key) => {
+  const signedURL = {
     Bucket: config.aws.bucket,
     Key: key,
+    Expires: 7200,
+  };
+  return s3.getSignedUrl('getObject', signedURL);
+};
+export const getSignedUrlPutObject = async (key, contentType, isPublic) => {
+  const signedURL = {
+    Bucket: config.aws.bucket,
     ContentType: contentType,
-    ...(isPublic ? { ACL: 'public-read' } : {}),
-  });
-  return getSignedUrl(s3, signedURL, { expiresIn: 3600 });
+    Key: key,
+    Expires: 3600,
+  };
+  if (isPublic) {
+    signedURL.ACL = 'public-read';
+  }
+  return s3.getSignedUrlPromise('putObject', signedURL);
 };
 
 export const validateExtensionForPutObject = async (preSignedReq, user) => {
