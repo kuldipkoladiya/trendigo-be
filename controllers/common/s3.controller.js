@@ -10,6 +10,12 @@ export const preSignedPutUrl = catchAsync(async (req, res) => {
 
 export const sellerSign = catchAsync(async (req, res) => {
   const { body, user } = req;
-  const s3PutObject = await s3Service.validateExtensionForProfilePic(body, user, body.isProfilePic, body.isBusinessCover);
+  const s3PutObject = await s3Service.validateExtensionForSellerPic(body, user, body.isProfilePic, body.isSellerSign);
+  return res.status(httpStatus.OK).send({ results: s3PutObject });
+});
+
+export const UserProfilePic = catchAsync(async (req, res) => {
+  const { body, user } = req;
+  const s3PutObject = await s3Service.validateExtensionForProfilePic(body, user, body.isProfilePic, body.isSellerSign);
   return res.status(httpStatus.OK).send({ results: s3PutObject });
 });

@@ -71,7 +71,8 @@ export const validateExtensionForPutObject = async (preSignedReq, user) => {
   await tempS3.save();
   return { url, key: preSignedReq.key };
 };
-export const validateExtensionForProfilePic = async (preSignedReq, user, isProfilePic, isSellerSign) => {
+// For seller
+export const validateExtensionForSellerPic = async (preSignedReq, user, isProfilePic, isSellerSign) => {
   const ssExtensionsContentType = allowedContentType.map((ele) => ele.mimeType);
   const ssExtensions = allowedContentType.map((ele) => ele.key);
 
@@ -123,6 +124,56 @@ export const validateExtensionForProfilePic = async (preSignedReq, user, isProfi
         ...(isSellerSign && { SellerSign: `${url.split('?')[0]}` }),
         $addToSet: {
           SellerSignImg: { url: `${url.split('?')[0]}`, name: preSignedReq.key },
+        },
+      },
+      { new: true } // To return the updated document
+    );
+    result = { userData };
+  }
+
+  await tempS3.save();
+  return { url, key: preSignedReq.key, data: result };
+};
+// For User
+export const validateExtensionForProfilePic = async (preSignedReq, user, isProfilePic) => {
+  const ssExtensionsContentType = allowedContentType.map((ele) => ele.mimeType);
+  const ssExtensions = allowedContentType.map((ele) => ele.key);
+
+  const maxTanglingFilesAllowed = 10000;
+  let extensionOfKey = preSignedReq.key.split('.');
+  extensionOfKey = extensionOfKey[extensionOfKey.length - 1];
+  if (!extensionOfKey) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'invalid key');
+  }
+  if (ssExtensionsContentType.includes(preSignedReq.contentType) && ssExtensions.includes(extensionOfKey)) {
+    Object.assign(preSignedReq, {
+      key: `users/${user._id}/${preSignedReq.profileType}/${mongoose.Types.ObjectId()}/${preSignedReq.key}`,
+    });
+  } else {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'invalid content-type');
+  }
+
+  const dumpFilesCount = await TempS3.find({ active: false }).count();
+  if (dumpFilesCount > maxTanglingFilesAllowed) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Maximum upload size exceeded');
+  }
+
+  const url = await getSignedUrlPutObject(preSignedReq.key, preSignedReq.contentType, true);
+  const tempS3Body = {
+    user: user._id,
+    url: url.split('?')[0],
+    key: preSignedReq.key,
+  };
+  const tempS3 = new TempS3(tempS3Body);
+  let result;
+
+  if (preSignedReq.profileType === EnumOfImageTypes.PROFILE_IMAGE) {
+    const userData = await User.findByIdAndUpdate(
+      user._id,
+      {
+        ...(isProfilePic && { profilePic: `${url.split('?')[0]}` }),
+        $addToSet: {
+          userProfilePic: { url: `${url.split('?')[0]}`, name: preSignedReq.key },
         },
       },
       { new: true } // To return the updated document

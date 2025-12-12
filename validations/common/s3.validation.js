@@ -26,3 +26,15 @@ export const sellerSign = {
     caption: Joi.string(),
   }),
 };
+
+export const UserProfilePic = {
+  body: Joi.object().keys({
+    key: Joi.string().required(),
+    contentType: Joi.string().required(),
+    profileType: Joi.string()
+      .valid(...Object.values(enumFields.EnumOfImageTypes))
+      .required(),
+    isProfilePic: Joi.boolean(),
+    caption: Joi.string(),
+  }),
+};

@@ -13,4 +13,6 @@ router.post('/presignedurl', auth(), validate(s3Validation.preSignedPutUrl), s3C
 
 router.post('/seller-sign', sellerAuth(), validate(s3Validation.sellerSign), s3Controller.sellerSign);
 
+router.post('/profilepic', auth(), validate(s3Validation.UserProfilePic), s3Controller.UserProfilePic);
+
 module.exports = router;

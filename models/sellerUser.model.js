@@ -124,5 +124,24 @@ SellerUserSchema.pre('findOneAndUpdate', async function (next) {
   }
   next();
 });
+SellerUserSchema.post(
+  ['find', 'findOne', 'findOneAndDelete', 'findOneAndRemove', 'update', 'updateOne', 'updateMany'],
+  function (result, next) {
+    if (result && result.SellerSignImg && result.SellerSignImg.length) {
+      // eslint-disable-next-line no-param-reassign
+      result.SellerSignImg = result.SellerSignImg.filter((doc) => !doc.isDeleted);
+    }
+
+    // If you want to include deleted images, you can use a flag 'includeDeleted'
+    if (!this._mongooseOptions.includeDeleted) {
+      if (result && result.SellerSignImg && result.SellerSignImg.length) {
+        // eslint-disable-next-line no-param-reassign
+        result.SellerSignImg = result.SellerSignImg.filter((doc) => !doc.deleted);
+      }
+    }
+
+    next(null, result);
+  }
+);
 const SellerUserModel = mongoose.models.SellerUser || mongoose.model('SellerUser', SellerUserSchema, 'SellerUser');
 module.exports = SellerUserModel;

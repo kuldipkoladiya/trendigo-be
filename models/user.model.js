@@ -48,6 +48,19 @@ const DeviceTokenSchema = new mongoose.Schema({
     enum: Object.values(enumModel.EnumPlatformOfDeviceToken),
   },
 });
+const UserImagesSchema = new mongoose.Schema(
+  {
+    url: {
+      type: String,
+    },
+    name: {
+      type: String,
+    },
+    isDeleted: Boolean,
+    deleted: Boolean,
+  },
+  { timestamps: { createdAt: true, updatedAt: true } }
+);
 const UserSchema = new mongoose.Schema({
   /**
    * Name of User
@@ -138,6 +151,10 @@ const UserSchema = new mongoose.Schema({
     type: String,
     enum: Object.values(enumModel.EnumGenderOfUser),
   },
+  profilePic: {
+    type: String,
+  },
+  userProfilePic: [UserImagesSchema],
 });
 UserSchema.plugin(toJSON);
 UserSchema.plugin(mongoosePaginateV2);
@@ -169,5 +186,24 @@ UserSchema.pre('findOneAndUpdate', async function (next) {
   }
   next();
 });
+UserSchema.post(
+  ['find', 'findOne', 'findOneAndDelete', 'findOneAndRemove', 'update', 'updateOne', 'updateMany'],
+  function (result, next) {
+    if (result && result.userProfilePic && result.userProfilePic.length) {
+      // eslint-disable-next-line no-param-reassign
+      result.userProfilePic = result.userProfilePic.filter((doc) => !doc.isDeleted);
+    }
+
+    // If you want to include deleted images, you can use a flag 'includeDeleted'
+    if (!this._mongooseOptions.includeDeleted) {
+      if (result && result.userProfilePic && result.userProfilePic.length) {
+        // eslint-disable-next-line no-param-reassign
+        result.userProfilePic = result.userProfilePic.filter((doc) => !doc.deleted);
+      }
+    }
+
+    next(null, result);
+  }
+);
 const UserModel = mongoose.models.User || mongoose.model('User', UserSchema, 'User');
 module.exports = UserModel;
