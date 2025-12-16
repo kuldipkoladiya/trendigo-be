@@ -9,8 +9,6 @@ import FileFieldValidationEnum from 'models/fileFieldValidation.model';
 import mongoose from 'mongoose';
 import TempS3 from 'models/tempS3.model';
 import { asyncForEach } from 'utils/common';
-import config from 'config/config';
-import { pick } from '../../utils/pick';
 
 const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
   const newUrl = await s3Service.moveFile({ key: url, newFilePath });
@@ -51,9 +49,9 @@ const moveFiles = async ({ body, user, moveFileObj }) => {
   });
 };
 export const getStore = catchAsync(async (req, res) => {
-  const { storeId } = req.params;
+  const { contact } = req.params;
   const filter = {
-    _id: storeId,
+    contact,
   };
   const options = {};
   const store = await storeService.getOne(filter, options);
@@ -76,20 +74,26 @@ export const paginateStore = catchAsync(async (req, res) => {
 
 export const createStore = catchAsync(async (req, res) => {
   const { body } = req;
-  body.createdBy = req.user._id;
-  body.updatedBy = req.user._id;
   const { user } = req;
+
+  body.createdBy = user._id;
+  body.updatedBy = user._id;
+
+  // ✅ SET CONTACT FROM AUTH SELLER
+  body.contact = user._id;
+
   const moveFileObj = {
     ...(body.profileImage && { profileImage: body.profileImage }),
   };
+
   body._id = mongoose.Types.ObjectId();
+
   await moveFiles({ body, user, moveFileObj });
-  const options = {};
-  const storeResult = await storeService.createStore(body, options);
-  if (storeResult) {
-    const uploadedFileUrls = [];
-    uploadedFileUrls.push(storeResult.profileImage);
-    await TempS3.updateMany({ url: { $in: uploadedFileUrls } }, { active: true });
+
+  const storeResult = await storeService.createStore(body);
+
+  if (storeResult && storeResult.profileImage) {
+    await TempS3.updateMany({ url: storeResult.profileImage }, { active: true });
   }
   return res.status(httpStatus.CREATED).send({ results: storeResult });
 });

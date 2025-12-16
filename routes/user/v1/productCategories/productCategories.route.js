@@ -2,7 +2,7 @@ import express from 'express';
 import { productCategoriesController } from 'controllers/user';
 import { productCategoriesValidation } from 'validations/user';
 import validate from 'middlewares/validate';
-import auth from 'middlewares/auth';
+import sellerAuth from '../../../../middlewares/sellerAuth';
 
 const router = express.Router();
 router
@@ -11,7 +11,7 @@ router
    * createProductCategories
    * */
   .post(
-    auth('user'),
+    sellerAuth(),
     validate(productCategoriesValidation.createProductCategories),
     productCategoriesController.createProductCategories
   )
@@ -19,7 +19,7 @@ router
    * getProductCategories
    * */
   .get(
-    auth('user'),
+    sellerAuth(),
     validate(productCategoriesValidation.getProductCategories),
     productCategoriesController.listProductCategories
   );
@@ -29,7 +29,7 @@ router
    * getProductCategoriesPaginated
    * */
   .get(
-    auth('user'),
+    sellerAuth(),
     validate(productCategoriesValidation.paginatedProductCategories),
     productCategoriesController.paginateProductCategories
   );
@@ -39,7 +39,7 @@ router
    * getProductCategoriesById
    * */
   .get(
-    auth('user'),
+    sellerAuth(),
     validate(productCategoriesValidation.getProductCategoriesById),
     productCategoriesController.getProductCategories
   )
@@ -47,7 +47,7 @@ router
    * updateProductCategories
    * */
   .put(
-    auth('user'),
+    sellerAuth(),
     validate(productCategoriesValidation.updateProductCategories),
     productCategoriesController.updateProductCategories
   )
@@ -55,7 +55,7 @@ router
    * deleteProductCategoriesById
    * */
   .delete(
-    auth('user'),
+    sellerAuth(),
     validate(productCategoriesValidation.deleteProductCategoriesById),
     productCategoriesController.removeProductCategories
   );

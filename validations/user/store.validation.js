@@ -16,7 +16,6 @@ export const createStore = {
     aboutStore: Joi.string(),
     storeUrl: Joi.string(),
     businessCategoryId: Joi.objectId(),
-    contact: Joi.objectId(),
     isDeclaration: Joi.bool(),
     descriptionValue: Joi.string(),
     settlementCycle: Joi.string().valid(...Object.values(enumFields.EnumSettlementCycleOfStore)),
@@ -75,4 +74,10 @@ export const paginatedStore = {
       limit: Joi.number().default(10).max(100),
     })
     .unknown(true),
+};
+
+export const StoreBySelleId = {
+  params: Joi.object().keys({
+    contact: Joi.objectId().required(),
+  }),
 };

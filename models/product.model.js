@@ -41,6 +41,10 @@ const ProductSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'ProductBrand',
     },
+    sellerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'SellerUser',
+    },
     productCode: {
       type: String,
     },
@@ -62,7 +66,6 @@ const ProductSchema = new mongoose.Schema(
     variants: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: 'ProductVarientByProductId',
-      required: true,
     },
     tages: {
       type: [String],

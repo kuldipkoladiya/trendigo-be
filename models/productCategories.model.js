@@ -30,7 +30,9 @@ const ProductCategoriesSchema = new mongoose.Schema(
      * this will be id if product category model id and this will come only if isSubCategory is true
      * */
     parentCategoryId: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'ProductCategories',
+      default: null,
     },
   },
   { timestamps: { createdAt: true, updatedAt: true } }

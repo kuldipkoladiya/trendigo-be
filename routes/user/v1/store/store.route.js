@@ -35,4 +35,10 @@ router
    * deleteStoreById
    * */
   .delete(sellerAuth(), validate(storeValidation.deleteStoreById), storeController.removeStore);
+router
+  .route('/get-seller/:contact')
+  /**
+   * getStoreById
+   * */
+  .get(sellerAuth(), validate(storeValidation.StoreBySelleId), storeController.getStore);
 export default router;

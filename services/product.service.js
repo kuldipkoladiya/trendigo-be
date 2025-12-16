@@ -11,9 +11,13 @@ export async function getProductById(id, options = {}) {
   return product;
 }
 
-export async function getOne(query, options = {}) {
-  const product = await Product.findOne(query, options.projection, options);
-  return product;
+export async function getOne(filter, options = {}) {
+  return Product.findOne(filter, options.projection, options)
+    .populate({ path: 'storeId', select: 'name storeUrl profileImage' })
+    .populate({ path: 'sellerId', select: 'name email' })
+    .populate({ path: 'productTypeId', select: 'value' })
+    .populate({ path: 'brandId', select: 'name logo' })
+    .populate({ path: 'productCategoryId', select: 'value parentCategoryId' });
 }
 
 export async function getProductList(filter, options = {}) {
@@ -26,7 +30,7 @@ export async function getProductListWithPagination(filter, options = {}) {
   return product;
 }
 
-export async function createProduct(body, options = {}) {
+export async function createProduct(body = {}) {
   if (body.storeId) {
     const storeId = await Store.findOne({ _id: body.storeId });
     if (!storeId) {
@@ -104,11 +108,11 @@ export async function aggregateProduct(query) {
   return product;
 }
 
-export async function aggregateProductWithPagination(query, options = {}) {
-  const aggregate = Product.aggregate();
-  query.map((obj) => {
-    aggregate._pipeline.push(obj);
-  });
-  const product = await Product.aggregatePaginate(aggregate, options);
-  return product;
-}
+// export async function aggregateProductWithPagination(query, options = {}) {
+//   const aggregate = Product.aggregate();
+//   query.map((obj) => {
+//     aggregate._pipeline.push(obj);
+//   });
+//   const product = await Product.aggregatePaginate(aggregate, options);
+//   return product;
+// }

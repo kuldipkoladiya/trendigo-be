@@ -3,6 +3,7 @@ import { productController } from 'controllers/user';
 import { productValidation } from 'validations/user';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import sellerAuth from '../../../../middlewares/sellerAuth';
 
 const router = express.Router();
 router
@@ -10,11 +11,11 @@ router
   /**
    * createProduct
    * */
-  .post(auth('user'), validate(productValidation.createProduct), productController.createProduct)
+  .post(sellerAuth(), validate(productValidation.createProduct), productController.createProduct)
   /**
    * getProduct
    * */
-  .get(auth('user'), validate(productValidation.getProduct), productController.listProduct);
+  .get(auth('user'), sellerAuth(), validate(productValidation.getProduct), productController.listProduct);
 router
   .route('/paginated')
   /**
@@ -26,11 +27,11 @@ router
   /**
    * getProductById
    * */
-  .get(auth('user'), validate(productValidation.getProductById), productController.getProduct)
+  .get(sellerAuth(), validate(productValidation.getProductById), productController.getProduct)
   /**
    * updateProduct
    * */
-  .put(auth('user'), validate(productValidation.updateProduct), productController.updateProduct)
+  .put(sellerAuth(), validate(productValidation.updateProduct), productController.updateProduct)
   /**
    * deleteProductById
    * */

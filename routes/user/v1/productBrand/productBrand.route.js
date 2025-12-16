@@ -2,7 +2,7 @@ import express from 'express';
 import { productBrandController } from 'controllers/user';
 import { productBrandValidation } from 'validations/user';
 import validate from 'middlewares/validate';
-import auth from 'middlewares/auth';
+import sellerAuth from '../../../../middlewares/sellerAuth';
 
 const router = express.Router();
 router
@@ -10,29 +10,29 @@ router
   /**
    * createProductBrand
    * */
-  .post(auth('user'), validate(productBrandValidation.createProductBrand), productBrandController.createProductBrand)
+  .post(sellerAuth(), validate(productBrandValidation.createProductBrand), productBrandController.createProductBrand)
   /**
    * getProductBrand
    * */
-  .get(auth('user'), validate(productBrandValidation.getProductBrand), productBrandController.listProductBrand);
+  .get(sellerAuth(), validate(productBrandValidation.getProductBrand), productBrandController.listProductBrand);
 router
   .route('/paginated')
   /**
    * getProductBrandPaginated
    * */
-  .get(auth('user'), validate(productBrandValidation.paginatedProductBrand), productBrandController.paginateProductBrand);
+  .get(sellerAuth(), validate(productBrandValidation.paginatedProductBrand), productBrandController.paginateProductBrand);
 router
   .route('/:productBrandId')
   /**
    * getProductBrandById
    * */
-  .get(auth('user'), validate(productBrandValidation.getProductBrandById), productBrandController.getProductBrand)
+  .get(sellerAuth(), validate(productBrandValidation.getProductBrandById), productBrandController.getProductBrand)
   /**
    * updateProductBrand
    * */
-  .put(auth('user'), validate(productBrandValidation.updateProductBrand), productBrandController.updateProductBrand)
+  .put(sellerAuth(), validate(productBrandValidation.updateProductBrand), productBrandController.updateProductBrand)
   /**
    * deleteProductBrandById
    * */
-  .delete(auth('user'), validate(productBrandValidation.deleteProductBrandById), productBrandController.removeProductBrand);
+  .delete(sellerAuth(), validate(productBrandValidation.deleteProductBrandById), productBrandController.removeProductBrand);
 export default router;

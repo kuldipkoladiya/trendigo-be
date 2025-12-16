@@ -10,6 +10,7 @@ export const createProduct = {
   body: Joi.object().keys({
     productTypeId: Joi.objectId(),
     storeId: Joi.objectId(),
+    sellerId: Joi.objectId(),
     title: Joi.string().required(),
     description: Joi.string(),
     productCategoyId: Joi.objectId(),
@@ -19,7 +20,7 @@ export const createProduct = {
     sellingPrice: Joi.number(),
     marketPrice: Joi.string(),
     productDetails: Joi.string(),
-    variants: Joi.array().items(Joi.objectId()).required(),
+    variants: Joi.array().items(Joi.objectId()),
     tages: Joi.array().items(Joi.string()),
     storeDiscount: Joi.number().integer(),
   }),
