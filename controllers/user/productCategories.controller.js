@@ -58,10 +58,13 @@ export const removeProductCategories = catchAsync(async (req, res) => {
 
 export const getProductCategoriesList = catchAsync(async (req, res) => {
   const { productCategoriesId } = req.params;
+
   const filter = {
-    _id: productCategoriesId,
+    parentCategoryId: productCategoriesId,
+    isSubCategory: true,
   };
-  const options = {};
-  const productCategories = await productCategoriesService.getProductCategoriesList(filter, options);
+
+  const productCategories = await productCategoriesService.getProductCategoriesList(filter);
+
   return res.status(httpStatus.OK).send({ results: productCategories });
 });
