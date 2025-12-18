@@ -59,4 +59,14 @@ router
     validate(productCategoriesValidation.deleteProductCategoriesById),
     productCategoriesController.removeProductCategories
   );
+router
+  .route('/get-list/:productCategoriesId')
+  /**
+   * getListProductCategoriesById
+   * */
+  .get(
+    sellerAuth(),
+    validate(productCategoriesValidation.getProductCategoriesById),
+    productCategoriesController.getProductCategoriesList
+  );
 export default router;

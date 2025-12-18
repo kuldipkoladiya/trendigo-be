@@ -60,6 +60,10 @@ const ProductSchema = new mongoose.Schema(
     productDetails: {
       type: String,
     },
+    variantsEnabled: {
+      type: Boolean,
+      default: false,
+    },
     /**
      * // todo : make more clear about variant section
      * */

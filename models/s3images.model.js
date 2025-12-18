@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import mongoosePaginateV2 from 'mongoose-paginate-v2';
 import { toJSON, softDelete } from './plugins';
 
-const RecentlyViewedSchema = new mongoose.Schema(
+const S3imageSchema = new mongoose.Schema(
   {
     /**
      * created By
@@ -18,29 +18,27 @@ const RecentlyViewedSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
-    productId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Product',
+    imageUrl: {
+      type: String,
     },
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+    imageName: {
+      type: String,
     },
-    time: {
-      type: Date,
+    isSelectedForMainScreen: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: { createdAt: true, updatedAt: true } }
 );
-RecentlyViewedSchema.plugin(toJSON);
-RecentlyViewedSchema.plugin(mongoosePaginateV2);
-RecentlyViewedSchema.plugin(softDelete, {
+S3imageSchema.plugin(toJSON);
+S3imageSchema.plugin(mongoosePaginateV2);
+S3imageSchema.plugin(softDelete, {
   isSoftDeleteAddon: true,
   overrideMethods: 'all',
   deleted: 'isDeleted',
   deletedBy: 'deletedBy',
   deletedAt: 'deletedAt',
 });
-const RecentlyViewedModel =
-  mongoose.models.RecentlyViewed || mongoose.model('RecentlyViewed', RecentlyViewedSchema, 'RecentlyViewed');
-module.exports = RecentlyViewedModel;
+const S3imageModel = mongoose.models.S3image || mongoose.model('S3image', S3imageSchema, 'S3image');
+module.exports = S3imageModel;

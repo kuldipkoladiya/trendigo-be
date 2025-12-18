@@ -34,3 +34,4 @@ module.exports.storeNotificationController = require('./storeNotification.contro
 module.exports.storeConfigController = require('./storeConfig.controller');
 module.exports.authController = require('./auth.controller');
 module.exports.sellerAuthController = require('./sellerAuth.controller');
+module.exports.bannerController = require('./banner.controller');

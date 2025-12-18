@@ -4,44 +4,65 @@ import { toJSON, softDelete } from './plugins';
 
 const ProductVarientByProductIdSchema = new mongoose.Schema(
   {
-    /**
-     * created By
-     * */
-    createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-    },
-    /**
-     * updated By
-     * */
-    updatedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-    },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+
     productId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Product',
+      required: true,
     },
-    /**
-     * // todo : make 0 to detuld value and update value here
-     * */
+
+    /** Example: Color */
+    variantKey: {
+      type: String,
+      required: true,
+    },
+
+    /** Example: Red */
+    variantValue: {
+      type: String,
+      required: true,
+    },
+
     quantity: {
       type: Number,
-      default: 1,
+      required: true,
+      min: 0,
+    },
+
+    price: {
+      type: Number,
+      required: true,
+    },
+
+    discount: {
+      type: Number,
+      default: 0,
+    },
+
+    sku: {
+      type: String,
+      required: true,
+    },
+
+    /** optional: variant image */
+    image: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'S3image',
     },
   },
-  { timestamps: { createdAt: true, updatedAt: true } }
+  { timestamps: true }
 );
+
 ProductVarientByProductIdSchema.plugin(toJSON);
 ProductVarientByProductIdSchema.plugin(mongoosePaginateV2);
 ProductVarientByProductIdSchema.plugin(softDelete, {
-  isSoftDeleteAddon: true,
   overrideMethods: 'all',
   deleted: 'isDeleted',
   deletedBy: 'deletedBy',
   deletedAt: 'deletedAt',
 });
-const ProductVarientByProductIdModel =
-  mongoose.models.ProductVarientByProductId ||
-  mongoose.model('ProductVarientByProductId', ProductVarientByProductIdSchema, 'ProductVarientByProductId');
-module.exports = ProductVarientByProductIdModel;
+
+export default mongoose.models.ProductVarientByProductId ||
+  mongoose.model('ProductVarientByProductId', ProductVarientByProductIdSchema);
