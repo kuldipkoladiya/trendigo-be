@@ -60,13 +60,13 @@ router
     productCategoriesController.removeProductCategories
   );
 router
-  .route('/get-list/:productCategoriesId')
+  .route('/get-list/:parentCategoryId')
   /**
    * getListProductCategoriesById
    * */
   .get(
     sellerAuth(),
-    validate(productCategoriesValidation.getProductCategoriesById),
+    validate(productCategoriesValidation.getProductparentCategoryId),
     productCategoriesController.getProductCategoriesList
   );
 export default router;

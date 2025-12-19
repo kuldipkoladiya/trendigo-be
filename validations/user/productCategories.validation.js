@@ -56,3 +56,9 @@ export const paginatedProductCategories = {
     })
     .unknown(true),
 };
+
+export const getProductparentCategoryId = {
+  params: Joi.object().keys({
+    parentCategoryId: Joi.objectId().required(),
+  }),
+};

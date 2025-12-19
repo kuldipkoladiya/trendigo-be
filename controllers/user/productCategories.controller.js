@@ -1,6 +1,7 @@
 import httpStatus from 'http-status';
 import { productCategoriesService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
+import { ProductCategories } from '../../models';
 
 export const getProductCategories = catchAsync(async (req, res) => {
   const { productCategoriesId } = req.params;
@@ -57,14 +58,23 @@ export const removeProductCategories = catchAsync(async (req, res) => {
 });
 
 export const getProductCategoriesList = catchAsync(async (req, res) => {
-  const { productCategoriesId } = req.params;
+  const { parentCategoryId } = req.params;
 
-  const filter = {
-    parentCategoryId: productCategoriesId,
-    isSubCategory: true,
-  };
+  // const objectId = new mongoose.Types.ObjectId(parentCategoryId);
 
-  const productCategories = await productCategoriesService.getProductCategoriesList(filter);
+  const data = await ProductCategories.aggregate([
+    {
+      $match: {
+        isSubCategory: true,
+        $expr: {
+          $eq: [{ $toString: '$parentCategoryId' }, parentCategoryId],
+        },
+      },
+    },
+  ]);
 
-  return res.status(httpStatus.OK).send({ results: productCategories });
+  return res.status(httpStatus.OK).send({
+    status: 'Success',
+    data,
+  });
 });
