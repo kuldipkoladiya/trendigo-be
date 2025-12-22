@@ -13,11 +13,20 @@ export const getBannerList = catchAsync(async (req, res) => {
 });
 
 export const updateBanner = catchAsync(async (req, res) => {
-  const banner = await bannerService.updateBanner(req.params.bannerId, req.body, req.user);
-  res.status(httpStatus.OK).send({ results: banner });
+  const { bannerId } = req.params;
+  const filter = {
+    _id: bannerId,
+  };
+  const options = {};
+  const banner = await bannerService.updateBanner(filter, options);
+  return res.status(httpStatus.OK).send({ results: banner });
 });
-
 export const deleteBanner = catchAsync(async (req, res) => {
-  await bannerService.deleteBanner(req.params.bannerId, req.user);
-  res.status(httpStatus.OK).send({ message: 'Banner deleted successfully' });
+  const { bannerId } = req.params;
+  const filter = {
+    _id: bannerId,
+  };
+  const options = {};
+  const banner = await bannerService.removeBanner(filter, options);
+  return res.status(httpStatus.OK).send({ results: banner });
 });

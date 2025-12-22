@@ -4,7 +4,7 @@ import config from 'config/config';
 import { logger } from 'config/logger';
 // import socketAPI from 'appEvents/socketAPI';
 // import redisAdapter from 'socket.io-redis';
-import startNgrok from 'utils/ngrok';
+// import startNgrok from 'utils/ngrok';
 import dotenv from 'dotenv';
 import app from './app';
 
@@ -26,11 +26,11 @@ mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
     }
 
     // Start ngrok if enabled (development only)
-    try {
-      await startNgrok();
-    } catch (err) {
-      logger.error('Error when starting ngrok', err);
-    }
+    // try {
+    //   await startNgrok();
+    // } catch (err) {
+    //   logger.error('Error when starting ngrok', err);
+    // }
   });
 });
 

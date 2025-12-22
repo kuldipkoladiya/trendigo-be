@@ -63,7 +63,48 @@ const EnumOfImageTypes = {
   PROFILE_VIDEO: 'profileVideo',
   BUSINESS_COVER: 'businessCover',
   SELLERSIGN: 'sellerSing',
+  BANNER: 'banner',
 };
+const ProductVariantKeyEnum = {
+  COLOR: 'color',
+  SIZE: 'size',
+  FABRIC: 'fabric',
+  FIT: 'fit',
+  PATTERN: 'pattern',
+};
+const ProductVariantValueEnum = {
+  // COLORS
+  RED: 'red',
+  BLUE: 'blue',
+  BLACK: 'black',
+  WHITE: 'white',
+  GREEN: 'green',
+
+  // SIZES
+  XS: 'xs',
+  S: 's',
+  M: 'm',
+  L: 'l',
+  XL: 'xl',
+  XXL: 'xxl',
+
+  // FABRIC
+  COTTON: 'cotton',
+  SILK: 'silk',
+  POLYESTER: 'polyester',
+  DENIM: 'denim',
+
+  // FIT
+  SLIM: 'slim',
+  REGULAR: 'regular',
+  LOOSE: 'loose',
+
+  // PATTERN
+  SOLID: 'solid',
+  PRINTED: 'printed',
+  CHECKED: 'checked',
+};
+
 module.exports = {
   EnumContentType,
   EnumCodeTypeOfCode,
@@ -78,4 +119,6 @@ module.exports = {
   EnumBannerOfStoreConfig,
   EnumTypeOfToken,
   EnumOfImageTypes,
+  ProductVariantKeyEnum,
+  ProductVariantValueEnum,
 };

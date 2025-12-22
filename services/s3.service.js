@@ -8,7 +8,7 @@ import jimp from 'jimp';
 import AWS from 'aws-sdk';
 import { asyncForEach } from 'utils/common';
 import ApiError from 'utils/ApiError';
-import { SellerUser, TempS3, User } from 'models';
+import { S3image, SellerUser, TempS3, User } from 'models';
 import config from 'config/config';
 import allowedContentType from 'utils/content-type.json';
 import { EnumOfImageTypes } from '../models/enum.model';
@@ -45,7 +45,7 @@ export const validateExtensionForPutObject = async (preSignedReq, user) => {
   const ssExtensionsContentType = allowedContentType.map((ele) => ele.mimeType);
   const ssExtensions = allowedContentType.map((ele) => ele.key);
   // this is the number of unwanted file that is not used in system but uploaded in server
-  const maxTanglingFilesAllowed = 100;
+  const maxTanglingFilesAllowed = 10000;
   let extensionOfKey = preSignedReq.key.split('.');
   extensionOfKey = extensionOfKey[extensionOfKey.length - 1];
   if (!extensionOfKey) {
@@ -55,7 +55,7 @@ export const validateExtensionForPutObject = async (preSignedReq, user) => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'invalid content-type');
   }
   Object.assign(preSignedReq, {
-    key: `users/${user._id}/${mongoose.Types.ObjectId()}/${preSignedReq.key}`,
+    key: `users/${user._id}/${preSignedReq.profileType}/${mongoose.Types.ObjectId()}/${preSignedReq.key}`,
   });
   const dumpFilesCount = await TempS3.find({ active: false }).count();
   if (dumpFilesCount > maxTanglingFilesAllowed) {
@@ -67,9 +67,15 @@ export const validateExtensionForPutObject = async (preSignedReq, user) => {
     url: url.split('?')[0],
     key: preSignedReq.key,
   };
-  const tempS3 = new TempS3(tempS3Body);
-  await tempS3.save();
-  return { url, key: preSignedReq.key };
+  const s3ImageBody = {
+    createdBy: user._id,
+    imageUrl: tempS3Body.url,
+    imageName: preSignedReq.key.split('/').pop(),
+    isSelectedForMainScreen: preSignedReq.isSelectedForMainScreen,
+  };
+  const s3Image = new S3image(s3ImageBody);
+  const savedImage = await s3Image.save();
+  return { url, key: preSignedReq.key, savedImage };
 };
 // For seller
 export const validateExtensionForSellerPic = async (preSignedReq, user, isProfilePic, isSellerSign) => {

@@ -7,12 +7,13 @@ Joi.objectId = require('joi-objectid')(Joi);
 export const preSignedPutUrl = {
   body: Joi.object().keys({
     key: Joi.string().required(),
-    contentType: Joi.string()
-      .valid(...Object.values(enumFields.EnumContentType))
+    contentType: Joi.string().required(),
+    profileType: Joi.string()
+      .valid(...Object.values(enumFields.EnumOfImageTypes))
       .required(),
+    isSelectedForMainScreen: Joi.boolean(),
   }),
 };
-
 export const sellerSign = {
   body: Joi.object().keys({
     key: Joi.string().required(),
