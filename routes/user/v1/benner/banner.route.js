@@ -5,7 +5,7 @@ import sellerAuth from '../../../../middlewares/sellerAuth';
 const router = express.Router();
 
 router.post('/', sellerAuth(), bannerController.createBanner);
-router.get('/', sellerAuth(), bannerController.getBannerList);
+router.get('/', bannerController.getBannerList);
 router.put('/:bannerId', sellerAuth(), bannerController.updateBanner);
 router.delete('/:bannerId', sellerAuth(), bannerController.deleteBanner);
 
