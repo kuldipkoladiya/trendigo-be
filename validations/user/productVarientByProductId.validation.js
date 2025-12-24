@@ -1,5 +1,5 @@
 import Joi from 'joi';
-import { ProductVariantKeyEnum, ProductVariantValueEnum } from '../../models/enum.model';
+import { ProductVariantKeyEnum } from '../../models/enum.model';
 
 Joi.objectId = require('joi-objectid')(Joi);
 
@@ -7,13 +7,14 @@ export const createProductVarientByProductId = {
   body: Joi.object({
     productId: Joi.objectId().required(),
 
-    variantKey: Joi.string()
-      .valid(...Object.values(ProductVariantKeyEnum))
-      .required(),
-
-    variantValue: Joi.string()
-      .valid(...Object.values(ProductVariantValueEnum))
-      .required(),
+    variants: Joi.array()
+      .items(
+        Joi.object({
+          key: Joi.string().valid(...Object.values(ProductVariantKeyEnum)),
+          value: Joi.string().trim(),
+        })
+      )
+      .optional(),
 
     quantity: Joi.number().integer().min(0).required(),
 
@@ -35,12 +36,13 @@ export const updateProductVarientByProductId = {
   body: Joi.object({
     productId: Joi.objectId().optional(),
 
-    variantKey: Joi.string()
-      .valid(...Object.values(ProductVariantKeyEnum))
-      .optional(),
-
-    variantValue: Joi.string()
-      .valid(...Object.values(ProductVariantValueEnum))
+    variants: Joi.array()
+      .items(
+        Joi.object({
+          key: Joi.string().valid(...Object.values(ProductVariantKeyEnum)),
+          value: Joi.string().trim(),
+        })
+      )
       .optional(),
 
     quantity: Joi.number().integer().min(0).optional(),

@@ -16,10 +16,9 @@ export async function getOne(filter, options = {}) {
     .populate({ path: 'productCategoryId', select: 'value parentCategoryId' })
     .populate({
       path: 'variants',
-      match: { isDeleted: false }, // because you use softDelete
+      match: { isDeleted: false },
       select: `
-        variantKey
-        variantValue
+        variants
         quantity
         price
         discount
@@ -28,7 +27,7 @@ export async function getOne(filter, options = {}) {
       `,
       populate: {
         path: 'image',
-        select: 'url', // adjust based on S3image schema
+        select: 'url',
       },
     });
 }

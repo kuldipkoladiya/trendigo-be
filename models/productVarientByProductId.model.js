@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 import mongoosePaginateV2 from 'mongoose-paginate-v2';
 import { toJSON, softDelete } from './plugins';
-import { ProductVariantKeyEnum, ProductVariantValueEnum } from './enum.model';
 
 const ProductVarientByProductIdSchema = new mongoose.Schema(
   {
@@ -14,19 +13,12 @@ const ProductVarientByProductIdSchema = new mongoose.Schema(
       required: true,
     },
 
-    /** Example: Color */
-    variantKey: {
-      type: String,
-      enum: Object.values(ProductVariantKeyEnum),
-      required: true,
-    },
-
-    /** Example: Red */
-    variantValue: {
-      type: String,
-      enum: Object.values(ProductVariantValueEnum),
-      required: true,
-    },
+    variants: [
+      {
+        key: { type: String, required: true }, // Color, Size
+        value: { type: String, required: true }, // Red, M
+      },
+    ],
 
     quantity: {
       type: Number,

@@ -24,14 +24,26 @@ export async function getProductVarientByProductIdListWithPagination(filter, opt
 }
 
 export async function createProductVarientByProductId(body = {}) {
-  if (body.productId) {
-    const productId = await Product.findOne({ _id: body.productId });
-    if (!productId) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'field productId is not valid');
-    }
+  // 1️⃣ Validate productId
+  const product = await Product.findById(body.productId);
+  if (!product) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'field productId is not valid');
   }
-  const productVarientByProductId = await ProductVarientByProductId.create(body);
-  return productVarientByProductId;
+
+  // 2️⃣ Create variant
+  const productVariant = await ProductVarientByProductId.create(body);
+
+  // 3️⃣ Push variant ID into Product.variants[]
+  await Product.findByIdAndUpdate(
+    body.productId,
+    {
+      $addToSet: { variants: productVariant._id }, // prevents duplicates
+      $set: { variantsEnabled: true },
+    },
+    { new: true }
+  );
+
+  return productVariant;
 }
 
 export async function updateProductVarientByProductId(filter, body, options = {}) {
@@ -51,8 +63,37 @@ export async function updateManyProductVarientByProductId(filter, body, options 
 }
 
 export async function removeProductVarientByProductId(filter) {
-  const productVarientByProductId = await ProductVarientByProductId.findOneAndRemove(filter);
-  return productVarientByProductId;
+  // 1️⃣ Find variant
+  const variant = await ProductVarientByProductId.findOne(filter);
+  if (!variant) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Product variant not found');
+  }
+
+  // 2️⃣ Soft delete variant
+  await ProductVarientByProductId.findByIdAndUpdate(variant._id, { isDeleted: true }, { new: true });
+
+  // 3️⃣ Remove variant reference from Product
+  await Product.findByIdAndUpdate(
+    variant.productId,
+    {
+      $pull: { variants: variant._id },
+    },
+    { new: true }
+  );
+
+  // 4️⃣ Disable variants if none left
+  const remainingVariants = await ProductVarientByProductId.countDocuments({
+    productId: variant.productId,
+    isDeleted: false,
+  });
+
+  if (remainingVariants === 0) {
+    await Product.findByIdAndUpdate(variant.productId, {
+      variantsEnabled: false,
+    });
+  }
+
+  return true;
 }
 
 export async function removeManyProductVarientByProductId(filter) {
