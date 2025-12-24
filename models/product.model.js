@@ -90,12 +90,10 @@ const ProductSchema = new mongoose.Schema(
       {
         key: {
           type: String,
-          required: true, // e.g. "Back", "Coverage"
           trim: true,
         },
         value: {
           type: String,
-          required: true, // e.g. "Regular", "Medium Coverage"
           trim: true,
         },
       },

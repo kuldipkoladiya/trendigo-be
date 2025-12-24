@@ -31,8 +31,8 @@ export const createProduct = {
     specifications: Joi.array()
       .items(
         Joi.object({
-          key: Joi.string().trim().required(),
-          value: Joi.string().trim().required(),
+          key: Joi.string().trim(),
+          value: Joi.string().trim(),
         })
       )
       .optional(),
@@ -78,8 +78,8 @@ export const updateProduct = {
     specifications: Joi.array()
       .items(
         Joi.object({
-          key: Joi.string().trim().required(),
-          value: Joi.string().trim().required(),
+          key: Joi.string().trim(),
+          value: Joi.string().trim(),
         })
       )
       .optional(),
