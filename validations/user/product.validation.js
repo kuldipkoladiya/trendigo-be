@@ -3,45 +3,91 @@ import Joi from 'joi';
 Joi.objectId = require('joi-objectid')(Joi);
 
 export const createProduct = {
-  body: Joi.object().keys({
-    productTypeId: Joi.objectId(),
-    storeId: Joi.objectId(),
-    sellerId: Joi.objectId(),
-    title: Joi.string().required(),
-    description: Joi.string(),
-    productCategoyId: Joi.objectId(),
-    brandId: Joi.objectId(),
-    productCode: Joi.string(),
-    sku: Joi.string(),
-    sellingPrice: Joi.number(),
-    marketPrice: Joi.string(),
-    productDetails: Joi.string(),
-    variants: Joi.array().items(Joi.objectId()),
-    tages: Joi.array().items(Joi.string()),
-    storeDiscount: Joi.number().integer(),
+  body: Joi.object({
+    createdBy: Joi.objectId().optional(),
+    updatedBy: Joi.objectId().optional(),
+
+    productTypeId: Joi.objectId().optional(),
+    storeId: Joi.objectId().optional(),
+    sellerId: Joi.objectId().optional(),
+    productCategoryId: Joi.objectId().optional(),
+    brandId: Joi.objectId().optional(),
+
+    title: Joi.string().trim().required(),
+    description: Joi.string().allow('').optional(),
+    productDetails: Joi.string().allow('').optional(),
+
+    sellingPrice: Joi.number().min(0).optional(),
+    marketPrice: Joi.number().min(0).optional(),
+    storeDiscount: Joi.number().min(0).max(100).optional(),
+
+    productCode: Joi.string().trim().optional(),
+    sku: Joi.string().trim().optional(),
+
+    variantsEnabled: Joi.boolean().default(false),
+
+    variants: Joi.array().items(Joi.objectId()).optional(),
+
+    specifications: Joi.array()
+      .items(
+        Joi.object({
+          key: Joi.string().trim().required(),
+          value: Joi.string().trim().required(),
+        })
+      )
+      .optional(),
+
+    images: Joi.array().items(Joi.objectId()).optional(),
+
+    tags: Joi.array().items(Joi.string().trim()).optional(),
   }),
 };
 
+/**
+ * UPDATE PRODUCT
+ */
 export const updateProduct = {
-  body: Joi.object().keys({
-    productTypeId: Joi.objectId(),
-    storeId: Joi.objectId(),
-    title: Joi.string(),
-    description: Joi.string(),
-    productCategoyId: Joi.objectId(),
-    brandId: Joi.objectId(),
-    productCode: Joi.string(),
-    sku: Joi.string(),
-    sellingPrice: Joi.number(),
-    marketPrice: Joi.string(),
-    productDetails: Joi.string(),
-    variants: Joi.array().items(Joi.objectId()),
-    tages: Joi.array().items(Joi.string()),
-    storeDiscount: Joi.number().integer(),
-  }),
-  params: Joi.object().keys({
+  params: Joi.object({
     productId: Joi.objectId().required(),
   }),
+
+  body: Joi.object({
+    updatedBy: Joi.objectId().optional(),
+
+    productTypeId: Joi.objectId().optional(),
+    storeId: Joi.objectId().optional(),
+    sellerId: Joi.objectId().optional(),
+    productCategoryId: Joi.objectId().optional(),
+    brandId: Joi.objectId().optional(),
+
+    title: Joi.string().trim().optional(),
+    description: Joi.string().allow('').optional(),
+    productDetails: Joi.string().allow('').optional(),
+
+    sellingPrice: Joi.number().min(0).optional(),
+    marketPrice: Joi.number().min(0).optional(),
+    storeDiscount: Joi.number().min(0).max(100).optional(),
+
+    productCode: Joi.string().trim().optional(),
+    sku: Joi.string().trim().optional(),
+
+    variantsEnabled: Joi.boolean().optional(),
+
+    variants: Joi.array().items(Joi.objectId()).optional(),
+
+    specifications: Joi.array()
+      .items(
+        Joi.object({
+          key: Joi.string().trim().required(),
+          value: Joi.string().trim().required(),
+        })
+      )
+      .optional(),
+
+    images: Joi.array().items(Joi.objectId()).optional(),
+
+    tags: Joi.array().items(Joi.string().trim()).optional(),
+  }).min(1),
 };
 
 export const getProductById = {

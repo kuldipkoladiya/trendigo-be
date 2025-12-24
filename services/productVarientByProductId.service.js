@@ -1,6 +1,7 @@
 import ApiError from 'utils/ApiError';
 import httpStatus from 'http-status';
-import { ProductVarientByProductId, Product } from 'models';
+import ProductVarientByProductId from '../models/productVarientByProductId.model';
+import { Product } from '../models';
 
 export async function getProductVarientByProductIdById(id, options = {}) {
   const productVarientByProductId = await ProductVarientByProductId.findById(id, options.projection, options);

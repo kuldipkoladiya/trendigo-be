@@ -13,7 +13,24 @@ export async function getOne(filter, options = {}) {
     .populate({ path: 'sellerId', select: 'name email' })
     .populate({ path: 'productTypeId', select: 'value' })
     .populate({ path: 'brandId', select: 'name logo' })
-    .populate({ path: 'productCategoryId', select: 'value parentCategoryId' });
+    .populate({ path: 'productCategoryId', select: 'value parentCategoryId' })
+    .populate({
+      path: 'variants',
+      match: { isDeleted: false }, // because you use softDelete
+      select: `
+        variantKey
+        variantValue
+        quantity
+        price
+        discount
+        sku
+        image
+      `,
+      populate: {
+        path: 'image',
+        select: 'url', // adjust based on S3image schema
+      },
+    });
 }
 
 export async function getProductList(filter, options = {}) {

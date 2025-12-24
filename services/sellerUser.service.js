@@ -8,7 +8,7 @@ import { notificationService } from './index';
 import { updateUser } from './user.service';
 
 export async function getSellerUserById(id, options = {}) {
-  const sellerUser = await SellerUser.findById(id, options.projection, options);
+  const sellerUser = await SellerUser.findById(id, options.projection, options).populate('storeId').exec();
   return sellerUser;
 }
 

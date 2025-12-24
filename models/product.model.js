@@ -86,6 +86,20 @@ const ProductSchema = new mongoose.Schema(
     storeDiscount: {
       type: Number,
     },
+    specifications: [
+      {
+        key: {
+          type: String,
+          required: true, // e.g. "Back", "Coverage"
+          trim: true,
+        },
+        value: {
+          type: String,
+          required: true, // e.g. "Regular", "Medium Coverage"
+          trim: true,
+        },
+      },
+    ],
   },
   { timestamps: { createdAt: true, updatedAt: true } }
 );

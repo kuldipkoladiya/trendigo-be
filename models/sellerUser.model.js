@@ -91,6 +91,10 @@ const SellerUserSchema = new mongoose.Schema(
       type: String,
     },
     SellerSignImg: [SellerImagesSchema],
+    storeId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Store',
+    },
   },
   { timestamps: { createdAt: true, updatedAt: true } }
 );

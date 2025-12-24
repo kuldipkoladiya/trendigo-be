@@ -67,5 +67,8 @@ ProductVarientByProductIdSchema.plugin(softDelete, {
   deletedAt: 'deletedAt',
 });
 
-export default mongoose.models.ProductVarientByProductId ||
-  mongoose.model('ProductVarientByProductId', ProductVarientByProductIdSchema);
+const ProductVarientByProductId =
+  mongoose.models.ProductVarientByProductId ||
+  mongoose.model('ProductVarientByProductId', ProductVarientByProductIdSchema, 'ProductVarientByProductId');
+
+export default ProductVarientByProductId;

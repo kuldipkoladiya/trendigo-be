@@ -2,7 +2,7 @@ import express from 'express';
 import { productVarientByProductIdController } from 'controllers/user';
 import { productVarientByProductIdValidation } from 'validations/user';
 import validate from 'middlewares/validate';
-import auth from 'middlewares/auth';
+import sellerAuth from 'middlewares/sellerAuth';
 
 const router = express.Router();
 router
@@ -11,7 +11,7 @@ router
    * createProductVarientByProductId
    * */
   .post(
-    auth('user'),
+    sellerAuth(),
     validate(productVarientByProductIdValidation.createProductVarientByProductId),
     productVarientByProductIdController.createProductVarientByProductId
   )
@@ -19,7 +19,7 @@ router
    * getProductVarientByProductId
    * */
   .get(
-    auth('user'),
+    sellerAuth(),
     validate(productVarientByProductIdValidation.getProductVarientByProductId),
     productVarientByProductIdController.listProductVarientByProductId
   );
@@ -29,7 +29,7 @@ router
    * getProductVarientByProductIdPaginated
    * */
   .get(
-    auth('user'),
+    sellerAuth(),
     validate(productVarientByProductIdValidation.paginatedProductVarientByProductId),
     productVarientByProductIdController.paginateProductVarientByProductId
   );
@@ -39,7 +39,7 @@ router
    * getProductVarientByProductIdById
    * */
   .get(
-    auth('user'),
+    sellerAuth(),
     validate(productVarientByProductIdValidation.getProductVarientByProductIdById),
     productVarientByProductIdController.getProductVarientByProductId
   )
@@ -47,7 +47,7 @@ router
    * updateProductVarientByProductId
    * */
   .put(
-    auth('user'),
+    sellerAuth(),
     validate(productVarientByProductIdValidation.updateProductVarientByProductId),
     productVarientByProductIdController.updateProductVarientByProductId
   )
@@ -55,8 +55,18 @@ router
    * deleteProductVarientByProductIdById
    * */
   .delete(
-    auth('user'),
+    sellerAuth(),
     validate(productVarientByProductIdValidation.deleteProductVarientByProductIdById),
     productVarientByProductIdController.removeProductVarientByProductId
+  );
+router
+  .route('/by-productid/:productId')
+  /**
+   * getProductVarientByProductIdById
+   * */
+  .get(
+    sellerAuth(),
+    validate(productVarientByProductIdValidation.getVarientByProductId),
+    productVarientByProductIdController.getVarientByProductId
   );
 export default router;
