@@ -24,6 +24,9 @@ router
     productCategoriesController.listProductCategories
   );
 router
+  .route('/get-categories')
+  .get(validate(productCategoriesValidation.getProductCategories), productCategoriesController.listProductCategories);
+router
   .route('/paginated')
   /**
    * getProductCategoriesPaginated
@@ -69,4 +72,8 @@ router
     validate(productCategoriesValidation.getProductparentCategoryId),
     productCategoriesController.getProductCategoriesList
   );
+/**
+ * getProductCategories
+ * */
+
 export default router;

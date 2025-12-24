@@ -15,6 +15,7 @@ router
    * getProductType
    * */
   .get(sellerAuth(), validate(productTypeValidation.getProductType), productTypeController.listProductType);
+router.route('/get-productType').get(validate(productTypeValidation.getProductType), productTypeController.listProductType);
 router
   .route('/paginated')
   /**
