@@ -7,7 +7,7 @@ export const register = {
     .keys({
       email: Joi.string().email().optional(), // Optional, but should be a valid email if provided
       password: Joi.string(),
-      name: Joi.string().required(), // Name is required
+      name: Joi.string(), // Name is required
       mobileNumber: Joi.string()
         .pattern(/^[0-9]{10,15}$/)
         .optional(), // Optional, but should be valid if provided (between 10-15 digits)
