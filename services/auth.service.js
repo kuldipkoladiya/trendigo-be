@@ -41,7 +41,6 @@ export const SellerloginUserWithEmailAndPassword = async (email, password) => {
   if (!isValid) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Incorrect email or password');
   }
-
   return seller;
 };
 

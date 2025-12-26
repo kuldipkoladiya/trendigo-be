@@ -63,3 +63,5 @@ module.exports.storeConfigValidation = require('./storeConfig.validation');
 module.exports.authValidation = require('./auth.validation');
 
 module.exports.sellerAuthValidation = require('./sellerAuth.validation');
+
+module.exports.countryCodeValidation = require('./countryCode.validation');

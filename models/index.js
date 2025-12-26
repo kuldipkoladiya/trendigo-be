@@ -33,6 +33,7 @@ module.exports.Token = require('./token.model');
 module.exports.FileFieldValidation = require('./fileFieldValidation.model');
 module.exports.TempS3 = require('./tempS3.model');
 module.exports.Error = require('./error.model');
+module.exports.CountryCode = require('./countryCode.model');
 module.exports.Enum = require('./enum.model');
 module.exports.S3image = require('./s3images.model');
 module.exports.Banner = require('./banner.model');

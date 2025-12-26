@@ -35,3 +35,4 @@ module.exports.storeConfigController = require('./storeConfig.controller');
 module.exports.authController = require('./auth.controller');
 module.exports.sellerAuthController = require('./sellerAuth.controller');
 module.exports.bannerController = require('./banner.controller');
+module.exports.CountryCodeController = require('./countryCode.controller');
