@@ -5,7 +5,7 @@ import { Token } from 'models';
 import ApiError from 'utils/ApiError';
 import config from 'config/config';
 import _ from 'lodash';
-import { sellerUserService, userService } from 'services';
+import { userService, storyService } from 'services';
 import { EnumTypeOfToken, EnumCodeTypeOfCode } from 'models/enum.model';
 /**
  * Generate token
@@ -14,8 +14,10 @@ import { EnumTypeOfToken, EnumCodeTypeOfCode } from 'models/enum.model';
  * @param {string} [secret]
  * @returns {string}
  */
-export const generateToken = (userId, expires, secret = config.jwt.secret) => {
+export const generateToken = (userId, expires, checkUserActivePlan = false, storyId = null, secret = config.jwt.secret) => {
   const payload = {
+    ...(storyId && { storyId }),
+    ...(checkUserActivePlan && { checkUserActivePlan }),
     sub: userId,
     iat: moment().unix(),
     exp: expires.unix(),
@@ -32,17 +34,29 @@ export const generateToken = (userId, expires, secret = config.jwt.secret) => {
  * @param {boolean} [blacklisted]
  * @returns {Promise<Token>}
  */
-export const saveToken = async (token, userId, expires, type, blacklisted = false) => {
+export const saveToken = async (token, userId, expires, type, blacklisted = false, storyId) => {
   const tokenDoc = await Token.create({
     token,
     user: userId,
     expires: expires.toDate(),
     type,
     blacklisted,
+    ...(storyId && { storyId }),
   });
   return tokenDoc;
 };
 
+export const saveStoryToken = async (token, userId, expires, storyId, type, blacklisted = false) => {
+  const tokenDoc = await Token.create({
+    token,
+    user: userId,
+    expires: expires.toDate(),
+    type,
+    blacklisted,
+    ...(storyId && { storyId }),
+  });
+  return tokenDoc;
+};
 /**
  * Verify token and return token doc (or throw an error if it is not valid)
  * @param {string} token
@@ -50,23 +64,13 @@ export const saveToken = async (token, userId, expires, type, blacklisted = fals
  * @returns {Promise<Token>}
  */
 export const verifyToken = async (token, type) => {
-  try {
-    const payload = jwt.verify(token, config.jwt.secret, { ignoreExpiration: true });
-    const user = await userService.getOne({ _id: payload.sub });
-    if (!user) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'User Not Exists');
-    }
-    if (user.emailVerified) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'Email Already Verified');
-    }
-    const tokenDoc = await Token.findOne({ token, type, user: payload.sub });
-    if (!tokenDoc) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'Invalid Token');
-    }
-    return tokenDoc;
-  } catch (error) {
-    throw new ApiError(httpStatus.BAD_REQUEST, error);
+  const secretOrPublicKey = config.jwt.secret;
+  const payload = jwt.verify(token, secretOrPublicKey, { ignoreExpiration: true });
+  const tokenDoc = await Token.findOne({ token, type, user: payload.sub });
+  if (!tokenDoc) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Invalid Token');
   }
+  return tokenDoc;
 };
 
 /**
@@ -90,59 +94,32 @@ export const verifyCode = async (verificationRequest) => {
   return tokenDoc;
 };
 
-export const verifyOtp = async (email, otp) => {
-  const user = await userService.getOne({ email });
+export const verifyOtp = async ({ email, mobileNumber, otp }) => {
+  let user;
+
+  if (email) {
+    user = await userService.getOne({ email });
+  } else if (mobileNumber) {
+    user = await userService.getOne({ mobileNumber });
+  }
 
   if (!user) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'No user found with this email');
+    throw new ApiError(httpStatus.BAD_REQUEST, 'No user found with this email or mobile number');
   }
 
-  // Normalize OTP
-  const otpValue = String(otp).trim();
+  // eslint-disable-next-line
+  // const otpCode = _.find(user.codes, (code) => code.code === otp && code.codeType === EnumCodeTypeOfCode.LOGIN);
+  // if (!otpCode || otpCode.expirationDate < Date.now()) {
+  //   throw new ApiError(httpStatus.BAD_REQUEST, 'otp is Invalid');
+  // }
 
-  // Find matching OTP
-  const otpCode = user.codes.find(
-    (code) => String(code.code).trim() === otpValue && code.codeType === EnumCodeTypeOfCode.LOGIN
-  );
-
-  if (!otpCode) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid OTP');
-  }
-
-  // Check expiration
-  if (new Date(otpCode.expirationDate).getTime() < Date.now()) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'OTP has expired');
-  }
-
-  // Remove only the used OTP
-  user.codes = user.codes.filter((code) => !(String(code.code) === otpValue && code.codeType === EnumCodeTypeOfCode.LOGIN));
-
-  // Update user status
+  user.codes = _.filter(user.codes, (code) => code.code !== otp);
   user.emailVerified = true;
   user.active = true;
 
-  await user.save();
-  return user;
-};
-
-export const verifySellerOtp = async (email, otp) => {
-  const user = await sellerUserService.getOne({ email });
-  if (!user) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'no user found with this email');
-  }
-  if (user.isEmailVerified) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'your email is already verified!');
-  }
-  // eslint-disable-next-line eqeqeq
-  const otpCode = _.find(user.codes, (code) => code.code == otp && code.codeType === EnumCodeTypeOfCode.LOGIN);
-  if (!otpCode || otpCode.expirationDate < Date.now()) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'otp is Invalid');
-  }
-  user.codes = _.filter(user.codes, (code) => code.code !== otp);
-  user.isEmailVerified = true;
-  user.active = true;
   return user.save();
 };
+
 /**
  * Generate token
  * @returns {string}
@@ -175,13 +152,31 @@ export const verifyResetOtp = async (email, otp) => {
   if (!user) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'no user found with this email');
   }
-  // eslint-disable-next-line eqeqeq
-  const otpCode = _.find(user.codes, (code) => code.code === otp && code.codeType === EnumCodeTypeOfCode.RESETPASSWORD);
-  if (!otpCode || otpCode.expirationDate < Date.now()) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'otp is Invalid');
+
+  // Find the OTP code in the user's codes array
+  const otpCodeIndex = _.findIndex(
+    user.codes,
+    (code) => code.code === otp.toString() && code.codeType === EnumCodeTypeOfCode.RESETPASSWORD
+  );
+  if (otpCodeIndex === -1 || user.codes[otpCodeIndex].expirationDate < Date.now()) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'OTP is invalid');
   }
-  user.codes = _.filter(user.codes, (code) => code.code !== otp);
-  await user.save();
+  // Update the user document // todo : check if update user needed ot not.
+  await userService.updateUser({ email }, { $set: { codes: user.codes } });
+  // await user.save();
+  return user;
+};
+
+export const verifyResetOtpForChangeEmailOrNumber = async (user, otp) => {
+  // Find the OTP code in the user's codes array
+  const otpCodeIndex = _.findIndex(
+    user.codes,
+    (code) => code.code === otp.toString() && code.codeType === EnumCodeTypeOfCode.RESET_LOGIN_CRED
+  );
+  if (otpCodeIndex === -1 || user.codes[otpCodeIndex].expirationDate < Date.now()) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'OTP is invalid');
+  }
+  // Update the user document // todo : check if update user needed ot not.
   return user;
 };
 
@@ -198,8 +193,6 @@ export const verifyResetOtpVerify = async (email, otp) => {
   if (otpCode.expirationDate < Date.now()) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'otp is expired');
   }
-  user.codes = _.filter(user.codes, (code) => code.code !== otp);
-  await user.save();
   return user;
 };
 
@@ -223,36 +216,36 @@ export const generateVerifyEmailToken = async (email) => {
 };
 
 /**
+ * Generate Verify email token
+ * @param {string} storyId
+ * @returns {Promise<string>}
+ */
+export const generateVerifyStoryConsentToken = async (userId, storyId) => {
+  const user = await userService.getUserById(userId);
+  const getStory = await storyService.getStoryById(storyId);
+  if (!getStory) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'No story found with this id');
+  } else if (getStory.isConsentTaken) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'story is already Verified');
+  }
+  const expires = moment().add(config.story.storyExpirationMinutes, 'minutes');
+  const token = generateToken(user.id, expires);
+  await Token.deleteMany({ storyId, type: EnumTypeOfToken.STORY_CONSENT });
+  await saveStoryToken(token, user.id, expires, storyId, EnumTypeOfToken.STORY_CONSENT);
+  return token;
+};
+
+/**
  * Generate auth tokens
  * @param {User} user
  * @returns {Promise<Object>}
  */
-export const generateAuthTokens = async (user) => {
+export const generateAuthTokens = async (user, checkUserActivePlan = false) => {
   const accessTokenExpires = moment().add(config.jwt.accessExpirationMinutes, 'minutes');
-  const accessToken = generateToken(user.id, accessTokenExpires);
+  const accessToken = generateToken(user.id, accessTokenExpires, checkUserActivePlan);
   const refreshTokenExpires = moment().add(config.jwt.refreshExpirationDays, 'days');
   const refreshToken = generateToken(user.id, refreshTokenExpires);
   await saveToken(refreshToken, user.id, refreshTokenExpires, EnumTypeOfToken.REFRESH);
-  return {
-    access: {
-      token: accessToken,
-      expires: accessTokenExpires.toDate(),
-    },
-    refresh: {
-      token: refreshToken,
-      expires: refreshTokenExpires.toDate(),
-    },
-  };
-};
-export const generateSellerTokens = async (seller) => {
-  const accessTokenExpires = moment().add(config.jwt.accessExpirationMinutes, 'minutes');
-  const accessToken = generateToken(seller.id, accessTokenExpires);
-
-  const refreshTokenExpires = moment().add(config.jwt.refreshExpirationDays, 'days');
-  const refreshToken = generateToken(seller.id, refreshTokenExpires);
-
-  await saveToken(refreshToken, seller.id, refreshTokenExpires, EnumTypeOfToken.REFRESH);
-
   return {
     access: {
       token: accessToken,
@@ -301,31 +294,4 @@ export const invalidateToken = async (invalidReq) => {
   } else {
     return Token.findByIdAndDelete(tokenDoc._id);
   }
-};
-
-export const generatesellerVerifyEmailToken = async (email) => {
-  const user = await sellerUserService.getOne({ email });
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'No users found with this email');
-  } else if (user.emailVerified) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Email is already Verified');
-  }
-  const expires = moment().add(config.jwt.verifyEmailExpirationMinutes, 'minutes');
-  const token = generateToken(user.id, expires);
-  await Token.deleteMany({ user, type: EnumTypeOfToken.VERIFY_EMAIL });
-  await saveToken(token, user.id, expires, EnumTypeOfToken.VERIFY_EMAIL);
-  return token;
-};
-
-export const verifyResetOtpForChangeEmailOrNumber = async (user, otp) => {
-  // Find the OTP code in the user's codes array
-  const otpCodeIndex = _.findIndex(
-    user.codes,
-    (code) => code.code === otp.toString() && code.codeType === EnumCodeTypeOfCode.RESET_LOGIN_CRED
-  );
-  if (otpCodeIndex === -1 || user.codes[otpCodeIndex].expirationDate < Date.now()) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'OTP is invalid');
-  }
-  // Update the user document // todo : check if update user needed ot not.
-  return user;
 };
