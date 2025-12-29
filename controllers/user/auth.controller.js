@@ -2,32 +2,19 @@ import httpStatus from 'http-status';
 import { generateOtp } from 'utils/common';
 import ApiError from 'utils/ApiError';
 import { catchAsync } from 'utils/catchAsync';
-import { authService, tokenService, userService, emailService, countryCodeService } from 'services';
+import { authService, tokenService, userService, emailService } from 'services';
 import { EnumTypeOfToken, EnumCodeTypeOfCode } from 'models/enum.model';
-import { sendOtpToMobile } from '../../services/mobileotp.service';
+// import { sendOtpToMobile } from '../../services/mobileotp.service';
 
 export const register = catchAsync(async (req, res) => {
   const { body } = req;
+  const { email } = body;
+  let user = await userService.getOne({ email });
 
-  let userCountryCode = null;
-
-  // Check for mobile number and fetch country code only if mobile number is present
-  if (body.mobileNumber) {
-    userCountryCode = await countryCodeService.getCountryCodeById(body.countryCodeId);
-    if (!userCountryCode) {
-      throw new ApiError(
-        httpStatus.BAD_REQUEST,
-        'Please provide a valid countryCode while using registration with a mobile number.'
-      );
-    }
+  // If no user, create new one
+  if (!user) {
+    user = await userService.createUser(body);
   }
-
-  // Create the user object, only add countryCode if the user registered with a mobile number
-  const user = await userService.createUser({
-    ...body,
-    ...(userCountryCode && { countryCode: userCountryCode.code }), // Only include countryCode if it's present
-  });
-
   const otp = generateOtp();
   user.codes.push({
     code: otp,
@@ -36,61 +23,13 @@ export const register = catchAsync(async (req, res) => {
     codeType: EnumCodeTypeOfCode.LOGIN,
   });
   await user.save();
-  // Send OTP based on mobile or email
-  if (user.mobileNumber) {
-    // Send OTP to mobile via MSG91 API
-    try {
-      await sendOtpToMobile(`${user.countryCode}${user.mobileNumber}`, otp); // Call your function to send OTP via MSG91
-      console.log('OTP sent to mobile via MSG91');
-    } catch (error) {
-      console.error('Error sending OTP to mobile:', error);
-      return res.status(httpStatus.INTERNAL_SERVER_ERROR).send({
-        message: 'Error sending OTP to mobile',
-      });
-    }
-  } else if (user.email) {
-    // Send OTP to email
-    try {
-      await emailService.sendOtpVerificationEmail(user, otp);
-      console.log('OTP sent to email');
-    } catch (error) {
-      console.error('Error sending OTP to email:', error);
-      return res.status(httpStatus.INTERNAL_SERVER_ERROR).send({
-        message: 'Error sending OTP to email',
-      });
-    }
-  }
-
-  // Create notification for OTP
-  // const createNotificationForOtp = await Notification.create({
-  //   userId: user._id,
-  //   body: EnumOfNotification.OTP_SEND,
-  // });
-
-  // console.log('Notification created for OTP:', createNotificationForOtp);
-
-  // // Send notification if device tokens are present
-  // if (user && user.deviceTokens && user.deviceTokens.length) {
-  //   const deviceToken = user.deviceTokens.map((fcmToken) => fcmToken.deviceToken);
-  //   await sendNotification(
-  //     deviceToken,
-  //     {
-  //       data: {
-  //         _id: createNotificationForOtp._id.toString(),
-  //         userId: createNotificationForOtp.userId.toString(),
-  //         body: EnumOfNotification.OTP_SEND,
-  //         createdAt: createNotificationForOtp.createdAt.toString(),
-  //         updatedAt: createNotificationForOtp.updatedAt.toString(),
-  //       },
-  //     },
-  //     {}
-  //   );
-  // }
-
+  await emailService.sendOtpVerificationEmail(user, otp);
+  console.log('OTP sent to email');
   res.status(httpStatus.OK).send({
     results: {
       success: true,
-      message: 'OTP has been sent to your registered mobile or email. Please verify.',
+      message: 'Otp has been sent to your registered email. Please check your email and verify it',
+      user,
     },
   });
 });
