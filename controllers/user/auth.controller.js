@@ -96,50 +96,23 @@ export const verifyResetCode = catchAsync(async (req, res) => {
 });
 
 export const verifyOtp = catchAsync(async (req, res) => {
-  const { otp, email, mobileNumber, deviceToken } = req.body;
+  const { otp, email } = req.body;
 
-  // Pass both to allow fallback
-  await tokenService.verifyOtp({ email, mobileNumber, otp });
-
-  const user = await userService.getOne(email ? { email } : { mobileNumber });
+  const user = await tokenService.verifyOtp(email, otp);
 
   const tokens = await tokenService.generateAuthTokens(user);
 
-  let updatedUser = user;
-
-  if (deviceToken) {
-    updatedUser = await userService.addDeviceToken(user, req.body);
-  }
-
-  // Send congratulation email
-  // await emailService.sendCongratulationEmail(user);
-
-  // Create notification in DB
-  // const createNotificationForCongratulation = await Notification.create({
-  //   userId: updatedUser._id,
-  //   body: EnumOfNotification.CONGRATULATION,
-  // });
-
-  // Send push notification if user has device tokens
-  // if (updatedUser.deviceTokens && updatedUser.deviceTokens.length) {
-  //   const deviceTokens = updatedUser.deviceTokens.map((fcmToken) => fcmToken.deviceToken);
-  //
-  //   await sendNotification(
-  //       deviceTokens,
-  //       {
-  //         data: {
-  //           _id: createNotificationForCongratulation._id.toString(),
-  //           userId: createNotificationForCongratulation.userId.toString(),
-  //           body: EnumOfNotification.CONGRATULATION,
-  //           createdAt: createNotificationForCongratulation.createdAt.toString(),
-  //           updatedAt: createNotificationForCongratulation.updatedAt.toString(),
-  //         },
-  //       },
-  //       {}
-  //   );
-  // }
-
-  return res.status(httpStatus.OK).send({ results: { user: updatedUser, tokens } });
+  res.status(httpStatus.OK).send({
+    results: {
+      success: true,
+      message: 'Login successful',
+      user: {
+        id: user._id,
+        email: user.email,
+      },
+      tokens,
+    },
+  });
 });
 
 export const resetPasswordOtp = catchAsync(async (req, res) => {

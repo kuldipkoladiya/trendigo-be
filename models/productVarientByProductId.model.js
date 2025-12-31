@@ -40,12 +40,13 @@ const ProductVarientByProductIdSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-
     /** optional: variant image */
-    image: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'S3image',
-    },
+    images: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'S3image',
+      },
+    ],
   },
   { timestamps: true }
 );
