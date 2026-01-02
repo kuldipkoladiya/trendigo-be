@@ -60,6 +60,16 @@ router
     productVarientByProductIdController.removeProductVarientByProductId
   );
 router
+  .route('/get-color/:productId')
+  /**
+   * getProductVarientByProductIdById
+   * */
+  .get(
+    sellerAuth(),
+    validate(productVarientByProductIdValidation.getVarientByProductId),
+    productVarientByProductIdController.getVarientColor
+  );
+router
   .route('/by-productid/:productId')
   /**
    * getProductVarientByProductIdById

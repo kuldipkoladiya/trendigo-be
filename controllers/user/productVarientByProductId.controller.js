@@ -88,11 +88,21 @@ export const removeProductVarientByProductId = catchAsync(async (req, res) => {
 });
 
 export const getVarientByProductId = catchAsync(async (req, res) => {
-  const { ProductId } = req.params;
+  const { productId } = req.params;
   const filter = {
-    ProductId,
+    productId,
   };
   const options = {};
   const productVarientByProductId = await productVarientByProductIdService.getProductVarientByProductIdList(filter, options);
+  return res.status(httpStatus.OK).send({ results: productVarientByProductId });
+});
+
+export const getVarientColor = catchAsync(async (req, res) => {
+  const { productId } = req.params;
+  const filter = {
+    productId,
+  };
+  const options = {};
+  const productVarientByProductId = await productVarientByProductIdService.getProductVarientColorList(filter, options);
   return res.status(httpStatus.OK).send({ results: productVarientByProductId });
 });

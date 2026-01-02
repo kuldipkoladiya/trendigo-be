@@ -1,7 +1,8 @@
 import ApiError from 'utils/ApiError';
 import httpStatus from 'http-status';
+import mongoose from 'mongoose';
+import { Product } from 'models';
 import ProductVarientByProductId from '../models/productVarientByProductId.model';
-import { Product } from '../models';
 
 export async function getProductVarientByProductIdById(id, options = {}) {
   const productVarientByProductId = await ProductVarientByProductId.findById(id, options.projection, options);
@@ -114,3 +115,30 @@ export async function aggregateProductVarientByProductId(query) {
 //   const productVarientByProductId = await ProductVarientByProductId.aggregatePaginate(aggregate, options);
 //   return productVarientByProductId;
 // }
+
+export async function getProductVarientColorList(filter) {
+  const data = await ProductVarientByProductId.aggregate([
+    {
+      $match: {
+        productId: new mongoose.Types.ObjectId(filter.productId),
+        isDeleted: false,
+      },
+    },
+    {
+      $project: {
+        id: '$_id',
+        _id: 0,
+        productId: 1,
+        variants: {
+          $filter: {
+            input: '$variants',
+            as: 'variant',
+            cond: { $eq: ['$$variant.key', 'color'] },
+          },
+        },
+      },
+    },
+  ]);
+
+  return data;
+}
