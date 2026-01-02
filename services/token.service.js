@@ -90,17 +90,23 @@ export const verifyCode = async (verificationRequest) => {
   return tokenDoc;
 };
 
-export const verifyOtp = async (email, otp) => {
-  const user = await userService.getOne({ email });
+export const verifyOtp = async ({ email, mobileNumber, otp }) => {
+  console.log('➡️ verifyOtp called');
 
-  if (!user) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'No user found with this email');
+  let user;
+
+  if (email) {
+    user = await userService.getOne({ email });
+  } else if (mobileNumber) {
+    user = await userService.getOne({ mobileNumber });
   }
 
-  // Normalize OTP
+  if (!user) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'No user found with this email or mobile number');
+  }
+
   const otpValue = String(otp).trim();
 
-  // Find matching OTP
   const otpCode = user.codes.find(
     (code) => String(code.code).trim() === otpValue && code.codeType === EnumCodeTypeOfCode.LOGIN
   );
@@ -109,22 +115,23 @@ export const verifyOtp = async (email, otp) => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid OTP');
   }
 
-  // Check expiration
   if (new Date(otpCode.expirationDate).getTime() < Date.now()) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'OTP has expired');
   }
 
-  // Remove only the used OTP
-  user.codes = user.codes.filter((code) => !(String(code.code) === otpValue && code.codeType === EnumCodeTypeOfCode.LOGIN));
+  // 🗑 Remove used OTP
+  user.codes = user.codes.filter(
+    (code) => !(String(code.code).trim() === otpValue && code.codeType === EnumCodeTypeOfCode.LOGIN)
+  );
 
-  // Update user status
+  // ✅ Activate user
   user.emailVerified = true;
   user.active = true;
 
   await user.save();
+
   return user;
 };
-
 export const verifySellerOtp = async (email, otp) => {
   const user = await sellerUserService.getOne({ email });
   if (!user) {
