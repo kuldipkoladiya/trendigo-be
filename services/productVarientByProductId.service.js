@@ -142,3 +142,33 @@ export async function getProductVarientColorList(filter) {
 
   return data;
 }
+
+export async function updateProductVarientById(id, body, user) {
+  const updateQuery = {
+    $set: {
+      updatedBy: user._id,
+    },
+  };
+
+  // ✅ normal fields → $set
+  if (body.variants) updateQuery.$set.variants = body.variants;
+  if (body.quantity !== undefined) updateQuery.$set.quantity = body.quantity;
+  if (body.price !== undefined) updateQuery.$set.price = body.price;
+  if (body.discount !== undefined) updateQuery.$set.discount = body.discount;
+  if (body.sku) updateQuery.$set.sku = body.sku;
+
+  // ✅ array fields → $addToSet
+  if (Array.isArray(body.images) && body.images.length > 0) {
+    updateQuery.$addToSet = {
+      images: { $each: body.images },
+    };
+  }
+
+  const updated = await ProductVarientByProductId.findByIdAndUpdate(id, updateQuery, { new: true });
+
+  if (!updated) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Product variant not found');
+  }
+
+  return updated;
+}
