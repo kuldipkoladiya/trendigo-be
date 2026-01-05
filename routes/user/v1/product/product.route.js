@@ -15,7 +15,7 @@ router
   /**
    * getProduct
    * */
-  .get(auth('user'), sellerAuth(), validate(productValidation.getProduct), productController.listProduct);
+  .get(validate(productValidation.getProduct), productController.listProduct);
 router
   .route('/paginated')
   /**
