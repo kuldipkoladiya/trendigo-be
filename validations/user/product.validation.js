@@ -16,7 +16,7 @@ export const createProduct = {
     title: Joi.string().trim().required(),
     description: Joi.string().allow('').optional(),
     productDetails: Joi.string().allow('').optional(),
-
+    texDetails: Joi.string().trim().optional(),
     sellingPrice: Joi.number().min(0).optional(),
     marketPrice: Joi.number().min(0).optional(),
     storeDiscount: Joi.number().min(0).max(100).optional(),
@@ -63,7 +63,7 @@ export const updateProduct = {
     title: Joi.string().trim().optional(),
     description: Joi.string().allow('').optional(),
     productDetails: Joi.string().allow('').optional(),
-
+    texDetails: Joi.string().trim().optional(),
     sellingPrice: Joi.number().min(0).optional(),
     marketPrice: Joi.number().min(0).optional(),
     storeDiscount: Joi.number().min(0).max(100).optional(),
