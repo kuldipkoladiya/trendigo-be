@@ -7,7 +7,7 @@ export const register = {
       businessName: Joi.string().required(),
       email: Joi.string().email(),
       mobileNumber: Joi.number(),
-      countryCode: Joi.string().optional(),
+      countryCodeId: Joi.string().optional(),
     })
     .or('email', 'mobileNumber'),
 };

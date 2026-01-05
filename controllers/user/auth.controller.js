@@ -4,7 +4,7 @@ import ApiError from 'utils/ApiError';
 import { catchAsync } from 'utils/catchAsync';
 import { authService, tokenService, userService, emailService, countryCodeService } from 'services';
 import { EnumTypeOfToken, EnumCodeTypeOfCode } from 'models/enum.model';
-import { sendOtpToMobile } from '../../services/mobileotp.service';
+import { resendOtpToMobile, sendOtpToMobile } from '../../services/mobileotp.service';
 
 export const register = catchAsync(async (req, res) => {
   const { body } = req;
@@ -51,7 +51,8 @@ export const register = catchAsync(async (req, res) => {
 
   // 📩 Send OTP
   if (user.mobileNumber) {
-    await sendOtpToMobile(`${user.countryCode}${user.mobileNumber}`, otp);
+    const number = await sendOtpToMobile(`${user.countryCode}${user.mobileNumber}`, otp);
+    console.log('=====number====>', number);
   } else {
     await emailService.sendOtpVerificationEmail(user, otp);
   }
@@ -198,29 +199,77 @@ export const updateUserInfo = catchAsync(async (req, res) => {
 });
 
 export const sendVerifyOtp = catchAsync(async (req, res) => {
-  const { email } = req.body;
-  const otp = generateOtp();
-  const user = await userService.getOne({ email });
+  const { email, mobileNumber, countryCodeId } = req.body;
+  // Ensure email or mobileNumber is provided in the request
+  if (!email && !mobileNumber) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Email or mobile number is required.');
+  }
+  // Fetch the user based on email or mobileNumber from the body
+  const searchCondition = email
+    ? { email: { $regex: `^${email}$`, $options: 'i' } } // Case-insensitive exact match
+    : { mobileNumber };
+
+  // Fetch user
+  const user = await userService.getOne(searchCondition);
+  // If user not found, throw an error
   if (!user) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'no user found with this id!');
+    throw new ApiError(httpStatus.BAD_REQUEST, 'No user found with this email or mobile number!');
   }
-  if (user.emailVerified) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'your email is already verified!');
-  }
+
+  // Generate OTP
+  const otp = generateOtp();
+
+  // Push the new OTP to the user's codes
   user.codes.push({
     code: otp,
-    expirationDate: Date.now() + 10 * 60 * 1000,
+    expirationDate: Date.now() + 10 * 60 * 1000, // OTP valid for 10 minutes
     used: false,
     codeType: EnumCodeTypeOfCode.LOGIN,
   });
+
+  // Save the user document
   await user.save();
-  await emailService.sendOtpVerificationEmail(user, otp).then().catch();
-  res.status(httpStatus.OK).send({
-    results: {
-      success: true,
-      message: 'Email has been sent to your registered email. Please check your email and verify it',
-    },
-  });
+
+  // Handle mobile-based OTP
+  if (mobileNumber) {
+    const userCountryCode = await countryCodeService.getCountryCodeById(countryCodeId);
+    if (!userCountryCode) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Please provide countryCode while using registration with Mobile number.');
+    }
+
+    try {
+      await resendOtpToMobile(`${userCountryCode.code}${user.mobileNumber}`, otp);
+      console.log('OTP resent to mobile');
+      return res.status(httpStatus.OK).send({
+        results: {
+          success: true,
+          message: 'OTP has been resent to your mobile number. Please verify.',
+        },
+      });
+    } catch (error) {
+      console.error('Error resending OTP to mobile:', error);
+      return res.status(httpStatus.INTERNAL_SERVER_ERROR).send({
+        message: 'Error resending OTP to mobile',
+      });
+    }
+  } else if (email) {
+    // Handle email-based OTP
+    try {
+      await emailService.sendOtpVerificationEmail(user, otp);
+      console.log('OTP sent to email');
+      return res.status(httpStatus.OK).send({
+        results: {
+          success: true,
+          message: 'OTP has been resent to your registered email. Please verify.',
+        },
+      });
+    } catch (error) {
+      console.error('Error sending OTP to email:', error);
+      return res.status(httpStatus.INTERNAL_SERVER_ERROR).send({
+        message: 'Error sending OTP to email',
+      });
+    }
+  }
 });
 
 export const refreshTokens = catchAsync(async (req, res) => {

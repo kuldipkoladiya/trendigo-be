@@ -1,50 +1,86 @@
 import httpStatus from 'http-status';
 import { catchAsync } from '../../utils/catchAsync';
-import { emailService, sellerUserService, tokenService } from '../../services';
+import { countryCodeService, emailService, sellerUserService, tokenService } from '../../services';
 import { EnumCodeTypeOfCode } from '../../models/enum.model';
 import ApiError from '../../utils/ApiError';
 import { generateOtp } from '../../utils/common';
 import * as sellerAuthService from '../../services/auth.service';
+import { sendOtpToMobile } from '../../services/mobileotp.service';
 
 export const register = catchAsync(async (req, res) => {
   const { body } = req;
+  const { email, mobileNumber, countryCodeId } = body;
 
-  // Email is mandatory for seller
-  if (!body.email) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Email is required for seller registration.');
+  let seller;
+
+  // ❌ At least one is required
+  if (!email && !mobileNumber) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Email or mobile number is required for seller registration.');
   }
 
-  // Create seller
-  const seller = await sellerUserService.createSellerUser(body);
+  // 🔍 Find seller by email or mobile
+  if (email) {
+    seller = await sellerUserService.getOne({ email });
+  } else if (mobileNumber) {
+    seller = await sellerUserService.getOne({ mobileNumber });
+  }
 
-  // Generate OTP and attach to seller
+  // 🌍 Handle country code (only for mobile)
+  let countryCode = null;
+  if (mobileNumber) {
+    if (!countryCodeId) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'countryCodeId is required for mobile registration');
+    }
+
+    const country = await countryCodeService.getCountryCodeById(countryCodeId);
+    if (!country) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid countryCodeId');
+    }
+
+    countryCode = country.code;
+  }
+
+  // 🆕 Create seller if not exists
+  if (!seller) {
+    seller = await sellerUserService.createSellerUser({
+      ...body,
+      ...(countryCode && { countryCode }),
+    });
+  }
+
+  // 🔐 Generate OTP
   const otp = generateOtp();
+
   seller.codes.push({
-    code: otp,
-    expirationDate: Date.now() + 10 * 60 * 1000, // OTP valid for 10 minutes
+    code: String(otp),
+    expirationDate: Date.now() + 10 * 60 * 1000, // 10 min
     used: false,
     codeType: EnumCodeTypeOfCode.LOGIN,
   });
+
   await seller.save();
 
-  // Send OTP via email
+  // 📤 Send OTP
   try {
-    await emailService.sendOtpVerificationEmail(seller, otp);
-    console.log('OTP sent to seller email');
+    if (seller.mobileNumber) {
+      await sendOtpToMobile(`${seller.countryCode}${seller.mobileNumber}`, otp);
+      console.log('OTP sent to seller mobile');
+    } else {
+      await emailService.sendOtpVerificationEmail(seller, otp);
+      console.log('OTP sent to seller email');
+    }
   } catch (error) {
-    console.error('Error sending OTP to seller email:', error);
-    return res.status(httpStatus.INTERNAL_SERVER_ERROR).send({
-      message: 'Error sending OTP to email',
-    });
+    console.error('OTP send error:', error);
+    throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Error sending OTP');
   }
-  res.status(httpStatus.OK).send({
+
+  return res.status(httpStatus.OK).send({
     results: {
       success: true,
-      message: 'OTP has been sent to your registered email. Please verify.',
+      message: 'OTP sent successfully. Please verify to continue.',
     },
   });
 });
-
 export const sendVerifyOtp = catchAsync(async (req, res) => {
   const { email } = req.body;
 
@@ -95,20 +131,12 @@ export const sendVerifyOtp = catchAsync(async (req, res) => {
 });
 
 export const verifyOtp = catchAsync(async (req, res) => {
-  const { otp, email, deviceToken } = req.body;
-
-  if (!email || !otp) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Email and OTP are required.');
-  }
+  const { otp, email, mobileNumber, deviceToken } = req.body;
 
   // Verify OTP
-  await tokenService.verifySellerOtp(email, otp);
+  const seller = await tokenService.verifySellerOtp({ email, mobileNumber, otp });
 
   // Fetch seller by email
-  const seller = await sellerUserService.getOne({ email });
-  if (!seller) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Seller not found.');
-  }
 
   // Generate tokens
   const tokens = await tokenService.generateSellerTokens(seller, 'seller');
@@ -121,7 +149,7 @@ export const verifyOtp = catchAsync(async (req, res) => {
   }
 
   // Send congratulation email
-  await emailService.sendCongratulationEmail(seller);
+  // await emailService.sendCongratulationEmail(seller);
 
   return res.status(httpStatus.OK).send({
     results: { seller: updatedSeller, tokens },
@@ -129,9 +157,14 @@ export const verifyOtp = catchAsync(async (req, res) => {
 });
 
 export const login = catchAsync(async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, mobileNumber, countryCodeId } = req.body;
 
-  const seller = await sellerAuthService.SellerloginUserWithEmailAndPassword(email, password);
+  const seller = await sellerAuthService.SellerloginUserWithEmailOrMobileAndPassword(
+    email,
+    mobileNumber,
+    countryCodeId,
+    password
+  );
   if (!seller.isEmailVerified) {
     throw new ApiError(400, 'Please verify your email first');
   }

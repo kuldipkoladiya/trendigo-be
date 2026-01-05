@@ -132,23 +132,57 @@ export const verifyOtp = async ({ email, mobileNumber, otp }) => {
 
   return user;
 };
-export const verifySellerOtp = async (email, otp) => {
-  const user = await sellerUserService.getOne({ email });
-  if (!user) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'no user found with this email');
+export const verifySellerOtp = async ({ email, mobileNumber, otp }) => {
+  console.log('➡️ verifySellerOtp called');
+
+  let seller;
+
+  // 🔍 Find seller by email or mobile
+  if (email) {
+    seller = await sellerUserService.getOne({ email });
+  } else if (mobileNumber) {
+    seller = await sellerUserService.getOne({ mobileNumber });
   }
-  if (user.isEmailVerified) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'your email is already verified!');
+
+  if (!seller) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'No seller found with this email or mobile number');
   }
-  // eslint-disable-next-line eqeqeq
-  const otpCode = _.find(user.codes, (code) => code.code == otp && code.codeType === EnumCodeTypeOfCode.LOGIN);
-  if (!otpCode || otpCode.expirationDate < Date.now()) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'otp is Invalid');
+
+  // ⚠️ Already verified check
+  if ((email && seller.isEmailVerified) || (mobileNumber && seller.isMobileVerified)) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Account already verified');
   }
-  user.codes = _.filter(user.codes, (code) => code.code !== otp);
-  user.isEmailVerified = true;
-  user.active = true;
-  return user.save();
+
+  // 🔐 Normalize OTP
+  const otpValue = String(otp).trim();
+
+  // 🔎 Find valid OTP
+  const otpCode = seller.codes.find(
+    (code) => String(code.code).trim() === otpValue && code.codeType === EnumCodeTypeOfCode.LOGIN
+  );
+
+  if (!otpCode) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid OTP');
+  }
+
+  if (new Date(otpCode.expirationDate).getTime() < Date.now()) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'OTP has expired');
+  }
+
+  // 🗑 Remove only used OTP
+  seller.codes = seller.codes.filter(
+    (code) => !(String(code.code).trim() === otpValue && code.codeType === EnumCodeTypeOfCode.LOGIN)
+  );
+
+  // ✅ Mark verified & activate
+  if (email) seller.isEmailVerified = true;
+  if (mobileNumber) seller.isMobileVerified = true;
+
+  seller.active = true;
+
+  await seller.save();
+
+  return seller;
 };
 /**
  * Generate token

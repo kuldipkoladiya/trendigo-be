@@ -2,10 +2,11 @@ import httpStatus from 'http-status';
 import ApiError from 'utils/ApiError';
 import _ from 'lodash';
 import { User, Token, SellerUser } from 'models';
-import { userService, tokenService, emailService } from 'services';
+import { userService, tokenService, emailService, countryCodeService } from 'services';
 import { EnumTypeOfToken, EnumCodeTypeOfCode } from 'models/enum.model';
 import bcrypt from 'bcryptjs';
 import { generateOtp } from 'utils/common';
+
 /**
  * Login with username and password
  * @param {string} email
@@ -26,24 +27,60 @@ export const loginUserWithEmailAndPassword = async (email, password) => {
   }
   return user;
 };
-export const SellerloginUserWithEmailAndPassword = async (email, password) => {
-  const seller = await SellerUser.findOne({ email }).select('+password');
+export const SellerloginUserWithEmailOrMobileAndPassword = async (email, mobileNumber, countryCodeId, password) => {
+  let seller;
 
+  // 🔐 Email login
+  if (email) {
+    seller = await SellerUser.findOne({ email }).select('+password');
+  }
+
+  // 📱 Mobile login
+  else if (mobileNumber && countryCodeId) {
+    const countryCode = await countryCodeService.getCountryCodeById(countryCodeId);
+    if (!countryCode) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid country code');
+    }
+
+    seller = await SellerUser.findOne({
+      mobileNumber,
+      countryCode: countryCode.code,
+    }).select('+password');
+  }
+
+  // ❌ Missing credentials
+  else {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Email or mobile number is required');
+  }
+
+  // ❌ Seller not found
   if (!seller) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Incorrect email or password');
   }
 
+  // ⚠️ Password not set (OTP-only account)
   if (!seller.password) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Password not set. Login using OTP.');
   }
 
+  // 🔑 Password check
   const isValid = await bcrypt.compare(password, seller.password);
   if (!isValid) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Incorrect email or password');
   }
+
+  // ✅ Verification check
+  if ((email && !seller.isEmailVerified) || (mobileNumber && !seller.isMobileVerified)) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Please verify your account before login');
+  }
+
+  // ❌ Inactive seller
+  if (!seller.active) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Your account is not active. Please contact support.');
+  }
+
   return seller;
 };
-
 export const verifyEmail = async (verifyRequest) => {
   const { token } = verifyRequest;
   const verifyEmailTokenDoc = await tokenService.verifyToken(token, EnumTypeOfToken.VERIFY_EMAIL);

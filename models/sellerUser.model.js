@@ -62,7 +62,6 @@ const SellerUserSchema = new mongoose.Schema(
       type: String,
       // eslint-disable-next-line security/detect-unsafe-regex
       match: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-      required: true,
       unique: true,
     },
     isEmailVerified: {
