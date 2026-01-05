@@ -74,11 +74,6 @@ export const SellerloginUserWithEmailOrMobileAndPassword = async (email, mobileN
     throw new ApiError(httpStatus.BAD_REQUEST, 'Please verify your account before login');
   }
 
-  // ❌ Inactive seller
-  if (!seller.active) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Your account is not active. Please contact support.');
-  }
-
   return seller;
 };
 export const verifyEmail = async (verifyRequest) => {
