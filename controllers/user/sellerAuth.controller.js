@@ -9,20 +9,35 @@ import { sendOtpToMobile } from '../../services/mobileotp.service';
 
 export const register = catchAsync(async (req, res) => {
   const { body } = req;
-  const { email, mobileNumber, countryCodeId } = body;
-
-  let seller;
+  const { email, mobileNumber, countryCodeId, businessName } = body;
 
   // ❌ At least one is required
   if (!email && !mobileNumber) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email or mobile number is required for seller registration.');
   }
 
-  // 🔍 Find seller by email or mobile
+  // 🔍 Validate businessName uniqueness
+  if (businessName) {
+    const existingBusiness = await sellerUserService.getOne({ businessName });
+    if (existingBusiness) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Business name is already registered.');
+    }
+  }
+
+  // 🔍 Validate email uniqueness
   if (email) {
-    seller = await sellerUserService.getOne({ email });
-  } else if (mobileNumber) {
-    seller = await sellerUserService.getOne({ mobileNumber });
+    const existingEmail = await sellerUserService.getOne({ email });
+    if (existingEmail) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Email is already registered.');
+    }
+  }
+
+  // 🔍 Validate mobile uniqueness
+  if (mobileNumber) {
+    const existingMobile = await sellerUserService.getOne({ mobileNumber });
+    if (existingMobile) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Mobile number is already registered.');
+    }
   }
 
   // 🌍 Handle country code (only for mobile)
@@ -40,20 +55,18 @@ export const register = catchAsync(async (req, res) => {
     countryCode = country.code;
   }
 
-  // 🆕 Create seller if not exists
-  if (!seller) {
-    seller = await sellerUserService.createSellerUser({
-      ...body,
-      ...(countryCode && { countryCode }),
-    });
-  }
+  // 🆕 Create seller
+  const seller = await sellerUserService.createSellerUser({
+    ...body,
+    ...(countryCode && { countryCode }),
+  });
 
   // 🔐 Generate OTP
   const otp = generateOtp();
 
   seller.codes.push({
     code: String(otp),
-    expirationDate: Date.now() + 10 * 60 * 1000, // 10 min
+    expirationDate: Date.now() + 10 * 60 * 1000, // 10 minutes
     used: false,
     codeType: EnumCodeTypeOfCode.LOGIN,
   });
@@ -64,10 +77,8 @@ export const register = catchAsync(async (req, res) => {
   try {
     if (seller.mobileNumber) {
       await sendOtpToMobile(`${seller.countryCode}${seller.mobileNumber}`, otp);
-      console.log('OTP sent to seller mobile');
     } else {
       await emailService.sendOtpVerificationEmail(seller, otp);
-      console.log('OTP sent to seller email');
     }
   } catch (error) {
     console.error('OTP send error:', error);
