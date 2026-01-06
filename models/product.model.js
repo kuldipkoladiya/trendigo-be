@@ -57,7 +57,7 @@ const ProductSchema = new mongoose.Schema(
     marketPrice: {
       type: String,
     },
-    texDetails: {
+    taxDetails: {
       type: String,
     },
     productDetails: {
