@@ -50,23 +50,13 @@ export const saveToken = async (token, userId, expires, type, blacklisted = fals
  * @returns {Promise<Token>}
  */
 export const verifyToken = async (token, type) => {
-  try {
-    const payload = jwt.verify(token, config.jwt.secret, { ignoreExpiration: true });
-    const user = await userService.getOne({ _id: payload.sub });
-    if (!user) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'User Not Exists');
-    }
-    if (user.emailVerified) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'Email Already Verified');
-    }
-    const tokenDoc = await Token.findOne({ token, type, user: payload.sub });
-    if (!tokenDoc) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'Invalid Token');
-    }
-    return tokenDoc;
-  } catch (error) {
-    throw new ApiError(httpStatus.BAD_REQUEST, error);
+  const secretOrPublicKey = config.jwt.secret;
+  const payload = jwt.verify(token, secretOrPublicKey, { ignoreExpiration: true });
+  const tokenDoc = await Token.findOne({ token, type, user: payload.sub });
+  if (!tokenDoc) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Invalid Token');
   }
+  return tokenDoc;
 };
 
 /**

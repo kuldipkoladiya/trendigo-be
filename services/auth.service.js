@@ -6,6 +6,7 @@ import { userService, tokenService, emailService, countryCodeService } from 'ser
 import { EnumTypeOfToken, EnumCodeTypeOfCode } from 'models/enum.model';
 import bcrypt from 'bcryptjs';
 import { generateOtp } from 'utils/common';
+import { sendOtpToMobile } from './mobileotp.service';
 
 /**
  * Login with username and password
@@ -148,14 +149,43 @@ export const resetPasswordToken = async (resetPasswordRequest) => {
  */
 export const refreshAuth = async (refreshToken) => {
   try {
+    console.log('🔄 [refreshAuth] Incoming refresh token:', refreshToken);
+
+    // 1️⃣ Verify refresh token
     const refreshTokenDoc = await tokenService.verifyToken(refreshToken, EnumTypeOfToken.REFRESH);
+
+    console.log('✅ [refreshAuth] Refresh token verified:', {
+      id: refreshTokenDoc._id,
+      user: refreshTokenDoc.user,
+      expires: refreshTokenDoc.expires,
+    });
+
+    // 2️⃣ Fetch user
     const user = await userService.getUserById(refreshTokenDoc.user);
+
+    console.log('👤 [refreshAuth] User lookup result:', user ? user._id : null);
+
     if (!user) {
+      console.error('❌ [refreshAuth] User not found for token user id');
       throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid Token');
     }
+
+    // 3️⃣ Remove used refresh token
     await refreshTokenDoc.remove();
-    return tokenService.generateAuthTokens(user);
+    console.log('🗑️ [refreshAuth] Old refresh token removed');
+
+    // 4️⃣ Generate new tokens
+    const newTokens = await tokenService.generateAuthTokens(user);
+    console.log('🎉 [refreshAuth] New auth tokens generated');
+
+    return newTokens;
   } catch (error) {
+    console.error('🚨 [refreshAuth] Error occurred:', {
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+    });
+
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Please authenticate');
   }
 };
@@ -305,7 +335,7 @@ export const updateEmailAndMobile = async ({ email, mobileNumber, user }) => {
   if (mobileNumber && mobileNumber.currentMobileNumber === user.mobileNumber) {
     try {
       await userService.updateUser({ mobileNumber: user.mobileNumber }, body, { new: true });
-      // await sendOtpToMobile(`${user.countryCode}${mobileNumber.newMobileNumber}`, otp);
+      await sendOtpToMobile(`${user.countryCode}${mobileNumber.newMobileNumber}`, otp);
       console.log('OTP sent to mobile via MSG91');
     } catch (error) {
       console.error('Error sending OTP to mobile:', error);
