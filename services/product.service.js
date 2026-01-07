@@ -33,7 +33,28 @@ export async function getOne(filter, options = {}) {
 }
 
 export async function getProductList(filter, options = {}) {
-  const product = await Product.find(filter, options.projection, options);
+  const product = await Product.find(filter, options.projection, options)
+    .populate({ path: 'storeId', select: 'name storeUrl profileImage' })
+    .populate({ path: 'sellerId', select: 'name email' })
+    .populate({ path: 'productTypeId', select: 'value' })
+    .populate({ path: 'brandId', select: 'name logo' })
+    .populate({ path: 'productCategoryId', select: 'value parentCategoryId' })
+    .populate({
+      path: 'variants',
+      match: { isDeleted: false },
+      select: `
+        variants
+        quantity
+        price
+        discount
+        sku
+        image
+      `,
+      populate: {
+        path: 'images',
+        select: 'imageUrl imageName isSelectedForMainScreen',
+      },
+    });
   return product;
 }
 

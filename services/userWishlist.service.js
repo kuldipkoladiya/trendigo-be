@@ -26,13 +26,27 @@ export async function getUserWishlistListWithPagination(filter, options = {}) {
   return userWishlist;
 }
 
-export async function createUserWishlist(body, options = {}) {
-  if (body.productId) {
-    const productId = await Product.findOne({ _id: body.productId });
-    if (!productId) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'field productId is not valid');
-    }
+export async function createUserWishlist(body) {
+  const { userId, productId } = body;
+
+  // 🔍 Validate product
+  const product = await Product.findById(productId);
+  if (!product) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Product not found');
   }
+
+  // ❌ Prevent duplicate wishlist
+  const alreadyExists = await UserWishlist.findOne({
+    userId,
+    productId,
+    isDeleted: false,
+  });
+
+  if (alreadyExists) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Product already added to wishlist');
+  }
+
+  // ✅ Create wishlist
   const userWishlist = await UserWishlist.create(body);
   return userWishlist;
 }
@@ -68,11 +82,11 @@ export async function aggregateUserWishlist(query) {
   return userWishlist;
 }
 
-export async function aggregateUserWishlistWithPagination(query, options = {}) {
-  const aggregate = UserWishlist.aggregate();
-  query.map((obj) => {
-    aggregate._pipeline.push(obj);
-  });
-  const userWishlist = await UserWishlist.aggregatePaginate(aggregate, options);
-  return userWishlist;
-}
+// export async function aggregateUserWishlistWithPagination(query, options = {}) {
+//   const aggregate = UserWishlist.aggregate();
+//   query.map((obj) => {
+//     aggregate._pipeline.push(obj);
+//   });
+//   const userWishlist = await UserWishlist.aggregatePaginate(aggregate, options);
+//   return userWishlist;
+// }

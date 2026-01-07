@@ -7,9 +7,8 @@ import Joi from 'joi';
 Joi.objectId = require('joi-objectid')(Joi);
 
 export const createUserWishlist = {
-  body: Joi.object().keys({
-    userId: Joi.objectId(),
-    productId: Joi.objectId(),
+  body: Joi.object({
+    productId: Joi.objectId().required(),
   }),
 };
 

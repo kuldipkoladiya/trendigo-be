@@ -16,6 +16,12 @@ router
    * */
   .get(auth('user'), validate(userWishlistValidation.getUserWishlist), userWishlistController.listUserWishlist);
 router
+  .route('/userWishlist')
+  /**
+   * getUserWishlistPaginated (Logged-in User)
+   */
+  .get(auth('user'), validate(userWishlistValidation.paginatedUserWishlist), userWishlistController.userWishlist);
+router
   .route('/paginated')
   /**
    * getUserWishlistPaginated
