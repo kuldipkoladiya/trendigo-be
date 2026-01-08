@@ -5,6 +5,8 @@ const EnumCodeTypeOfCode = {
   RESET_LOGIN_CRED: 'resetLoginCred',
   RESETPASSWORD: 'resetPassword',
   LOGIN: 'login',
+  MOBILE: 'mobile',
+  EMAIL: 'email',
 };
 const EnumRoleOfUser = {
   USER: 'user',

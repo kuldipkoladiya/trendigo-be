@@ -58,6 +58,10 @@ router.get('/me', auth(), authController.userInfo);
  */
 router.put('/update-user', auth(), authController.updateUserInfo);
 /**
+ * update the Email or mobile number verify
+ */
+router.post('/verify-update-otp', auth(), authController.verifyUpdateOtp);
+/**
  * OTP-based verification
  * When User Forgot Password call this API and he get the OTP in his Email to reset Password
  */
