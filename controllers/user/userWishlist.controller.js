@@ -65,21 +65,42 @@ export const userWishlist = catchAsync(async (req, res) => {
 
   const filter = {
     userId,
-    isDeleted: false, // soft delete support
+    isDeleted: false,
   };
 
   const options = {
-    page: Number(req.query.page),
-    limit: Number(req.query.limit),
+    page: Number(req.query.page) || 1,
+    limit: Number(req.query.limit) || 10,
     sort: { createdAt: -1 },
     populate: [
       {
         path: 'productId',
-        select: 'title price images brandId',
-        populate: {
-          path: 'brandId',
-          select: 'name logo',
-        },
+        populate: [
+          {
+            path: 'variants',
+            populate: {
+              path: 'images',
+              select: 'imageUrl imageName isSelectedForMainScreen',
+            },
+          },
+          {
+            path: 'brandId',
+          },
+          {
+            path: 'sellerId',
+            select: 'name email',
+          },
+          {
+            path: 'storeId',
+            select: 'name',
+          },
+          {
+            path: 'productCategoryId',
+          },
+          {
+            path: 'productTypeId',
+          },
+        ],
       },
     ],
   };
