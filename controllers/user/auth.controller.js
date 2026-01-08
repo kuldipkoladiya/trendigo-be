@@ -418,13 +418,13 @@ export const verifyUpdateOtp = catchAsync(async (req, res) => {
   otpCode.used = true;
 
   /* ---------- APPLY VERIFIED UPDATE ---------- */
-  if (type === EnumCodeTypeOfCode.EMAIL_VERIFY) {
+  if (type === EnumCodeTypeOfCode.EMAIL) {
     user.email = user.pendingEmail;
     user.pendingEmail = null;
     user.emailVerified = true;
   }
 
-  if (type === EnumCodeTypeOfCode.MOBILE_VERIFY) {
+  if (type === EnumCodeTypeOfCode.MOBILE) {
     user.mobileNumber = user.pendingMobileNumber;
     user.countryCode = user.pendingCountryCode;
     user.pendingMobileNumber = null;
