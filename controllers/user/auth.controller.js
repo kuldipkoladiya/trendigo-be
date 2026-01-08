@@ -50,10 +50,9 @@ export const register = catchAsync(async (req, res) => {
   await user.save();
 
   // 📩 Send OTP
-  if (user.mobileNumber) {
-    const number = await sendOtpToMobile(`${user.countryCode}${user.mobileNumber}`, otp);
-    console.log('=====number====>', number);
-  } else {
+  if (mobileNumber) {
+    await sendOtpToMobile(`${countryCode}${mobileNumber}`, otp);
+  } else if (email) {
     await emailService.sendOtpVerificationEmail(user, otp);
   }
 
