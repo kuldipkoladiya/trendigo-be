@@ -417,7 +417,7 @@ export const verifyUpdateOtp = catchAsync(async (req, res) => {
 
   otpCode.used = true;
 
-  /* ---------- APPLY VERIFIED UPDATE ---------- */
+  // ✅ APPLY VERIFIED DATA
   if (type === EnumCodeTypeOfCode.EMAIL) {
     user.email = user.pendingEmail;
     user.pendingEmail = null;

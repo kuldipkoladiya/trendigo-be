@@ -154,6 +154,15 @@ const UserSchema = new mongoose.Schema({
   profilePic: {
     type: String,
   },
+  pendingEmail: {
+    type: String,
+  },
+  pendingMobileNumber: {
+    type: Number,
+  },
+  pendingCountryCode: {
+    type: String,
+  },
   userProfilePic: [UserImagesSchema],
 });
 UserSchema.plugin(toJSON);
