@@ -19,3 +19,9 @@ export const UserProfilePic = catchAsync(async (req, res) => {
   const s3PutObject = await s3Service.validateExtensionForProfilePic(body, user, body.isProfilePic, body.isSellerSign);
   return res.status(httpStatus.OK).send({ results: s3PutObject });
 });
+
+export const preSignedPutUrlv2 = catchAsync(async (req, res) => {
+  const { body, user } = req;
+  const s3PutObject = await s3Service.validateExtensionForPutObjectv2(body, user);
+  return res.status(httpStatus.OK).send({ results: s3PutObject });
+});

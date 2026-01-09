@@ -39,3 +39,11 @@ export const UserProfilePic = {
     caption: Joi.string(),
   }),
 };
+
+export const preSignedPutUrlv2 = {
+  body: Joi.object().keys({
+    name: Joi.string().required(),
+    key: Joi.string().required(),
+    contentType: Joi.string(),
+  }),
+};

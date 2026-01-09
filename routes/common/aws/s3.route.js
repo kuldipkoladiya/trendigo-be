@@ -11,6 +11,8 @@ const router = express();
  * */
 router.post('/presignedurl', sellerAuth(), validate(s3Validation.preSignedPutUrl), s3Controller.preSignedPutUrl);
 
+router.post('/presignedurlv2', validate(s3Validation.preSignedPutUrlv2), s3Controller.preSignedPutUrlv2);
+
 router.post('/seller-sign', sellerAuth(), validate(s3Validation.sellerSign), s3Controller.sellerSign);
 
 router.post('/profilepic', auth(), validate(s3Validation.UserProfilePic), s3Controller.UserProfilePic);
