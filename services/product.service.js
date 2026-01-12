@@ -51,7 +51,7 @@ export async function getProductList(filter, options = {}) {
         image
       `,
       populate: {
-        path: 'images',
+        path: 'images videos',
         select: 'imageUrl imageName isSelectedForMainScreen',
       },
     });
