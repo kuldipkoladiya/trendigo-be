@@ -26,7 +26,7 @@ export async function getOne(filter, options = {}) {
         image
       `,
       populate: {
-        path: 'images',
+        path: 'images videos',
         select: 'imageUrl imageName isSelectedForMainScreen',
       },
     });
