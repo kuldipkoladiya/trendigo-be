@@ -83,6 +83,12 @@ const ProductSchema = new mongoose.Schema(
         ref: 'S3image',
       },
     ],
+    videos: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'S3image',
+      },
+    ],
     /**
      * This will be in percentage
      * */

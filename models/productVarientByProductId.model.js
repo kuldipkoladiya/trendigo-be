@@ -47,6 +47,12 @@ const ProductVarientByProductIdSchema = new mongoose.Schema(
         ref: 'S3image',
       },
     ],
+    videos: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'S3image',
+      },
+    ],
   },
   { timestamps: true }
 );

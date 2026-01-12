@@ -25,6 +25,7 @@ export const createProductVarientByProductId = {
     sku: Joi.string().trim(),
 
     images: Joi.array().items(Joi.objectId()).optional(),
+    videos: Joi.array().items(Joi.objectId()).optional(),
   }),
 };
 
@@ -54,6 +55,7 @@ export const updateProductVarientByProductId = {
     sku: Joi.string().trim().optional(),
 
     images: Joi.array().items(Joi.objectId()).optional(),
+    videos: Joi.array().items(Joi.objectId()).optional(),
   }).min(1), // at least one field required
 };
 
