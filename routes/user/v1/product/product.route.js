@@ -27,7 +27,7 @@ router
   /**
    * getProductPaginated
    * */
-  .get(validate(productValidation.getSellerProduct), productController.getSellerProduct);
+  .get(sellerAuth(), validate(productValidation.getSellerProduct), productController.getSellerProduct);
 router
   .route('/:productId')
   /**
