@@ -12,6 +12,15 @@ export const getProduct = catchAsync(async (req, res) => {
   return res.status(httpStatus.OK).send({ results: product });
 });
 
+export const getSellerProduct = catchAsync(async (req, res) => {
+  const { sellerId } = req.params;
+  const filter = {
+    sellerId,
+  };
+  const options = {};
+  const product = await productService.getProductList(filter, options);
+  return res.status(httpStatus.OK).send({ results: product });
+});
 export const listProduct = catchAsync(async (req, res) => {
   const filter = {};
   const options = {};

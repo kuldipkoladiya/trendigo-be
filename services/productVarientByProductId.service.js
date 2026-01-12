@@ -163,6 +163,11 @@ export async function updateProductVarientById(id, body, user) {
       images: { $each: body.images },
     };
   }
+  if (Array.isArray(body.videos) && body.videos.length > 0) {
+    updateQuery.$addToSet = {
+      videos: { $each: body.videos },
+    };
+  }
 
   const updated = await ProductVarientByProductId.findByIdAndUpdate(id, updateQuery, { new: true });
 

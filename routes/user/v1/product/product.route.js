@@ -23,11 +23,17 @@ router
    * */
   .get(auth('user'), validate(productValidation.paginatedProduct), productController.paginateProduct);
 router
+  .route('/by-seller/:sellerId')
+  /**
+   * getProductPaginated
+   * */
+  .get(validate(productValidation.getSellerProduct), productController.getSellerProduct);
+router
   .route('/:productId')
   /**
    * getProductById
    * */
-  .get(sellerAuth(), validate(productValidation.getProductById), productController.getProduct)
+  .get(validate(productValidation.getProductById), productController.getProduct)
   /**
    * updateProduct
    * */

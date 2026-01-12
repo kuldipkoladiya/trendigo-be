@@ -121,3 +121,9 @@ export const paginatedProduct = {
     })
     .unknown(true),
 };
+
+export const getSellerProduct = {
+  params: Joi.object().keys({
+    sellerId: Joi.objectId().required(),
+  }),
+};
