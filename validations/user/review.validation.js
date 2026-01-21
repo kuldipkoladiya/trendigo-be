@@ -69,3 +69,15 @@ export const paginatedReview = {
     })
     .unknown(true),
 };
+
+export const getReviewByproductId = {
+  params: Joi.object().keys({
+    productId: Joi.objectId().required(),
+  }),
+};
+
+export const getReviewBysellerId = {
+  params: Joi.object().keys({
+    sellerId: Joi.objectId().required(),
+  }),
+};

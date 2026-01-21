@@ -32,30 +32,36 @@ export async function getOne(filter, options = {}) {
     });
 }
 
-export async function getProductList(filter, options = {}) {
-  const product = await Product.find(filter, options.projection, options)
-    .populate({ path: 'storeId', select: 'name storeUrl profileImage' })
-    .populate({ path: 'sellerId', select: 'name email' })
-    .populate({ path: 'productTypeId', select: 'value' })
-    .populate({ path: 'brandId', select: 'name logo' })
-    .populate({ path: 'productCategoryId', select: 'value parentCategoryId' })
+export async function getProductList(filter = {}) {
+  return Product.find(filter)
+    .populate({
+      path: 'storeId',
+      select: 'name storeUrl profileImage',
+    })
+    .populate({
+      path: 'sellerId',
+      select: 'name email',
+    })
+    .populate({
+      path: 'productTypeId',
+      select: 'value',
+    })
+    .populate({
+      path: 'brandId',
+      select: 'name logo',
+    })
+    .populate({
+      path: 'productCategoryId',
+      select: 'value parentCategoryId',
+    })
     .populate({
       path: 'variants',
       match: { isDeleted: false },
-      select: `
-        variants
-        quantity
-        price
-        discount
-        sku
-        image
-      `,
       populate: {
         path: 'images videos',
         select: 'imageUrl imageName isSelectedForMainScreen',
       },
     });
-  return product;
 }
 
 export async function getProductListWithPagination(filter, options = {}) {
@@ -141,11 +147,23 @@ export async function aggregateProduct(query) {
   return product;
 }
 
-// export async function aggregateProductWithPagination(query, options = {}) {
-//   const aggregate = Product.aggregate();
-//   query.map((obj) => {
-//     aggregate._pipeline.push(obj);
-//   });
-//   const product = await Product.aggregatePaginate(aggregate, options);
-//   return product;
-// }
+export async function getProductListPaginated(filter, options) {
+  return Product.paginate(filter, {
+    ...options,
+    lean: true,
+    populate: [
+      { path: 'storeId', select: 'name storeUrl profileImage' },
+      { path: 'sellerId', select: 'name email' },
+      { path: 'productTypeId', select: 'value' },
+      { path: 'brandId', select: 'name logo' },
+      { path: 'productCategoryId', select: 'value parentCategoryId' },
+      {
+        path: 'variants',
+        populate: {
+          path: 'images videos',
+          select: 'imageUrl imageName isSelectedForMainScreen',
+        },
+      },
+    ],
+  });
+}

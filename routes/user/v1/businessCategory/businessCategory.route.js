@@ -2,7 +2,7 @@ import express from 'express';
 import { businessCategoryController } from 'controllers/user';
 import { businessCategoryValidation } from 'validations/user';
 import validate from 'middlewares/validate';
-import auth from 'middlewares/auth';
+import sellerAuth from '../../../../middlewares/sellerAuth';
 
 const router = express.Router();
 router
@@ -11,7 +11,7 @@ router
    * createBusinessCategory
    * */
   .post(
-    auth('user'),
+    sellerAuth(),
     validate(businessCategoryValidation.createBusinessCategory),
     businessCategoryController.createBusinessCategory
   )
@@ -19,7 +19,7 @@ router
    * getBusinessCategory
    * */
   .get(
-    auth('user'),
+    sellerAuth(),
     validate(businessCategoryValidation.getBusinessCategory),
     businessCategoryController.listBusinessCategory
   );
@@ -29,7 +29,7 @@ router
    * getBusinessCategoryPaginated
    * */
   .get(
-    auth('user'),
+    sellerAuth(),
     validate(businessCategoryValidation.paginatedBusinessCategory),
     businessCategoryController.paginateBusinessCategory
   );
@@ -39,7 +39,7 @@ router
    * getBusinessCategoryById
    * */
   .get(
-    auth('user'),
+    sellerAuth(),
     validate(businessCategoryValidation.getBusinessCategoryById),
     businessCategoryController.getBusinessCategory
   )
@@ -47,7 +47,7 @@ router
    * updateBusinessCategory
    * */
   .put(
-    auth('user'),
+    sellerAuth(),
     validate(businessCategoryValidation.updateBusinessCategory),
     businessCategoryController.updateBusinessCategory
   )
@@ -55,7 +55,7 @@ router
    * deleteBusinessCategoryById
    * */
   .delete(
-    auth('user'),
+    sellerAuth(),
     validate(businessCategoryValidation.deleteBusinessCategoryById),
     businessCategoryController.removeBusinessCategory
   );

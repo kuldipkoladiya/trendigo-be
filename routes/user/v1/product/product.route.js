@@ -23,6 +23,15 @@ router
    * */
   .get(auth('user'), validate(productValidation.paginatedProduct), productController.paginateProduct);
 router
+  .route('/by-product-type/:productType')
+  /**
+   * getProductsByProductType
+   * */
+  .get(validate(productValidation.getProductsByProductType), productController.getProductsByProductType);
+router
+  .route('/by-product-category/:category')
+  .get(validate(productValidation.getProductsByProductCategory), productController.getProductsByProductCategory);
+router
   .route('/by-seller/:sellerId')
   /**
    * getProductPaginated

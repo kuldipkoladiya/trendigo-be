@@ -111,7 +111,24 @@ export const getProduct = {
     })
     .unknown(true),
 };
-
+export const getProductsByProductType = {
+  params: Joi.object().keys({
+    productType: Joi.string().required(), // Men / Women
+  }),
+  query: Joi.object().keys({
+    page: Joi.number().default(1),
+    limit: Joi.number().default(10).max(100),
+  }),
+};
+export const getProductsByProductCategory = {
+  params: Joi.object().keys({
+    category: Joi.string().required(), // ex:Top-wear
+  }),
+  query: Joi.object().keys({
+    page: Joi.number().default(1),
+    limit: Joi.number().default(10),
+  }),
+};
 export const paginatedProduct = {
   body: Joi.object().keys({}).unknown(true),
   query: Joi.object()

@@ -3,6 +3,7 @@ import { storeAddressController } from 'controllers/user';
 import { storeAddressValidation } from 'validations/user';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import sellerAuth from '../../../../middlewares/sellerAuth';
 
 const router = express.Router();
 router
@@ -10,7 +11,7 @@ router
   /**
    * createStoreAddress
    * */
-  .post(auth('user'), validate(storeAddressValidation.createStoreAddress), storeAddressController.createStoreAddress)
+  .post(sellerAuth(), validate(storeAddressValidation.createStoreAddress), storeAddressController.createStoreAddress)
   /**
    * getStoreAddress
    * */

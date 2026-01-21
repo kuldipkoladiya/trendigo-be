@@ -1,6 +1,7 @@
 import httpStatus from 'http-status';
 import { productService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
+import { ProductCategories, ProductType } from '../../models';
 
 export const getProduct = catchAsync(async (req, res) => {
   const { productId } = req.params;
@@ -63,4 +64,81 @@ export const removeProduct = catchAsync(async (req, res) => {
   };
   const product = await productService.removeProduct(filter);
   return res.status(httpStatus.OK).send({ results: product });
+});
+
+export const getProductsByProductType = catchAsync(async (req, res) => {
+  const { productType } = req.params;
+  const { page = 1, limit = 10 } = req.query;
+
+  const productTypeDoc = await ProductType.findOne({
+    value: productType,
+  });
+
+  if (!productTypeDoc) {
+    return res.status(404).send({
+      status: 'Fail',
+      message: 'Product type not found',
+    });
+  }
+
+  const filter = {
+    productTypeId: productTypeDoc._id, // ✅ correct
+  };
+
+  const options = {
+    page: Number(page),
+    limit: Number(limit),
+    sort: { createdAt: -1 },
+  };
+
+  const products = await productService.getProductListPaginated(filter, options);
+
+  return res.status(200).send({
+    status: 'Success',
+    results: products, // ✅ MUST send docs
+    page: products.page,
+    limit: products.limit,
+    totalPages: products.totalPages,
+    totalResults: products.totalDocs,
+  });
+});
+
+export const getProductsByProductCategory = catchAsync(async (req, res) => {
+  const { category } = req.params;
+  const { page = 1, limit = 10 } = req.query;
+
+  // 🔹 Step 1: find category by value
+  const categoryDoc = await ProductCategories.findOne({
+    value: category,
+  });
+
+  if (!categoryDoc) {
+    return res.status(404).send({
+      status: 'Fail',
+      message: 'Product category not found',
+    });
+  }
+
+  // 🔹 Step 2: filter products
+  const filter = {
+    productCategoryId: categoryDoc._id,
+  };
+
+  const options = {
+    page: Number(page),
+    limit: Number(limit),
+    sort: { createdAt: -1 },
+  };
+
+  // 🔹 Step 3: paginated products
+  const products = await productService.getProductListPaginated(filter, options);
+
+  return res.status(200).send({
+    status: 'Success',
+    results: products,
+    page: products.page,
+    limit: products.limit,
+    totalPages: products.totalPages,
+    totalResults: products.totalDocs,
+  });
 });

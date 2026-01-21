@@ -9,7 +9,22 @@ export async function getStoreById(id, options = {}) {
 }
 
 export async function getOne(query, options = {}) {
-  return Store.findOne(query, options.projection, options).populate({ path: 'contact', select: 'name email phone' });
+  return Store.findOne(query, options.projection, options).populate([
+    {
+      path: 'contact',
+      select: 'name email phone',
+    },
+    {
+      path: 'address',
+      match: { isDeleted: false },
+      select: 'pincode city state country AddressLineOne addessLineTwo',
+    },
+    {
+      path: 'businessCategoryId',
+      match: { isDeleted: false },
+      select: 'value',
+    },
+  ]);
 }
 
 export async function getStoreList(filter, options = {}) {

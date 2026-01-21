@@ -14,13 +14,25 @@ router
   /**
    * getReview
    * */
-  .get(auth('user'), validate(reviewValidation.getReview), reviewController.listReview);
+  .get(validate(reviewValidation.getReview), reviewController.listReview);
 router
   .route('/paginated')
   /**
    * getReviewPaginated
    * */
   .get(auth('user'), validate(reviewValidation.paginatedReview), reviewController.paginateReview);
+router
+  .route('/by-product/:productId')
+  /**
+   * getReviewById
+   * */
+  .get(validate(reviewValidation.getReviewByproductId), reviewController.getReviewByproductId);
+router
+  .route('/by-seller/:sellerId')
+  /**
+   * getReviewById
+   * */
+  .get(validate(reviewValidation.getReviewBysellerId), reviewController.getReviewBysellerId);
 router
   .route('/:reviewId')
   /**

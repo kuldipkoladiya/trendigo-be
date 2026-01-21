@@ -9,8 +9,6 @@ import FileFieldValidationEnum from 'models/fileFieldValidation.model';
 import mongoose from 'mongoose';
 import TempS3 from 'models/tempS3.model';
 import { asyncForEach } from 'utils/common';
-import config from 'config/config';
-import { pick } from '../../utils/pick';
 
 const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
   const newUrl = await s3Service.moveFile({ key: url, newFilePath });
@@ -125,4 +123,26 @@ export const removeReview = catchAsync(async (req, res) => {
   };
   const review = await reviewService.removeReview(filter);
   return res.status(httpStatus.OK).send({ results: review });
+});
+
+export const getReviewByproductId = catchAsync(async (req, res) => {
+  const { productId } = req.params;
+
+  const reviewData = await reviewService.getApprovedReviewSummaryWithPopulate(productId);
+
+  return res.status(httpStatus.OK).send({
+    status: 'Success',
+    results: reviewData,
+  });
+});
+
+export const getReviewBysellerId = catchAsync(async (req, res) => {
+  const { productId } = req.params;
+
+  const reviewData = await reviewService.getReviewList(productId);
+
+  return res.status(httpStatus.OK).send({
+    status: 'Success',
+    results: reviewData,
+  });
 });

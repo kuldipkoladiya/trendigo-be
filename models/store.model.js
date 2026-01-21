@@ -44,6 +44,10 @@ const StoreSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'SellerUser',
     },
+    address: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'StoreAddress',
+    },
     isDeclaration: {
       type: Boolean,
       default: false,

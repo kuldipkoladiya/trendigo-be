@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import httpStatus from 'http-status';
-import { CopyObjectCommand, DeleteObjectsCommand } from '@aws-sdk/client-s3';
 import mongoose from 'mongoose';
 import axios from 'axios';
 import jimp from 'jimp';
@@ -20,6 +19,7 @@ AWS.config = new AWS.Config({
 });
 // AWS.config.update({ region: 'us-east-1' });
 const s3 = new AWS.S3({ apiVersion: '2006-03-01', signatureVersion: 'v4' });
+
 export const getSignedUrl = (key) => {
   const signedURL = {
     Bucket: config.aws.bucket,
@@ -191,11 +191,12 @@ export const validateExtensionForProfilePic = async (preSignedReq, user, isProfi
   return { url, key: preSignedReq.key, data: result };
 };
 export const deleteObjects = async (keys) => {
-  const deleteCommand = new DeleteObjectsCommand({
-    Bucket: config.aws.bucket,
-    Delete: { Objects: keys },
-  });
-  return s3.send(deleteCommand);
+  return s3
+    .deleteObjects({
+      Bucket: config.aws.bucket,
+      Delete: { Objects: keys },
+    })
+    .promise();
 };
 
 export const uploadFileToS3 = async (url, key) => {
@@ -315,19 +316,25 @@ export const uploadRequestedFiles = async (files, user, filePath) => {
  * @returns {Promise<>}
  */
 export const moveFile = async ({ key, newFilePath }) => {
-  const params = {
-    Bucket: config.aws.bucket, // bucket name
-    CopySource: key, // file source path
-    Key: newFilePath, // new destination path where file will be moved
-    ACL: 'public-read', // access for everyone public read-only
-  };
   try {
-    const copyCommand = new CopyObjectCommand(params);
-    await s3.send(copyCommand);
-    await deleteObjects([{ Key: params.CopySource.split('amazonaws.com/').pop() }]);
-    return `https://${config.aws.bucket}.s3.${config.aws.region}.amazonaws.com/${encodeURI(params.Key)}`;
+    await s3
+      .copyObject({
+        Bucket: config.aws.bucket,
+        CopySource: key,
+        Key: newFilePath,
+        ACL: 'public-read',
+      })
+      .promise();
+
+    await deleteObjects([
+      {
+        Key: key.split('amazonaws.com/').pop(),
+      },
+    ]);
+
+    return `https://${config.aws.bucket}.s3.${config.aws.region}.amazonaws.com/${encodeURI(newFilePath)}`;
   } catch (e) {
-    throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, e);
+    throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, e.message);
   }
 };
 
