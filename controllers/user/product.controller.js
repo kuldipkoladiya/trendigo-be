@@ -142,3 +142,23 @@ export const getProductsByProductCategory = catchAsync(async (req, res) => {
     totalResults: products.totalDocs,
   });
 });
+
+export const listProductByReview = catchAsync(async (req, res) => {
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 10;
+
+  // optional auth
+  const userId = req.user && req.user._id ? req.user._id : null;
+
+  const response = await productService.getProductListByReviewWithPagination(page, limit, userId);
+  return res.status(200).json(response);
+});
+export const getProductDetails = catchAsync(async (req, res) => {
+  const { productId } = req.params;
+
+  const userId = req.user && req.user._id ? req.user._id : null;
+
+  const product = await productService.getProductDetailsById(productId, userId);
+
+  return res.status(200).json({ results: product });
+});
