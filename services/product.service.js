@@ -1,6 +1,7 @@
 import ApiError from 'utils/ApiError';
 import httpStatus from 'http-status';
 import { Product, Store, ProductCategories, ProductBrand, ProductVarientByProductId } from 'models';
+import mongoose from 'mongoose';
 
 export async function getProductById(id, options = {}) {
   const product = await Product.findById(id, options.projection, options);
@@ -166,4 +167,391 @@ export async function getProductListPaginated(filter, options) {
       },
     ],
   });
+}
+
+export async function getProductListByReviewWithPagination(page = 1, limit = 10, userId = null) {
+  const skip = (page - 1) * limit;
+
+  const pipeline = [
+    // ======================================================
+    // REVIEWS
+    // ======================================================
+    {
+      $lookup: {
+        from: 'Review',
+        localField: '_id',
+        foreignField: 'productId',
+        as: 'reviews',
+        pipeline: [
+          {
+            $match: {
+              isAdminAprove: true,
+              isDeleted: { $ne: true },
+            },
+          },
+        ],
+      },
+    },
+
+    {
+      $addFields: {
+        averageRating: {
+          $ifNull: [{ $avg: '$reviews.rating' }, 0],
+        },
+        totalReviews: { $size: '$reviews' },
+      },
+    },
+    {
+      $unset: 'reviews',
+    },
+    { $sort: { averageRating: -1, totalReviews: -1 } },
+
+    // ======================================================
+    // PAGINATION + DATA
+    // ======================================================
+    {
+      $facet: {
+        data: [
+          { $skip: skip },
+          { $limit: limit },
+
+          // ==================================================
+          // WISHLIST (BULLETPROOF)
+          // ==================================================
+          ...(userId
+            ? [
+                {
+                  $lookup: {
+                    from: 'UserWishlist',
+                    let: { productId: '$_id' },
+                    pipeline: [
+                      {
+                        $match: {
+                          $expr: {
+                            $and: [
+                              {
+                                $eq: [{ $toString: '$productId' }, { $toString: '$$productId' }],
+                              },
+                              {
+                                $eq: [{ $toString: '$userId' }, userId.toString()],
+                              },
+                              { $ne: ['$isDeleted', true] },
+                            ],
+                          },
+                        },
+                      },
+                    ],
+                    as: 'wishlistData',
+                  },
+                },
+                {
+                  $addFields: {
+                    isWishlisted: {
+                      $gt: [{ $size: '$wishlistData' }, 0],
+                    },
+                  },
+                },
+              ]
+            : [
+                {
+                  $addFields: {
+                    isWishlisted: false,
+                  },
+                },
+              ]),
+
+          // ==================================================
+          // PRODUCT TYPE
+          // ==================================================
+          {
+            $lookup: {
+              from: 'ProductType',
+              localField: 'productTypeId',
+              foreignField: '_id',
+              as: 'productTypeId',
+            },
+          },
+          {
+            $unwind: {
+              path: '$productTypeId',
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+
+          // ==================================================
+          // BRAND
+          // ==================================================
+          {
+            $lookup: {
+              from: 'ProductBrand',
+              localField: 'brandId',
+              foreignField: '_id',
+              as: 'brandId',
+            },
+          },
+          {
+            $unwind: {
+              path: '$brandId',
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+
+          // ==================================================
+          // CATEGORY
+          // ==================================================
+          {
+            $lookup: {
+              from: 'ProductCategories',
+              localField: 'productCategoryId',
+              foreignField: '_id',
+              as: 'productCategoryId',
+            },
+          },
+          {
+            $unwind: {
+              path: '$productCategoryId',
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+
+          // ==================================================
+          // VARIANTS + MEDIA
+          // ==================================================
+          {
+            $lookup: {
+              from: 'ProductVarientByProductId',
+              localField: 'variants',
+              foreignField: '_id',
+              as: 'variants',
+              pipeline: [
+                { $match: { isDeleted: { $ne: true } } },
+                {
+                  $lookup: {
+                    from: 'S3image',
+                    localField: 'images',
+                    foreignField: '_id',
+                    as: 'images',
+                  },
+                },
+                {
+                  $lookup: {
+                    from: 'S3image',
+                    localField: 'videos',
+                    foreignField: '_id',
+                    as: 'videos',
+                  },
+                },
+              ],
+            },
+          },
+        ],
+
+        // ==================================================
+        // TOTAL COUNT
+        // ==================================================
+        metaData: [{ $count: 'total' }],
+      },
+    },
+  ];
+
+  const result = await Product.aggregate(pipeline);
+
+  const data = result && result.length && result[0].data ? result[0].data : [];
+
+  const total = result && result.length && result[0].metaData && result[0].metaData.length ? result[0].metaData[0].total : 0;
+
+  return {
+    results: data,
+    page,
+    limit,
+    totalResults: total,
+    totalPages: Math.ceil(total / limit),
+  };
+}
+export async function getProductDetailsById(productId, userId = null) {
+  const pipeline = [
+    // ------------------------------------------------
+    // MATCH PRODUCT
+    // ------------------------------------------------
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(productId),
+        isDeleted: { $ne: true },
+      },
+    },
+
+    // ------------------------------------------------
+    // REVIEWS
+    // ------------------------------------------------
+    {
+      $lookup: {
+        from: 'Review',
+        localField: '_id',
+        foreignField: 'productId',
+        as: 'reviews',
+        pipeline: [
+          {
+            $match: {
+              isAdminAprove: true,
+              isDeleted: { $ne: true },
+            },
+          },
+        ],
+      },
+    },
+
+    {
+      $addFields: {
+        averageRating: {
+          $ifNull: [{ $avg: '$reviews.rating' }, 0],
+        },
+        totalReviews: { $size: '$reviews' },
+      },
+    },
+
+    // ------------------------------------------------
+    // WISHLIST (OPTIONAL)
+    // ------------------------------------------------
+    ...(userId
+      ? [
+          {
+            $lookup: {
+              from: 'UserWishlist',
+              let: { productId: '$_id' },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        {
+                          $eq: [{ $toString: '$productId' }, { $toString: '$$productId' }],
+                        },
+                        {
+                          $eq: [{ $toString: '$userId' }, userId.toString()],
+                        },
+                        { $ne: ['$isDeleted', true] },
+                      ],
+                    },
+                  },
+                },
+              ],
+              as: 'wishlistData',
+            },
+          },
+          {
+            $addFields: {
+              isWishlisted: {
+                $gt: [{ $size: '$wishlistData' }, 0],
+              },
+            },
+          },
+        ]
+      : [
+          {
+            $addFields: {
+              isWishlisted: false,
+            },
+          },
+        ]),
+
+    // ------------------------------------------------
+    // STORE
+    // ------------------------------------------------
+    {
+      $lookup: {
+        from: 'Store',
+        localField: 'storeId',
+        foreignField: '_id',
+        as: 'storeId',
+      },
+    },
+    { $unwind: { path: '$storeId', preserveNullAndEmptyArrays: true } },
+
+    // ------------------------------------------------
+    // SELLER
+    // ------------------------------------------------
+    {
+      $lookup: {
+        from: 'SellerUser',
+        localField: 'sellerId',
+        foreignField: '_id',
+        as: 'sellerId',
+      },
+    },
+    { $unwind: { path: '$sellerId', preserveNullAndEmptyArrays: true } },
+
+    // ------------------------------------------------
+    // PRODUCT TYPE
+    // ------------------------------------------------
+    {
+      $lookup: {
+        from: 'ProductType',
+        localField: 'productTypeId',
+        foreignField: '_id',
+        as: 'productTypeId',
+      },
+    },
+    { $unwind: { path: '$productTypeId', preserveNullAndEmptyArrays: true } },
+
+    // ------------------------------------------------
+    // BRAND
+    // ------------------------------------------------
+    {
+      $lookup: {
+        from: 'ProductBrand',
+        localField: 'brandId',
+        foreignField: '_id',
+        as: 'brandId',
+      },
+    },
+    { $unwind: { path: '$brandId', preserveNullAndEmptyArrays: true } },
+
+    // ------------------------------------------------
+    // CATEGORY
+    // ------------------------------------------------
+    {
+      $lookup: {
+        from: 'ProductCategories',
+        localField: 'productCategoryId',
+        foreignField: '_id',
+        as: 'productCategoryId',
+      },
+    },
+    { $unwind: { path: '$productCategoryId', preserveNullAndEmptyArrays: true } },
+
+    // ------------------------------------------------
+    // VARIANTS
+    // ------------------------------------------------
+    {
+      $lookup: {
+        from: 'ProductVarientByProductId',
+        localField: 'variants',
+        foreignField: '_id',
+        as: 'variants',
+        pipeline: [
+          { $match: { isDeleted: { $ne: true } } },
+          {
+            $lookup: {
+              from: 'S3image',
+              localField: 'images',
+              foreignField: '_id',
+              as: 'images',
+            },
+          },
+          {
+            $lookup: {
+              from: 'S3image',
+              localField: 'videos',
+              foreignField: '_id',
+              as: 'videos',
+            },
+          },
+        ],
+      },
+    },
+  ];
+
+  const result = await Product.aggregate(pipeline);
+
+  return result[0] || null;
 }

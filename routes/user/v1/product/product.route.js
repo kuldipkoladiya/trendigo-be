@@ -4,6 +4,7 @@ import { productValidation } from 'validations/user';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
 import sellerAuth from '../../../../middlewares/sellerAuth';
+import optionalAuth from '../../../../middlewares/optionalAuth';
 
 const router = express.Router();
 router
@@ -16,6 +17,12 @@ router
    * getProduct
    * */
   .get(validate(productValidation.getProduct), productController.listProduct);
+router
+  .route('/listProductByReview')
+  /**
+   * listProductByReview
+   * */
+  .get(optionalAuth, productController.listProductByReview);
 router
   .route('/paginated')
   /**
@@ -37,6 +44,12 @@ router
    * getProductPaginated
    * */
   .get(sellerAuth(), validate(productValidation.getSellerProduct), productController.getSellerProduct);
+router.get(
+  '/details/:productId',
+  optionalAuth, // 👈 important
+  validate(productValidation.getProductById),
+  productController.getProductDetails
+);
 router
   .route('/:productId')
   /**
