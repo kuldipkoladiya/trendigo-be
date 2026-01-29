@@ -27,11 +27,11 @@ router
   /**
    * getStoreAddressById
    * */
-  .get(auth('user'), validate(storeAddressValidation.getStoreAddressById), storeAddressController.getStoreAddress)
+  .get(sellerAuth(), validate(storeAddressValidation.getStoreAddressById), storeAddressController.getStoreAddress)
   /**
    * updateStoreAddress
    * */
-  .put(auth('user'), validate(storeAddressValidation.updateStoreAddress), storeAddressController.updateStoreAddress)
+  .put(sellerAuth(), validate(storeAddressValidation.updateStoreAddress), storeAddressController.updateStoreAddress)
   /**
    * deleteStoreAddressById
    * */
