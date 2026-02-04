@@ -3,6 +3,7 @@ import { reviewController } from 'controllers/user';
 import { reviewValidation } from 'validations/user';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import sellerAuth from '../../../../middlewares/sellerAuth';
 
 const router = express.Router();
 router
@@ -32,7 +33,7 @@ router
   /**
    * getReviewById
    * */
-  .get(validate(reviewValidation.getReviewBysellerId), reviewController.getReviewBysellerId);
+  .get(sellerAuth(), validate(reviewValidation.getReviewBysellerId), reviewController.getReviewBysellerId);
 router
   .route('/:reviewId')
   /**
