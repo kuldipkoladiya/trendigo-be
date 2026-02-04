@@ -137,9 +137,9 @@ export const getReviewByproductId = catchAsync(async (req, res) => {
 });
 
 export const getReviewBysellerId = catchAsync(async (req, res) => {
-  const { productId } = req.params;
+  const { sellerId } = req.params;
 
-  const reviewData = await reviewService.getReviewList(productId);
+  const reviewData = await reviewService.getReviewList(sellerId);
 
   return res.status(httpStatus.OK).send({
     status: 'Success',
