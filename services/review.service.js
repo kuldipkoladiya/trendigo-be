@@ -14,7 +14,10 @@ export async function getOne(query, options = {}) {
 }
 
 export async function getReviewList(filter, options = {}) {
-  const review = await Review.find(filter, options.projection, options);
+  const review = await Review.find(filter, options.projection, options).populate([
+    { path: 'sellerId', select: 'name email' },
+    { path: 'productId', select: 'title price images' },
+  ]);
   return review;
 }
 
