@@ -417,3 +417,152 @@ export async function getApprovedReviewSummaryBySellerId(sellerId, { page = 1, l
     reviews: data.reviews || [],
   };
 }
+
+export async function getApprovedReviewSummaryByUserId(userId, { page = 1, limit = 10 } = {}) {
+  const userObjectId = new mongoose.Types.ObjectId(userId);
+  const skip = (page - 1) * limit;
+
+  const result = await Review.aggregate([
+    {
+      $match: {
+        userId: userObjectId,
+        isDeleted: false,
+      },
+    },
+
+    // ✅ Seller
+    {
+      $lookup: {
+        from: 'SellerUser', // ⚠️ ensure collection name is correct (usually lowercase plural)
+        let: { sellerId: '$sellerId' },
+        pipeline: [{ $match: { $expr: { $eq: ['$_id', '$$sellerId'] } } }, { $project: { name: 1, email: 1 } }],
+        as: 'seller',
+      },
+    },
+    {
+      $unwind: {
+        path: '$seller',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+
+    // ✅ Product
+    {
+      $lookup: {
+        from: 'Product',
+        let: { productId: '$productId' },
+        pipeline: [{ $match: { $expr: { $eq: ['$_id', '$$productId'] } } }, { $project: { title: 1, images: 1 } }],
+        as: 'product',
+      },
+    },
+    {
+      $unwind: {
+        path: '$product',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+
+    // ✅ User (Reviewer)
+    {
+      $lookup: {
+        from: 'User',
+        let: { userId: '$userId' },
+        pipeline: [{ $match: { $expr: { $eq: ['$_id', '$$userId'] } } }, { $project: { name: 1, email: 1, profilePic: 1 } }],
+        as: 'user',
+      },
+    },
+    {
+      $unwind: {
+        path: '$user',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+
+    {
+      $facet: {
+        summary: [
+          {
+            $group: {
+              _id: null,
+              averageRating: { $avg: '$rating' },
+              user: { $first: '$user' },
+            },
+          },
+        ],
+
+        totalCount: [{ $count: 'count' }],
+
+        ratingBreakdown: [
+          {
+            $group: {
+              _id: { $floor: '$rating' },
+              count: { $sum: 1 },
+            },
+          },
+        ],
+
+        reviews: [
+          { $sort: { createdAt: -1 } },
+          { $skip: skip },
+          { $limit: limit },
+          {
+            $project: {
+              _id: 1,
+              rating: 1,
+              title: 1,
+              description: 1,
+              createdAt: 1,
+              productImages: 1,
+
+              seller: {
+                _id: '$seller._id',
+                name: '$seller.name',
+                email: '$seller.email',
+              },
+
+              product: {
+                _id: '$product._id',
+                title: '$product.title',
+                images: '$product.images',
+              },
+            },
+          },
+        ],
+      },
+    },
+  ]);
+
+  const data = result.length ? result[0] : {};
+  const summary = data && data.summary && data.summary.length ? data.summary[0] : {};
+  const totalReviews = data && data.totalCount && data.totalCount.length ? data.totalCount[0].count : 0;
+
+  // ✅ Rating Map
+  const ratingMap = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+
+  if (data.ratingBreakdown) {
+    data.ratingBreakdown.forEach((item) => {
+      ratingMap[item._id] = item.count;
+    });
+  }
+
+  const avg = summary.averageRating != null ? Number(summary.averageRating.toFixed(1)) : 0;
+  const totalPages = Math.ceil(totalReviews / limit);
+
+  return {
+    averageRating: avg,
+    totalReviews,
+    ratingBreakdown: ratingMap,
+    user: summary.user || null,
+
+    pagination: {
+      totalReviews,
+      totalPages,
+      currentPage: page,
+      limit,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1,
+    },
+
+    reviews: data.reviews || [],
+  };
+}

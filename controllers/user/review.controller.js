@@ -168,3 +168,17 @@ export const getReviewBysellerId = catchAsync(async (req, res) => {
     results: reviewData,
   });
 });
+
+export const getReviewByUserId = catchAsync(async (req, res) => {
+  const { userId } = req.params;
+
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 10;
+
+  const reviewData = await reviewService.getApprovedReviewSummaryByUserId(userId, { page, limit });
+
+  return res.status(httpStatus.OK).send({
+    status: 'Success',
+    results: reviewData,
+  });
+});

@@ -83,3 +83,8 @@ export const getReviewBysellerId = {
     sellerId: Joi.objectId().required(),
   }),
 };
+export const getReviewByuserId = {
+  params: Joi.object().keys({
+    userId: Joi.objectId().required(),
+  }),
+};

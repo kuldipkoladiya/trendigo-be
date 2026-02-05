@@ -35,6 +35,12 @@ router
    * */
   .get(sellerAuth(), validate(reviewValidation.getReviewBysellerId), reviewController.getReviewBysellerId);
 router
+  .route('/by-user/:userId')
+  /**
+   * getReviewById
+   * */
+  .get(auth('user'), validate(reviewValidation.getReviewByuserId), reviewController.getReviewByUserId);
+router
   .route('/:reviewId')
   /**
    * getReviewById

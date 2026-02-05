@@ -44,6 +44,7 @@ router
    * getProductPaginated
    * */
   .get(sellerAuth(), validate(productValidation.getSellerProduct), productController.getSellerProduct);
+
 router.get(
   '/details/:productId',
   optionalAuth, // 👈 important
