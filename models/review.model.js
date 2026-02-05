@@ -30,6 +30,9 @@ const ReviewSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'SellerUser',
     },
+    title: {
+      type: String,
+    },
     description: {
       type: String,
     },
