@@ -22,6 +22,12 @@ router
    * */
   .get(sellerAuth(), validate(storeValidation.paginatedStore), storeController.paginateStore);
 router
+  .route('/by-storeId/:storeId')
+  /**
+   * getStoreById
+   * */
+  .get(validate(storeValidation.getStoreById), storeController.getStore);
+router
   .route('/:storeId')
   /**
    * getStoreById
