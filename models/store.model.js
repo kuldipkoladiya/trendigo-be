@@ -30,6 +30,11 @@ const StoreSchema = new mongoose.Schema(
     profileImage: {
       type: String,
     },
+    bannerImages: [
+      {
+        type: String,
+      },
+    ],
     aboutStore: {
       type: String,
     },

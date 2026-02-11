@@ -144,3 +144,8 @@ export const getSellerProduct = {
     sellerId: Joi.objectId().required(),
   }),
 };
+export const getStoreProduct = {
+  params: Joi.object().keys({
+    storeId: Joi.objectId().required(),
+  }),
+};

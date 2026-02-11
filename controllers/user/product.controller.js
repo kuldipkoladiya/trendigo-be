@@ -22,6 +22,24 @@ export const getSellerProduct = catchAsync(async (req, res) => {
   const product = await productService.getProductList(filter, options);
   return res.status(httpStatus.OK).send({ results: product });
 });
+export const getStoreProduct = catchAsync(async (req, res) => {
+  const { storeId } = req.params;
+  const { page = 1, limit = 12 } = req.query;
+
+  const filter = { storeId };
+  const options = { page: Number(page), limit: Number(limit) };
+
+  const products = await productService.getProductListPaginated(filter, options);
+
+  return res.status(200).send({
+    status: 'Success',
+    results: products,
+    page: products.page,
+    limit: products.limit,
+    totalPages: products.totalPages,
+    totalResults: products.totalDocs,
+  });
+});
 export const listProduct = catchAsync(async (req, res) => {
   const filter = {};
   const options = {};
