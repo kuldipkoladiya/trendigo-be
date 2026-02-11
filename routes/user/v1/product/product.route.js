@@ -47,9 +47,9 @@ router
 router
   .route('/by-store/:storeId')
   /**
-   * getProductPaginated
+   * getProductPaginateByStoreId
    * */
-  .get(auth('user'), validate(productValidation.getStoreProduct), productController.getStoreProduct);
+  .get(validate(productValidation.getStoreProduct), productController.getStoreProduct);
 router.get(
   '/details/:productId',
   optionalAuth, // 👈 important
