@@ -8,11 +8,22 @@ export const createStore = {
   body: Joi.object().keys({
     name: Joi.string().required(),
     description: Joi.string(),
+
     profileImage: Joi.string().regex(
       new RegExp(
-        `https://${config.aws.bucket}.s3.${config.aws.region}.amazonaws.com\\b([-a-zA-Z0-9()@:%_+.~#?&amp;/=]*.(png|jpg)$)`
+        `https://${config.aws.bucket}.s3.${config.aws.region}.amazonaws.com\\b([-a-zA-Z0-9()@:%_+.~#?&/=]*.(png|jpg)$)`
       )
     ),
+
+    // ✅ ADD THIS
+    bannerImages: Joi.array().items(
+      Joi.string().regex(
+        new RegExp(
+          `https://${config.aws.bucket}.s3.${config.aws.region}.amazonaws.com\\b([-a-zA-Z0-9()@:%_+.~#?&/=]*.(png|jpg)$)`
+        )
+      )
+    ),
+
     aboutStore: Joi.string(),
     storeUrl: Joi.string(),
     businessCategoryId: Joi.objectId(),
@@ -24,23 +35,30 @@ export const createStore = {
 
 export const updateStore = {
   body: Joi.object().keys({
-    name: Joi.string(),
+    name: Joi.string().required(),
     description: Joi.string(),
+
     profileImage: Joi.string().regex(
       new RegExp(
-        `https://${config.aws.bucket}.s3.${config.aws.region}.amazonaws.com\\b([-a-zA-Z0-9()@:%_+.~#?&amp;/=]*.(png|jpg)$)`
+        `https://${config.aws.bucket}.s3.${config.aws.region}.amazonaws.com\\b([-a-zA-Z0-9()@:%_+.~#?&/=]*.(png|jpg)$)`
       )
     ),
+
+    // ✅ ADD THIS
+    bannerImages: Joi.array().items(
+      Joi.string().regex(
+        new RegExp(
+          `https://${config.aws.bucket}.s3.${config.aws.region}.amazonaws.com\\b([-a-zA-Z0-9()@:%_+.~#?&/=]*.(png|jpg)$)`
+        )
+      )
+    ),
+
     aboutStore: Joi.string(),
     storeUrl: Joi.string(),
     businessCategoryId: Joi.objectId(),
-    contact: Joi.objectId(),
     isDeclaration: Joi.bool(),
     descriptionValue: Joi.string(),
     settlementCycle: Joi.string().valid(...Object.values(enumFields.EnumSettlementCycleOfStore)),
-  }),
-  params: Joi.object().keys({
-    storeId: Joi.objectId().required(),
   }),
 };
 
