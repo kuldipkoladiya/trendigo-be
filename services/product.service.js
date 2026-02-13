@@ -555,3 +555,280 @@ export async function getProductDetailsById(productId, userId = null) {
 
   return result[0] || null;
 }
+
+export async function getStoreProductListWithReviews(storeId, page = 1, limit = 12, userId = null) {
+  const skip = (page - 1) * limit;
+
+  const storeObjectId = new mongoose.Types.ObjectId(storeId);
+  const userObjectId = userId ? new mongoose.Types.ObjectId(userId) : null;
+
+  const pipeline = [
+    // =================================================
+    // FILTER STORE
+    // =================================================
+    {
+      $match: {
+        storeId: storeObjectId,
+        isDeleted: { $ne: true },
+      },
+    },
+
+    // =================================================
+    // SORT LATEST FIRST
+    // =================================================
+    {
+      $sort: { createdAt: -1 },
+    },
+
+    // =================================================
+    // REVIEWS
+    // =================================================
+    {
+      $lookup: {
+        from: 'Review',
+        localField: '_id',
+        foreignField: 'productId',
+        pipeline: [
+          {
+            $match: {
+              isAdminAprove: true,
+              isDeleted: { $ne: true },
+            },
+          },
+        ],
+        as: 'reviews',
+      },
+    },
+
+    // ⭐ ROUND RATING HERE
+    {
+      $addFields: {
+        averageRating: {
+          $round: [
+            { $ifNull: [{ $avg: '$reviews.rating' }, 0] },
+            1, // change to 0 if you want integer stars
+          ],
+        },
+        totalReviews: { $size: '$reviews' },
+      },
+    },
+
+    {
+      $unset: 'reviews',
+    },
+
+    // =================================================
+    // FACET (DATA + STORE META)
+    // =================================================
+    {
+      $facet: {
+        // ================= DATA =================
+        data: [
+          { $skip: skip },
+          { $limit: limit },
+
+          // =================================================
+          // WISHLIST
+          // =================================================
+          ...(userObjectId
+            ? [
+                {
+                  $lookup: {
+                    from: 'UserWishlist',
+                    let: { productId: '$_id' },
+                    pipeline: [
+                      {
+                        $match: {
+                          $expr: {
+                            $and: [
+                              { $eq: ['$productId', '$$productId'] },
+                              { $eq: ['$userId', userObjectId] },
+                              { $ne: ['$isDeleted', true] },
+                            ],
+                          },
+                        },
+                      },
+                    ],
+                    as: 'wishlistData',
+                  },
+                },
+                {
+                  $addFields: {
+                    isWishlisted: {
+                      $gt: [{ $size: '$wishlistData' }, 0],
+                    },
+                  },
+                },
+                { $unset: 'wishlistData' },
+              ]
+            : [
+                {
+                  $addFields: {
+                    isWishlisted: false,
+                  },
+                },
+              ]),
+
+          // =================================================
+          // STORE
+          // =================================================
+          {
+            $lookup: {
+              from: 'Store',
+              localField: 'storeId',
+              foreignField: '_id',
+              as: 'storeId',
+            },
+          },
+          {
+            $unwind: {
+              path: '$storeId',
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+
+          // =================================================
+          // SELLER
+          // =================================================
+          {
+            $lookup: {
+              from: 'User',
+              localField: 'sellerId',
+              foreignField: '_id',
+              as: 'sellerId',
+            },
+          },
+          {
+            $unwind: {
+              path: '$sellerId',
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+
+          // =================================================
+          // PRODUCT TYPE
+          // =================================================
+          {
+            $lookup: {
+              from: 'ProductType',
+              localField: 'productTypeId',
+              foreignField: '_id',
+              as: 'productTypeId',
+            },
+          },
+          {
+            $unwind: {
+              path: '$productTypeId',
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+
+          // =================================================
+          // BRAND
+          // =================================================
+          {
+            $lookup: {
+              from: 'ProductBrand',
+              localField: 'brandId',
+              foreignField: '_id',
+              as: 'brandId',
+            },
+          },
+          {
+            $unwind: {
+              path: '$brandId',
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+
+          // =================================================
+          // CATEGORY
+          // =================================================
+          {
+            $lookup: {
+              from: 'ProductCategories',
+              localField: 'productCategoryId',
+              foreignField: '_id',
+              as: 'productCategoryId',
+            },
+          },
+          {
+            $unwind: {
+              path: '$productCategoryId',
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+
+          // =================================================
+          // VARIANTS + MEDIA
+          // =================================================
+          {
+            $lookup: {
+              from: 'ProductVarientByProductId',
+              localField: 'variants',
+              foreignField: '_id',
+              pipeline: [
+                { $match: { isDeleted: { $ne: true } } },
+                {
+                  $lookup: {
+                    from: 'S3image',
+                    localField: 'images',
+                    foreignField: '_id',
+                    as: 'images',
+                  },
+                },
+                {
+                  $lookup: {
+                    from: 'S3image',
+                    localField: 'videos',
+                    foreignField: '_id',
+                    as: 'videos',
+                  },
+                },
+              ],
+              as: 'variants',
+            },
+          },
+        ],
+
+        // ================= META =================
+        metaData: [
+          {
+            $group: {
+              _id: null,
+              totalProducts: { $sum: 1 },
+              averageStoreRating: { $avg: '$averageRating' },
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              totalProducts: 1,
+              averageStoreRating: {
+                $round: ['$averageStoreRating', 1],
+              },
+            },
+          },
+        ],
+      },
+    },
+  ];
+
+  const result = await Product.aggregate(pipeline);
+
+  const data = result && result.length && result[0].data ? result[0].data : [];
+
+  const meta = result && result.length && result[0].metaData && result[0].metaData.length ? result[0].metaData[0].total : 0;
+
+  const total = meta.totalProducts || 0;
+  const storeAverageRating = meta.averageStoreRating || 0;
+
+  return {
+    results: data,
+    page,
+    limit,
+    totalResults: total,
+    totalPages: Math.ceil(total / limit),
+    storeAverageRating,
+  };
+}

@@ -2,7 +2,7 @@ import express from 'express';
 import { inventoryController } from 'controllers/user';
 import { inventoryValidation } from 'validations/user';
 import validate from 'middlewares/validate';
-import auth from 'middlewares/auth';
+import sellerAuth from '../../../../middlewares/sellerAuth';
 
 const router = express.Router();
 router
@@ -10,29 +10,35 @@ router
   /**
    * createInventory
    * */
-  .post(auth('user'), validate(inventoryValidation.createInventory), inventoryController.createInventory)
+  .post(sellerAuth(), validate(inventoryValidation.createInventory), inventoryController.createInventory)
   /**
    * getInventory
    * */
-  .get(auth('user'), validate(inventoryValidation.getInventory), inventoryController.listInventory);
+  .get(sellerAuth(), validate(inventoryValidation.getInventory), inventoryController.listInventory);
 router
   .route('/paginated')
   /**
    * getInventoryPaginated
    * */
-  .get(auth('user'), validate(inventoryValidation.paginatedInventory), inventoryController.paginateInventory);
+  .get(sellerAuth(), validate(inventoryValidation.paginatedInventory), inventoryController.paginateInventory);
+router
+  .route('/by-store/:storeId')
+  /**
+   * getInventoryById
+   * */
+  .get(sellerAuth(), validate(inventoryValidation.getInventoryBystoreId), inventoryController.getInventoryBystoreId);
 router
   .route('/:inventoryId')
   /**
    * getInventoryById
    * */
-  .get(auth('user'), validate(inventoryValidation.getInventoryById), inventoryController.getInventory)
+  .get(sellerAuth(), validate(inventoryValidation.getInventoryById), inventoryController.getInventory)
   /**
    * updateInventory
    * */
-  .put(auth('user'), validate(inventoryValidation.updateInventory), inventoryController.updateInventory)
+  .put(sellerAuth(), validate(inventoryValidation.updateInventory), inventoryController.updateInventory)
   /**
    * deleteInventoryById
    * */
-  .delete(auth('user'), validate(inventoryValidation.deleteInventoryById), inventoryController.removeInventory);
+  .delete(sellerAuth(), validate(inventoryValidation.deleteInventoryById), inventoryController.removeInventory);
 export default router;

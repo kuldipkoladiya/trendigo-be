@@ -2,7 +2,7 @@ import express from 'express';
 import { inventoryAddressController } from 'controllers/user';
 import { inventoryAddressValidation } from 'validations/user';
 import validate from 'middlewares/validate';
-import auth from 'middlewares/auth';
+import sellerAuth from '../../../../middlewares/sellerAuth';
 
 const router = express.Router();
 router
@@ -11,7 +11,7 @@ router
    * createInventoryAddress
    * */
   .post(
-    auth('user'),
+    sellerAuth(),
     validate(inventoryAddressValidation.createInventoryAddress),
     inventoryAddressController.createInventoryAddress
   )
@@ -19,7 +19,7 @@ router
    * getInventoryAddress
    * */
   .get(
-    auth('user'),
+    sellerAuth(),
     validate(inventoryAddressValidation.getInventoryAddress),
     inventoryAddressController.listInventoryAddress
   );
@@ -29,7 +29,7 @@ router
    * getInventoryAddressPaginated
    * */
   .get(
-    auth('user'),
+    sellerAuth(),
     validate(inventoryAddressValidation.paginatedInventoryAddress),
     inventoryAddressController.paginateInventoryAddress
   );
@@ -39,7 +39,7 @@ router
    * getInventoryAddressById
    * */
   .get(
-    auth('user'),
+    sellerAuth(),
     validate(inventoryAddressValidation.getInventoryAddressById),
     inventoryAddressController.getInventoryAddress
   )
@@ -47,7 +47,7 @@ router
    * updateInventoryAddress
    * */
   .put(
-    auth('user'),
+    sellerAuth(),
     validate(inventoryAddressValidation.updateInventoryAddress),
     inventoryAddressController.updateInventoryAddress
   )
@@ -55,7 +55,7 @@ router
    * deleteInventoryAddressById
    * */
   .delete(
-    auth('user'),
+    sellerAuth(),
     validate(inventoryAddressValidation.deleteInventoryAddressById),
     inventoryAddressController.removeInventoryAddress
   );

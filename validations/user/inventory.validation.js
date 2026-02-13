@@ -52,6 +52,11 @@ export const getInventoryById = {
     inventoryId: Joi.objectId().required(),
   }),
 };
+export const getInventoryBystoreId = {
+  params: Joi.object().keys({
+    storeId: Joi.objectId().required(),
+  }),
+};
 
 export const deleteInventoryById = {
   params: Joi.object().keys({

@@ -49,7 +49,7 @@ router
   /**
    * getProductPaginateByStoreId
    * */
-  .get(validate(productValidation.getStoreProduct), productController.getStoreProduct);
+  .get(optionalAuth, validate(productValidation.getStoreProduct), productController.getStoreProduct);
 router.get(
   '/details/:productId',
   optionalAuth, // 👈 important

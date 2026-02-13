@@ -2,7 +2,7 @@ import express from 'express';
 import { sellerPolicyController } from 'controllers/user';
 import { sellerPolicyValidation } from 'validations/user';
 import validate from 'middlewares/validate';
-import auth from 'middlewares/auth';
+import sellerAuth from '../../../../middlewares/sellerAuth';
 
 const router = express.Router();
 router
@@ -10,29 +10,39 @@ router
   /**
    * createSellerPolicy
    * */
-  .post(auth('user'), validate(sellerPolicyValidation.createSellerPolicy), sellerPolicyController.createSellerPolicy)
+  .post(sellerAuth(), validate(sellerPolicyValidation.createSellerPolicy), sellerPolicyController.createSellerPolicy)
   /**
    * getSellerPolicy
    * */
-  .get(auth('user'), validate(sellerPolicyValidation.getSellerPolicy), sellerPolicyController.listSellerPolicy);
+  .get(sellerAuth(), validate(sellerPolicyValidation.getSellerPolicy), sellerPolicyController.listSellerPolicy);
 router
   .route('/paginated')
   /**
    * getSellerPolicyPaginated
    * */
-  .get(auth('user'), validate(sellerPolicyValidation.paginatedSellerPolicy), sellerPolicyController.paginateSellerPolicy);
+  .get(sellerAuth(), validate(sellerPolicyValidation.paginatedSellerPolicy), sellerPolicyController.paginateSellerPolicy);
+router
+  .route('/by-store/:storeId')
+  /**
+   * getSellerPolicyByStoreId
+   * */
+  .get(
+    sellerAuth(),
+    validate(sellerPolicyValidation.getSellerPolicyByStoreId),
+    sellerPolicyController.getSellerPolicyByStoreId
+  );
 router
   .route('/:sellerPolicyId')
   /**
    * getSellerPolicyById
    * */
-  .get(auth('user'), validate(sellerPolicyValidation.getSellerPolicyById), sellerPolicyController.getSellerPolicy)
+  .get(sellerAuth(), validate(sellerPolicyValidation.getSellerPolicyById), sellerPolicyController.getSellerPolicy)
   /**
    * updateSellerPolicy
    * */
-  .put(auth('user'), validate(sellerPolicyValidation.updateSellerPolicy), sellerPolicyController.updateSellerPolicy)
+  .put(sellerAuth(), validate(sellerPolicyValidation.updateSellerPolicy), sellerPolicyController.updateSellerPolicy)
   /**
    * deleteSellerPolicyById
    * */
-  .delete(auth('user'), validate(sellerPolicyValidation.deleteSellerPolicyById), sellerPolicyController.removeSellerPolicy);
+  .delete(sellerAuth(), validate(sellerPolicyValidation.deleteSellerPolicyById), sellerPolicyController.removeSellerPolicy);
 export default router;

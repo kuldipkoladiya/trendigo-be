@@ -14,6 +14,7 @@ export const createInventoryAddress = {
     pincode: Joi.number().integer(),
     street: Joi.string(),
     storeId: Joi.objectId(),
+    inventoryId: Joi.objectId(),
   }),
 };
 

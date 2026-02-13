@@ -13,7 +13,8 @@ export async function getOne(query, options = {}) {
 }
 
 export async function getInventoryList(filter, options = {}) {
-  const inventory = await Inventory.find(filter, options.projection, options);
+  const inventory = await Inventory.find(filter, options.projection, options).populate('sourceAddressId');
+
   return inventory;
 }
 

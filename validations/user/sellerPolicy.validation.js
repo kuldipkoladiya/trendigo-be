@@ -64,3 +64,9 @@ export const paginatedSellerPolicy = {
     })
     .unknown(true),
 };
+
+export const getSellerPolicyByStoreId = {
+  params: Joi.object().keys({
+    storeId: Joi.objectId().required(),
+  }),
+};
