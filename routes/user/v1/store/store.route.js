@@ -26,13 +26,13 @@ router
   /**
    * getStoreById
    * */
-  .get(validate(storeValidation.getStoreById), storeController.getStore);
+  .get(validate(storeValidation.getStoreById), storeController.getStorebyid);
 router
   .route('/:storeId')
   /**
    * getStoreById
    * */
-  .get(sellerAuth(), validate(storeValidation.getStoreById), storeController.getStore)
+  .get(sellerAuth(), validate(storeValidation.getStoreById), storeController.getStorebyid)
   /**
    * updateStore
    * */

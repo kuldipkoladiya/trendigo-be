@@ -55,6 +55,15 @@ export const getStore = catchAsync(async (req, res) => {
   return res.status(httpStatus.OK).send({ results: store });
 });
 
+export const getStorebyid = catchAsync(async (req, res) => {
+  const { storeId } = req.params;
+  const filter = {
+    _id: storeId,
+  };
+  const options = {};
+  const store = await storeService.getOne(filter, options);
+  return res.status(httpStatus.OK).send({ results: store });
+});
 export const listStore = catchAsync(async (req, res) => {
   const filter = {};
   const options = {};
