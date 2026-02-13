@@ -35,7 +35,7 @@ export const createStore = {
 
 export const updateStore = {
   body: Joi.object().keys({
-    name: Joi.string().required(),
+    name: Joi.string(),
     description: Joi.string(),
 
     profileImage: Joi.string().regex(
