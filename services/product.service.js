@@ -816,12 +816,11 @@ export async function getStoreProductListWithReviews(storeId, page = 1, limit = 
 
   const result = await Product.aggregate(pipeline);
 
-  const data = result && result.length && result[0].data ? result[0].data : [];
+  const data = result && result[0] && result[0].data ? result[0].data : [];
+  const meta = result && result[0] && result[0].metaData && result[0].metaData[0] ? result[0].metaData[0] : {};
 
-  const meta = result && result.length && result[0].metaData && result[0].metaData.length ? result[0].metaData[0].total : 0;
-
-  const total = meta.totalProducts || 0;
-  const storeAverageRating = meta.averageStoreRating || 0;
+  const total = meta.totalProducts ? meta.totalProducts : 0;
+  const storeAverageRating = meta.averageStoreRating ? meta.averageStoreRating : 0;
 
   return {
     results: data,
