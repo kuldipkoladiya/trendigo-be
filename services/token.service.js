@@ -348,15 +348,34 @@ export const generatesellerVerifyEmailToken = async (email) => {
   return token;
 };
 
-export const verifyResetOtpForChangeEmailOrNumber = async (user, otp) => {
-  // Find the OTP code in the user's codes array
-  const otpCodeIndex = _.findIndex(
-    user.codes,
-    (code) => code.code === otp.toString() && code.codeType === EnumCodeTypeOfCode.RESET_LOGIN_CRED
+export const verifyResetOtpForChangeEmailOrNumber = async (account, otp, codeType = EnumCodeTypeOfCode.RESET_LOGIN_CRED) => {
+  const otpValue = otp.toString().trim();
+
+  // Find OTP index
+  const otpCodeIndex = account.codes.findIndex(
+    (code) => code.code.toString().trim() === otpValue && code.codeType === codeType
   );
-  if (otpCodeIndex === -1 || user.codes[otpCodeIndex].expirationDate < Date.now()) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'OTP is invalid');
+
+  // Invalid OTP
+  if (otpCodeIndex === -1) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid OTP');
   }
-  // Update the user document // todo : check if update user needed ot not.
-  return user;
+
+  const otpCode = account.codes[otpCodeIndex];
+
+  // Expired OTP
+  if (otpCode.expirationDate < Date.now()) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'OTP expired');
+  }
+
+  // Remove used OTP
+  account.codes.splice(otpCodeIndex, 1);
+
+  // Tell mongoose codes modified
+  account.markModified('codes');
+
+  // Save document (works for both User and Seller)
+  await account.save();
+
+  return true;
 };
