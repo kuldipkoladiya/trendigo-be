@@ -34,9 +34,15 @@ export const verifyOtp = {
 export const login = {
   body: Joi.object()
     .keys({
+      countryCodeId: Joi.objectId().when('mobileNumber', {
+        is: Joi.exist(),
+        then: Joi.required(),
+        otherwise: Joi.optional(),
+      }),
       email: Joi.string().email(),
       mobileNumber: Joi.number(),
       password: Joi.string().required(),
+      deviceToken: Joi.string().allow(''),
     })
     .or('email', 'mobileNumber'),
 };
