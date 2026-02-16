@@ -225,3 +225,57 @@ export const userInfo = catchAsync(async (req, res) => {
   const user = await sellerUserService.getSellerUserById(req.user._id);
   res.status(httpStatus.OK).send({ results: { user } });
 });
+
+export const updateSellerEmailAndMobile = catchAsync(async (req, res) => {
+  const { email, mobileNumber } = req.body;
+  const seller = req.user;
+
+  if (email && email.currentEmail !== seller.email) {
+    throw new ApiError(400, 'Your current email is incorrect');
+  }
+
+  if (email && email.newEmail === seller.email) {
+    throw new ApiError(400, 'New email cannot be same as old email');
+  }
+
+  if (mobileNumber && String(mobileNumber.currentMobileNumber) !== String(seller.mobileNumber)) {
+    throw new ApiError(400, 'Your current mobile number is incorrect');
+  }
+
+  if (mobileNumber && String(mobileNumber.newMobileNumber) === String(seller.mobileNumber)) {
+    throw new ApiError(400, 'New mobile number cannot be same as old mobile number');
+  }
+
+  await sellerAuthService.updateSellerEmailAndMobile({
+    email,
+    mobileNumber,
+    seller,
+  });
+
+  res.status(200).send({
+    status: 'Success',
+    results: {
+      success: true,
+      message: 'OTP sent successfully',
+    },
+  });
+});
+
+export const verifySellerEmailAndMobile = catchAsync(async (req, res) => {
+  const { email, mobileNumber } = req.body;
+  const seller = req.user;
+
+  await sellerAuthService.verifySellerOtpForUpdateEmailAndMobile({
+    email,
+    mobileNumber,
+    seller,
+  });
+
+  res.status(200).send({
+    status: 'Success',
+    results: {
+      success: true,
+      message: 'Updated successfully',
+    },
+  });
+});

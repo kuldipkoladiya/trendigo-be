@@ -58,3 +58,31 @@ export const logout = {
     refreshToken: Joi.string().required(),
   }),
 };
+
+export const updateSellerEmailAndMobile = {
+  body: Joi.object().keys({
+    email: Joi.object().keys({
+      currentEmail: Joi.string().email().required(),
+      newEmail: Joi.string().email().required(),
+    }),
+    mobileNumber: Joi.object().keys({
+      currentMobileNumber: Joi.number().required(),
+      newMobileNumber: Joi.number().required(),
+    }),
+  }),
+};
+
+export const verifySellerEmailAndMobile = {
+  body: Joi.object().keys({
+    email: Joi.object().keys({
+      currentEmail: Joi.string().email().required(),
+      newEmail: Joi.string().email().required(),
+      otp: Joi.number().required(),
+    }),
+    mobileNumber: Joi.object().keys({
+      currentMobileNumber: Joi.number().required(),
+      newMobileNumber: Joi.number().required(),
+      otp: Joi.number().required(),
+    }),
+  }),
+};

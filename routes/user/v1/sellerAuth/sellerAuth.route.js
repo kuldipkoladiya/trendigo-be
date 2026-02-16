@@ -30,5 +30,25 @@ router.post('/refresh-tokens', validate(sellerAuthValidation.refreshTokens), sel
 
 // Logout
 router.post('/logout', validate(sellerAuthValidation.logout), sellerAuthController.logout);
+/**
+ * send otp for change email and mobile number
+ *
+ */
+router.post(
+  '/send-otp-change-email',
+  sellerAuth(),
+  validate(sellerAuthValidation.updateSellerEmailAndMobile),
+  sellerAuthController.updateSellerEmailAndMobile
+);
 
+/**
+ * verify otp for change email and number
+ *
+ */
+router.post(
+  '/verify-otp-change-email',
+  sellerAuth(),
+  validate(sellerAuthValidation.verifySellerEmailAndMobile),
+  sellerAuthController.verifySellerEmailAndMobile
+);
 export default router;

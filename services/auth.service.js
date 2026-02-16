@@ -2,7 +2,7 @@ import httpStatus from 'http-status';
 import ApiError from 'utils/ApiError';
 import _ from 'lodash';
 import { User, Token, SellerUser } from 'models';
-import { userService, tokenService, emailService, countryCodeService } from 'services';
+import { userService, tokenService, emailService, countryCodeService, sellerUserService } from 'services';
 import { EnumTypeOfToken, EnumCodeTypeOfCode } from 'models/enum.model';
 import bcrypt from 'bcryptjs';
 import { generateOtp } from 'utils/common';
@@ -367,4 +367,65 @@ export const verifyOtpForUpdatePasswordEnaEmail = async ({ email, mobileNumber, 
   }
 
   return user;
+};
+
+export const updateSellerEmailAndMobile = async ({ email, mobileNumber, seller }) => {
+  const otp = generateOtp();
+
+  const updateBody = {
+    $push: {
+      codes: {
+        code: otp,
+        expirationDate: Date.now() + 10 * 60 * 1000,
+        used: false,
+        codeType: EnumCodeTypeOfCode.RESET_LOGIN_CRED,
+      },
+    },
+  };
+
+  // Email OTP
+  if (email && email.currentEmail === seller.email) {
+    await sellerUserService.updateSellerUser({ _id: seller._id }, updateBody);
+
+    await emailService.sendResetEmailOtp(email.newEmail, otp, 'Seller Email');
+  }
+
+  // Mobile OTP
+  if (mobileNumber && String(mobileNumber.currentMobileNumber) === String(seller.mobileNumber)) {
+    await sellerUserService.updateSellerUser({ _id: seller._id }, updateBody);
+
+    await sendOtpToMobile(`${seller.countryCode}${mobileNumber.newMobileNumber}`, otp);
+  }
+
+  return seller;
+};
+
+export const verifySellerOtpForUpdateEmailAndMobile = async ({ email, mobileNumber, seller }) => {
+  // Email verify
+  if (email && email.currentEmail === seller.email) {
+    await tokenService.verifyResetOtpForChangeEmailOrNumber(seller, email.otp);
+
+    await sellerUserService.updateSellerUser(
+      { _id: seller._id },
+      {
+        email: email.newEmail,
+        isEmailVerified: true,
+      }
+    );
+  }
+
+  // Mobile verify
+  if (mobileNumber && String(mobileNumber.currentMobileNumber) === String(seller.mobileNumber)) {
+    await tokenService.verifyResetOtpForChangeEmailOrNumber(seller, mobileNumber.otp);
+
+    await sellerUserService.updateSellerUser(
+      { _id: seller._id },
+      {
+        mobileNumber: mobileNumber.newMobileNumber,
+        isMobileVerifed: true, // use your schema spelling
+      }
+    );
+  }
+
+  return seller;
 };
