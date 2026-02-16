@@ -183,7 +183,7 @@ export const login = catchAsync(async (req, res) => {
   }
 
   // Mobile login verification check (as per your schema spelling)
-  if (mobileNumber && !seller.isMobileVerifed) {
+  if (mobileNumber && !seller.isMobileVerified) {
     throw new ApiError(400, 'Please verify your mobile number first');
   }
 
