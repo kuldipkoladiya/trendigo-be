@@ -74,7 +74,7 @@ const SellerUserSchema = new mongoose.Schema(
     countryCode: {
       type: String,
     },
-    isMobileVerifed: {
+    isMobileVerified: {
       type: Boolean,
       default: false,
     },
