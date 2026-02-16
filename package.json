@@ -17,7 +17,7 @@
     "lint:fix": "eslint node-setup --fix",
     "prettier": "prettier --check **/*.js",
     "prettier:fix": "prettier --write **/*.js",
-    "update-main": "git pull origin main && rm -rf build && npm run build && pm2 restart trendigo"
+    "update-main": "git pull origin main && rm -rf build && npm run build && pm2 restart app"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.306.0",
