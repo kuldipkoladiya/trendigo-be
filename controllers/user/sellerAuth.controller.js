@@ -176,13 +176,21 @@ export const login = catchAsync(async (req, res) => {
     countryCodeId,
     password
   );
-  if (!seller.isEmailVerified) {
+
+  // Email login verification check
+  if (email && !seller.isEmailVerified) {
     throw new ApiError(400, 'Please verify your email first');
+  }
+
+  // Mobile login verification check (as per your schema spelling)
+  if (mobileNumber && !seller.isMobileVerifed) {
+    throw new ApiError(400, 'Please verify your mobile number first');
   }
 
   const tokens = await tokenService.generateSellerTokens(seller);
 
   return res.status(200).send({
+    status: 'Success',
     results: {
       seller,
       tokens,
