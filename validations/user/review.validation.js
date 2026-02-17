@@ -12,11 +12,15 @@ export const createReview = {
     description: Joi.string(),
     rating: Joi.number(),
     isAdminAprove: Joi.bool(),
-    productImages: Joi.string().regex(
-      new RegExp(
-        `https://${config.aws.bucket}.s3.${config.aws.region}.amazonaws.com\\b([-a-zA-Z0-9()@:%_+.~#?&amp;/=]*.(png|jpg)$)`
+    productImages: Joi.array()
+      .items(
+        Joi.string().regex(
+          new RegExp(
+            `https://${config.aws.bucket}.s3.${config.aws.region}.amazonaws.com\\b([-a-zA-Z0-9()@:%_+.~#?&/=]*\\.(png|jpg|jpeg|webp)$)`
+          )
+        )
       )
-    ),
+      .default([]),
   }),
 };
 
@@ -29,11 +33,15 @@ export const updateReview = {
     description: Joi.string(),
     rating: Joi.number(),
     isAdminAprove: Joi.bool(),
-    productImages: Joi.string().regex(
-      new RegExp(
-        `https://${config.aws.bucket}.s3.${config.aws.region}.amazonaws.com\\b([-a-zA-Z0-9()@:%_+.~#?&amp;/=]*.(png|jpg)$)`
+    productImages: Joi.array()
+      .items(
+        Joi.string().regex(
+          new RegExp(
+            `https://${config.aws.bucket}.s3.${config.aws.region}.amazonaws.com\\b([-a-zA-Z0-9()@:%_+.~#?&/=]*\\.(png|jpg|jpeg|webp)$)`
+          )
+        )
       )
-    ),
+      .default([]),
   }),
   params: Joi.object().keys({
     reviewId: Joi.objectId().required(),

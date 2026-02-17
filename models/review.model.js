@@ -46,7 +46,8 @@ const ReviewSchema = new mongoose.Schema(
       default: false,
     },
     productImages: {
-      type: String,
+      type: [String],
+      default: [],
     },
   },
   { timestamps: { createdAt: true, updatedAt: true } }
