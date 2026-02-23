@@ -28,6 +28,7 @@ const RecentlyViewedSchema = new mongoose.Schema(
     },
     time: {
       type: Date,
+      default: Date.now,
     },
   },
   { timestamps: { createdAt: true, updatedAt: true } }

@@ -29,6 +29,8 @@ router
    * getProductPaginated
    * */
   .get(auth('user'), validate(productValidation.paginatedProduct), productController.paginateProduct);
+
+router.get('/search', validate(productValidation.searchProducts), productController.searchProducts);
 router
   .route('/by-product-type/:productType')
   /**

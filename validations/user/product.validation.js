@@ -1,7 +1,14 @@
 import Joi from 'joi';
+import mongoose from 'mongoose';
 
-Joi.objectId = require('joi-objectid')(Joi);
+// Joi.objectId = require('joi-objectid')(Joi);
+const objectId = (value, helpers) => {
+  if (!mongoose.Types.ObjectId.isValid(value)) {
+    return helpers.message('Invalid ObjectId');
+  }
 
+  return value;
+};
 export const createProduct = {
   body: Joi.object({
     createdBy: Joi.objectId().optional(),
@@ -147,5 +154,29 @@ export const getSellerProduct = {
 export const getStoreProduct = {
   params: Joi.object().keys({
     storeId: Joi.objectId().required(),
+  }),
+};
+
+export const searchProducts = {
+  query: Joi.object({
+    keyword: Joi.string().trim().allow('').optional(),
+
+    categoryId: Joi.string().custom(objectId).optional(),
+
+    brandId: Joi.string().custom(objectId).optional(),
+
+    storeId: Joi.string().custom(objectId).optional(),
+
+    sellerId: Joi.string().custom(objectId).optional(),
+
+    minPrice: Joi.number().min(0).optional(),
+
+    maxPrice: Joi.number().min(0).optional(),
+
+    page: Joi.number().min(1).default(1),
+
+    limit: Joi.number().min(1).max(100).default(12),
+
+    sortBy: Joi.string().valid('relevance', 'priceLow', 'priceHigh', 'newest').default('relevance'),
   }),
 };

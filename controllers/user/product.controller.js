@@ -177,3 +177,29 @@ export const getProductDetails = catchAsync(async (req, res) => {
 
   return res.status(200).json({ results: product });
 });
+
+export const searchProducts = catchAsync(async (req, res) => {
+  const userId = req.user && req.user._id ? req.user._id : null;
+
+  const { keyword, categoryId, brandId, storeId, sellerId, minPrice, maxPrice, page, limit, sortBy } = req.query;
+
+  const result = await productService.searchProducts(
+    {
+      keyword,
+      categoryId,
+      brandId,
+      storeId,
+      sellerId,
+      minPrice,
+      maxPrice,
+      page,
+      limit,
+      sortBy,
+    },
+    userId
+  );
+
+  return res.status(200).json({
+    results: result,
+  });
+});

@@ -26,6 +26,16 @@ router
     recentlyViewedController.paginateRecentlyViewed
   );
 router
+  .route('/by-user')
+  /**
+   * getRecentlyViewedByUserId
+   * */
+  .get(
+    auth('user'),
+    validate(recentlyViewedValidation.getRecentlyViewedByUser),
+    recentlyViewedController.getRecentlyViewedByUser
+  );
+router
   .route('/:recentlyViewedId')
   /**
    * getRecentlyViewedById

@@ -831,3 +831,252 @@ export async function getStoreProductListWithReviews(storeId, page = 1, limit = 
     storeAverageRating,
   };
 }
+
+export async function searchProducts(params, userId = null) {
+  const {
+    keyword = '',
+    categoryId,
+    brandId,
+    storeId,
+    sellerId,
+    productTypeId,
+    minPrice,
+    maxPrice,
+    sortBy = 'relevance',
+  } = params;
+
+  // ✅ prefer-const fix
+  const page = Number(params.page) || 1;
+  const limit = Number(params.limit) || 12;
+
+  const skip = (page - 1) * limit;
+
+  const match = {
+    isDeleted: { $ne: true },
+  };
+
+  if (categoryId) match.productCategoryId = new mongoose.Types.ObjectId(categoryId);
+  if (brandId) match.brandId = new mongoose.Types.ObjectId(brandId);
+  if (storeId) match.storeId = new mongoose.Types.ObjectId(storeId);
+  if (sellerId) match.sellerId = new mongoose.Types.ObjectId(sellerId);
+  if (productTypeId) match.productTypeId = new mongoose.Types.ObjectId(productTypeId);
+
+  if (minPrice || maxPrice) {
+    match.sellingPrice = {};
+    if (minPrice) match.sellingPrice.$gte = Number(minPrice);
+    if (maxPrice) match.sellingPrice.$lte = Number(maxPrice);
+  }
+
+  const pipeline = [
+    { $match: match },
+
+    // PRODUCT TYPE LOOKUP
+    {
+      $lookup: {
+        from: 'ProductType',
+        localField: 'productTypeId',
+        foreignField: '_id',
+        as: 'productType',
+      },
+    },
+    {
+      $unwind: {
+        path: '$productType',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+
+    // CATEGORY LOOKUP
+    {
+      $lookup: {
+        from: 'ProductCategories',
+        localField: 'productCategoryId',
+        foreignField: '_id',
+        as: 'category',
+      },
+    },
+    {
+      $unwind: {
+        path: '$category',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+
+    // BRAND LOOKUP
+    {
+      $lookup: {
+        from: 'ProductBrand',
+        localField: 'brandId',
+        foreignField: '_id',
+        as: 'brand',
+      },
+    },
+    {
+      $unwind: {
+        path: '$brand',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+
+    // STORE LOOKUP
+    {
+      $lookup: {
+        from: 'Store',
+        localField: 'storeId',
+        foreignField: '_id',
+        as: 'store',
+      },
+    },
+    {
+      $unwind: {
+        path: '$store',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+
+    // SELLER LOOKUP
+    {
+      $lookup: {
+        from: 'SellerUser',
+        localField: 'sellerId',
+        foreignField: '_id',
+        as: 'seller',
+      },
+    },
+    {
+      $unwind: {
+        path: '$seller',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+
+    // REVIEW LOOKUP
+    {
+      $lookup: {
+        from: 'Review',
+        localField: '_id',
+        foreignField: 'productId',
+        as: 'reviews',
+      },
+    },
+
+    // REVIEW STATS
+    {
+      $addFields: {
+        reviewCount: { $size: '$reviews' },
+        averageRating: {
+          $cond: [{ $gt: [{ $size: '$reviews' }, 0] }, { $avg: '$reviews.rating' }, 0],
+        },
+      },
+    },
+
+    // WISHLIST LOOKUP
+    ...(userId
+      ? [
+          {
+            $lookup: {
+              from: 'Wishlist',
+              let: { productId: '$_id' },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        { $eq: ['$productId', '$$productId'] },
+                        {
+                          $eq: ['$userId', new mongoose.Types.ObjectId(userId)],
+                        },
+                      ],
+                    },
+                  },
+                },
+              ],
+              as: 'wishlistData',
+            },
+          },
+          {
+            $addFields: {
+              isWishlisted: {
+                $gt: [{ $size: '$wishlistData' }, 0],
+              },
+            },
+          },
+        ]
+      : [
+          {
+            $addFields: {
+              isWishlisted: false,
+            },
+          },
+        ]),
+
+    // VARIANT LOOKUP
+    {
+      $lookup: {
+        from: 'ProductVarientByProductId',
+        localField: '_id',
+        foreignField: 'productId',
+        as: 'variants',
+      },
+    },
+
+    // FINAL PRICE
+    {
+      $addFields: {
+        finalPrice: {
+          $cond: ['$variantsEnabled', { $min: '$variants.price' }, '$sellingPrice'],
+        },
+      },
+    },
+  ];
+
+  // KEYWORD SEARCH
+  if (keyword) {
+    pipeline.push({
+      $match: {
+        $or: [
+          { title: { $regex: keyword, $options: 'i' } },
+          { description: { $regex: keyword, $options: 'i' } },
+          { 'category.value': { $regex: keyword, $options: 'i' } },
+          { 'brand.name': { $regex: keyword, $options: 'i' } },
+          { 'store.name': { $regex: keyword, $options: 'i' } },
+          { 'seller.businessName': { $regex: keyword, $options: 'i' } },
+          { 'productType.value': { $regex: keyword, $options: 'i' } },
+        ],
+      },
+    });
+  }
+
+  // SORT
+  let sort = { createdAt: -1 };
+
+  if (sortBy === 'priceLow') sort = { finalPrice: 1 };
+  if (sortBy === 'priceHigh') sort = { finalPrice: -1 };
+
+  pipeline.push({ $sort: sort });
+
+  // PAGINATION
+  pipeline.push({
+    $facet: {
+      data: [{ $skip: skip }, { $limit: limit }],
+      totalCount: [{ $count: 'count' }],
+    },
+  });
+
+  const result = await Product.aggregate(pipeline);
+
+  // SAFE EXTRACTION
+  const first = result && result.length ? result[0] : null;
+
+  const totalCount = first && first.totalCount && first.totalCount.length ? first.totalCount[0].count : 0;
+
+  const resultsData = first && first.data ? first.data : [];
+
+  return {
+    results: resultsData,
+    totalResults: totalCount,
+    totalPages: Math.ceil(totalCount / limit),
+    page,
+    limit,
+  };
+}
