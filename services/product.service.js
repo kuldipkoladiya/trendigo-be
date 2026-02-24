@@ -386,32 +386,63 @@ export async function getProductDetailsById(productId, userId = null) {
     {
       $lookup: {
         from: 'Review',
-        localField: '_id',
-        foreignField: 'productId',
-        as: 'reviews',
+        let: { productId: '$_id' },
         pipeline: [
           {
             $match: {
-              isAdminAprove: true,
-              isDeleted: { $ne: true },
+              $expr: {
+                $and: [
+                  { $eq: ['$productId', '$$productId'] },
+                  { $eq: ['$isAdminAprove', true] },
+                  { $ne: ['$isDeleted', true] },
+                ],
+              },
+            },
+          },
+          {
+            $group: {
+              _id: null,
+              totalReviews: { $sum: 1 },
+              averageRating: { $avg: '$rating' },
             },
           },
         ],
+        as: 'reviewSummary',
       },
     },
 
+    //------------------------------------------------
+    // ADD FIELDS FROM SUMMARY
+    //------------------------------------------------
     {
       $addFields: {
-        averageRating: {
-          $ifNull: [{ $avg: '$reviews.rating' }, 0],
+        totalReviews: {
+          $ifNull: [{ $arrayElemAt: ['$reviewSummary.totalReviews', 0] }, 0],
         },
-        totalReviews: { $size: '$reviews' },
+
+        averageRating: {
+          $round: [
+            {
+              $ifNull: [{ $arrayElemAt: ['$reviewSummary.averageRating', 0] }, 0],
+            },
+            1,
+          ],
+        },
       },
     },
 
-    // ------------------------------------------------
-    // WISHLIST (OPTIONAL)
-    // ------------------------------------------------
+    //------------------------------------------------
+    // REMOVE reviewSummary FIELD
+    //------------------------------------------------
+    {
+      $project: {
+        reviewSummary: 0,
+      },
+    },
+
+    //------------------------------------------------
+    // WISHLIST
+    //------------------------------------------------
     ...(userId
       ? [
           {
@@ -429,7 +460,9 @@ export async function getProductDetailsById(productId, userId = null) {
                         {
                           $eq: [{ $toString: '$userId' }, userId.toString()],
                         },
-                        { $ne: ['$isDeleted', true] },
+                        {
+                          $ne: ['$isDeleted', true],
+                        },
                       ],
                     },
                   },
@@ -454,9 +487,9 @@ export async function getProductDetailsById(productId, userId = null) {
           },
         ]),
 
-    // ------------------------------------------------
+    //------------------------------------------------
     // STORE
-    // ------------------------------------------------
+    //------------------------------------------------
     {
       $lookup: {
         from: 'Store',
@@ -465,11 +498,16 @@ export async function getProductDetailsById(productId, userId = null) {
         as: 'storeId',
       },
     },
-    { $unwind: { path: '$storeId', preserveNullAndEmptyArrays: true } },
+    {
+      $unwind: {
+        path: '$storeId',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
 
-    // ------------------------------------------------
+    //------------------------------------------------
     // SELLER
-    // ------------------------------------------------
+    //------------------------------------------------
     {
       $lookup: {
         from: 'SellerUser',
@@ -478,11 +516,16 @@ export async function getProductDetailsById(productId, userId = null) {
         as: 'sellerId',
       },
     },
-    { $unwind: { path: '$sellerId', preserveNullAndEmptyArrays: true } },
+    {
+      $unwind: {
+        path: '$sellerId',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
 
-    // ------------------------------------------------
+    //------------------------------------------------
     // PRODUCT TYPE
-    // ------------------------------------------------
+    //------------------------------------------------
     {
       $lookup: {
         from: 'ProductType',
@@ -491,11 +534,16 @@ export async function getProductDetailsById(productId, userId = null) {
         as: 'productTypeId',
       },
     },
-    { $unwind: { path: '$productTypeId', preserveNullAndEmptyArrays: true } },
+    {
+      $unwind: {
+        path: '$productTypeId',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
 
-    // ------------------------------------------------
+    //------------------------------------------------
     // BRAND
-    // ------------------------------------------------
+    //------------------------------------------------
     {
       $lookup: {
         from: 'ProductBrand',
@@ -504,11 +552,16 @@ export async function getProductDetailsById(productId, userId = null) {
         as: 'brandId',
       },
     },
-    { $unwind: { path: '$brandId', preserveNullAndEmptyArrays: true } },
+    {
+      $unwind: {
+        path: '$brandId',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
 
-    // ------------------------------------------------
+    //------------------------------------------------
     // CATEGORY
-    // ------------------------------------------------
+    //------------------------------------------------
     {
       $lookup: {
         from: 'ProductCategories',
@@ -517,11 +570,16 @@ export async function getProductDetailsById(productId, userId = null) {
         as: 'productCategoryId',
       },
     },
-    { $unwind: { path: '$productCategoryId', preserveNullAndEmptyArrays: true } },
+    {
+      $unwind: {
+        path: '$productCategoryId',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
 
-    // ------------------------------------------------
+    //------------------------------------------------
     // VARIANTS
-    // ------------------------------------------------
+    //------------------------------------------------
     {
       $lookup: {
         from: 'ProductVarientByProductId',
@@ -529,7 +587,11 @@ export async function getProductDetailsById(productId, userId = null) {
         foreignField: '_id',
         as: 'variants',
         pipeline: [
-          { $match: { isDeleted: { $ne: true } } },
+          {
+            $match: {
+              isDeleted: { $ne: true },
+            },
+          },
           {
             $lookup: {
               from: 'S3image',
@@ -555,7 +617,6 @@ export async function getProductDetailsById(productId, userId = null) {
 
   return result[0] || null;
 }
-
 export async function getStoreProductListWithReviews(storeId, page = 1, limit = 12, userId = null) {
   const skip = (page - 1) * limit;
 

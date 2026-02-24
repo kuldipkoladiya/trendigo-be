@@ -83,13 +83,16 @@ export async function getApprovedReviewSummaryWithPopulate(productId, { page = 1
       $match: {
         productId: productObjectId,
         isDeleted: false,
+        isAdminAprove: true, // ✅ IMPORTANT FIX
       },
     },
 
-    // ✅ PRODUCT LOOKUP
+    //------------------------------------------------
+    // PRODUCT LOOKUP
+    //------------------------------------------------
     {
       $lookup: {
-        from: 'Product', // verify collection name
+        from: 'Product',
         let: { productId: '$productId' },
         pipeline: [
           {
@@ -114,7 +117,9 @@ export async function getApprovedReviewSummaryWithPopulate(productId, { page = 1
       },
     },
 
-    // 🔹 populate seller
+    //------------------------------------------------
+    // SELLER LOOKUP
+    //------------------------------------------------
     {
       $lookup: {
         from: 'SellerUser',
@@ -123,9 +128,16 @@ export async function getApprovedReviewSummaryWithPopulate(productId, { page = 1
         as: 'seller',
       },
     },
-    { $unwind: '$seller' },
+    {
+      $unwind: {
+        path: '$seller',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
 
-    // ✅ USER LOOKUP
+    //------------------------------------------------
+    // USER LOOKUP
+    //------------------------------------------------
     {
       $lookup: {
         from: 'User',
@@ -162,8 +174,14 @@ export async function getApprovedReviewSummaryWithPopulate(productId, { page = 1
       },
     },
 
+    //------------------------------------------------
+    // FACET
+    //------------------------------------------------
     {
       $facet: {
+        //------------------------------------------------
+        // SUMMARY
+        //------------------------------------------------
         summary: [
           {
             $group: {
@@ -175,8 +193,14 @@ export async function getApprovedReviewSummaryWithPopulate(productId, { page = 1
           },
         ],
 
+        //------------------------------------------------
+        // TOTAL COUNT
+        //------------------------------------------------
         totalCount: [{ $count: 'count' }],
 
+        //------------------------------------------------
+        // RATING BREAKDOWN
+        //------------------------------------------------
         ratingBreakdown: [
           {
             $group: {
@@ -186,6 +210,9 @@ export async function getApprovedReviewSummaryWithPopulate(productId, { page = 1
           },
         ],
 
+        //------------------------------------------------
+        // REVIEWS LIST
+        //------------------------------------------------
         reviews: [
           { $sort: { createdAt: -1 } },
           { $skip: skip },
@@ -216,7 +243,9 @@ export async function getApprovedReviewSummaryWithPopulate(productId, { page = 1
 
   const totalReviews = data.totalCount && data.totalCount.length ? data.totalCount[0].count : 0;
 
-  // ✅ Rating Map
+  //------------------------------------------------
+  // RATING MAP
+  //------------------------------------------------
   const ratingMap = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
 
   if (data.ratingBreakdown) {
@@ -225,12 +254,19 @@ export async function getApprovedReviewSummaryWithPopulate(productId, { page = 1
     });
   }
 
+  //------------------------------------------------
+  // AVERAGE
+  //------------------------------------------------
   const avg = summary.averageRating != null ? Number(summary.averageRating.toFixed(1)) : 0;
 
   const totalPages = Math.ceil(totalReviews / limit);
 
+  //------------------------------------------------
+  // FINAL RESPONSE
+  //------------------------------------------------
   return {
     averageRating: avg,
+
     totalReviews,
 
     ratingBreakdown: ratingMap,
@@ -262,7 +298,6 @@ export async function getApprovedReviewSummaryWithPopulate(productId, { page = 1
     reviews: data.reviews || [],
   };
 }
-
 export async function getApprovedReviewSummaryBySellerId(sellerId, { page = 1, limit = 10 } = {}) {
   const sellerObjectId = new mongoose.Types.ObjectId(sellerId);
   const skip = (page - 1) * limit;
