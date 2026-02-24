@@ -305,7 +305,7 @@ export async function getRecentlyViewedListPaginate(userId, page = 1, limit = 12
         },
       },
 
-      { $unset: 'wishlistData' },
+      // { $unset: 'wishlistData' },
 
       {
         $facet: {
