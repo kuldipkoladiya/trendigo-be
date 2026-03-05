@@ -1,6 +1,7 @@
 import ApiError from 'utils/ApiError';
 import httpStatus from 'http-status';
 import { BankDetails, Store } from 'models';
+import axios from 'axios';
 
 export async function getBankDetailsById(id, options = {}) {
   const bankDetails = await BankDetails.findById(id, options.projection, options);
@@ -72,3 +73,65 @@ export async function aggregateBankDetails(query) {
 //   const bankDetails = await BankDetails.aggregatePaginate(aggregate, options);
 //   return bankDetails;
 // }
+
+/**
+ * Verify Bank Account using Cashfree
+ */
+export const verifyBankAccount = async (bankDetailsId, userId) => {
+  try {
+    const bank = await BankDetails.findById(bankDetailsId);
+
+    if (!bank) {
+      throw new Error('Bank details not found');
+    }
+
+    // Call Cashfree API
+    const response = await axios.post(
+      `${process.env.CASHFREE_BASE_URL}/validation/bankDetails`,
+      {
+        bank_account: bank.accountNumber.toString(),
+        ifsc: bank.ifscCode,
+      },
+      {
+        headers: {
+          'X-Client-Id': process.env.CASHFREE_CLIENT_ID,
+          'X-Client-Secret': process.env.CASHFREE_CLIENT_SECRET,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    const result = response.data;
+
+    /*
+    success response example:
+
+    {
+      account_status: "VALID",
+      account_holder_name: "Kuldeep Koladiya"
+    }
+    */
+
+    if (result.account_status === 'VALID') {
+      bank.isVerified = true;
+      bank.updatedBy = userId;
+
+      await bank.save();
+
+      return {
+        success: true,
+        verified: true,
+        accountHolderName: result.account_holder_name,
+      };
+    }
+
+    return {
+      success: true,
+      verified: false,
+    };
+  } catch (error) {
+    console.error('Bank verification error:', (error.response && error.response.data) || error.message);
+
+    throw new Error('Bank verification failed');
+  }
+};

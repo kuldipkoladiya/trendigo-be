@@ -34,9 +34,14 @@ const CartSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
     productDetailList: {
-      type: ProductDetailsSchema,
+      type: [ProductDetailsSchema],
       required: true,
+      default: [],
     },
     /**
      * // todo : this will be update in future
@@ -61,6 +66,19 @@ const CartSchema = new mongoose.Schema(
     userCoupanDiscount: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'UserCoupan',
+    },
+    subTotal: {
+      type: Number,
+      default: 0,
+    },
+
+    totalDiscount: {
+      type: Number,
+      default: 0,
+    },
+    grandTotal: {
+      type: Number,
+      default: 0,
     },
   },
   { timestamps: { createdAt: true, updatedAt: true } }

@@ -22,6 +22,12 @@ router
    * */
   .get(auth('user'), validate(cartValidation.paginatedCart), cartController.paginateCart);
 router
+  .route('/get-user-cart')
+  /**
+   * getCartById
+   * */
+  .get(auth('user'), cartController.getUserCart);
+router
   .route('/:cartId')
   /**
    * getCartById

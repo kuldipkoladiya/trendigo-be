@@ -15,6 +15,8 @@ router
    * getBankDetails
    * */
   .get(auth('user'), validate(bankDetailsValidation.getBankDetails), bankDetailsController.listBankDetails);
+
+router.post('/verify', auth(), bankDetailsController.verifyBankAccountController);
 router
   .route('/paginated')
   /**
