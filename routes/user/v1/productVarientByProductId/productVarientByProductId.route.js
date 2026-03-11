@@ -3,6 +3,7 @@ import { productVarientByProductIdController } from 'controllers/user';
 import { productVarientByProductIdValidation } from 'validations/user';
 import validate from 'middlewares/validate';
 import sellerAuth from 'middlewares/sellerAuth';
+import auth from 'middlewares/auth';
 
 const router = express.Router();
 router
@@ -76,6 +77,16 @@ router
    * */
   .get(
     sellerAuth(),
+    validate(productVarientByProductIdValidation.getVarientByProductId),
+    productVarientByProductIdController.getVarientByProductId
+  );
+router
+  .route('/by-productid-user/:productId')
+  /**
+   * getProductVarientByProductIdById
+   * */
+  .get(
+    auth('user'),
     validate(productVarientByProductIdValidation.getVarientByProductId),
     productVarientByProductIdController.getVarientByProductId
   );

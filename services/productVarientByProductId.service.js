@@ -13,9 +13,15 @@ export async function getOne(query, options = {}) {
   const productVarientByProductId = await ProductVarientByProductId.findOne(query, options.projection, options);
   return productVarientByProductId;
 }
-
 export async function getProductVarientByProductIdList(filter, options = {}) {
-  const productVarientByProductId = await ProductVarientByProductId.find(filter, options.projection, options);
+  const productVarientByProductId = await ProductVarientByProductId.find(filter, options.projection, options)
+    .populate({
+      path: 'images',
+    })
+    .populate({
+      path: 'videos',
+    });
+
   return productVarientByProductId;
 }
 
