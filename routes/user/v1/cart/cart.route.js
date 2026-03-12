@@ -36,9 +36,11 @@ router
   /**
    * updateCart
    * */
-  .put(auth('user'), validate(cartValidation.updateCart), cartController.updateCart)
-  /**
-   * deleteCartById
-   * */
-  .delete(auth('user'), validate(cartValidation.deleteCartById), cartController.removeCart);
+  .put(auth('user'), validate(cartValidation.updateCart), cartController.updateCart);
+/**
+ * deleteCartById
+ * */
+router
+  .route('/:cartId/product/:productDetailId')
+  .delete(auth('user'), validate(cartValidation.deleteCartById), cartController.removeProductFromCart);
 export default router;

@@ -41,6 +41,7 @@ export const getCartById = {
 export const deleteCartById = {
   params: Joi.object().keys({
     cartId: Joi.objectId().required(),
+    productDetailId: Joi.objectId().required(),
   }),
 };
 

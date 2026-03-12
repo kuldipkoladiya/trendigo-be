@@ -62,3 +62,15 @@ export const getUserCart = catchAsync(async (req, res) => {
   const cart = await cartService.getCartList(filter, options);
   return res.status(httpStatus.OK).send({ results: cart });
 });
+
+export const removeProductFromCart = catchAsync(async (req, res) => {
+  const { cartId, productDetailId } = req.params;
+
+  const cart = await cartService.removeProductFromCart(cartId, productDetailId);
+
+  res.status(httpStatus.OK).send({
+    status: 'Success',
+    message: 'Product removed successfully',
+    data: cart,
+  });
+});

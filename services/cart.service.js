@@ -256,3 +256,35 @@ export async function aggregateCart(query) {
 //   const cart = await Cart.aggregatePaginate(aggregate, options);
 //   return cart;
 // }
+
+export async function removeProductFromCart(cartId, productDetailId) {
+  const cart = await Cart.findById(cartId).populate('productDetailList.variants');
+
+  if (!cart) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Cart not found');
+  }
+
+  cart.productDetailList = cart.productDetailList.filter((item) => item._id.toString() !== productDetailId);
+
+  let subTotal = 0;
+  let totalDiscount = 0;
+
+  cart.productDetailList.forEach((item) => {
+    const { variants, quantity } = item;
+    const { price, discount = 0 } = variants;
+
+    const itemTotal = price * quantity;
+    const discountAmount = (itemTotal * discount) / 100;
+
+    subTotal += itemTotal;
+    totalDiscount += discountAmount;
+  });
+
+  cart.subTotal = subTotal;
+  cart.totalDiscount = totalDiscount;
+  cart.grandTotal = subTotal - totalDiscount;
+
+  await cart.save();
+
+  return cart;
+}
