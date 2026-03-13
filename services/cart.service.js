@@ -185,10 +185,17 @@ export async function updateCart(userId, body = {}) {
   const variant = await ProductVarientByProductId.findById(variants);
   if (!variant) throw new ApiError(httpStatus.BAD_REQUEST, 'Variant not found');
 
-  const itemIndex = cart.productDetailList.findIndex((i) => i.variants.toString() === variants.toString());
+  // find cart item using productId
+  const itemIndex = cart.productDetailList.findIndex((i) => i.productId.toString() === variant.productId.toString());
 
-  if (itemIndex === -1) throw new ApiError(httpStatus.BAD_REQUEST, 'Item not in cart');
+  if (itemIndex === -1) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Item not in cart');
+  }
 
+  // update variant
+  cart.productDetailList[itemIndex].variants = variants;
+
+  // update quantity
   if (quantity !== undefined) {
     if (quantity === 0) {
       cart.productDetailList.splice(itemIndex, 1);
@@ -197,32 +204,39 @@ export async function updateCart(userId, body = {}) {
     }
   }
 
+  // update address
   if (deliveryAddress) {
     const address = await UserAddress.findById(deliveryAddress);
     if (!address) throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid address');
+
     cart.deliveryAddress = deliveryAddress;
   }
 
+  // 🔹 get all variantIds
   const variantIds = cart.productDetailList.map((i) => i.variants);
 
   const variantsData = await ProductVarientByProductId.find({
     _id: { $in: variantIds },
   });
 
+  // 🔹 convert to map (O(1) lookup)
+  const variantMap = new Map(variantsData.map((v) => [v._id.toString(), v]));
+
   let subTotal = 0;
   let totalDiscount = 0;
 
   cart.productDetailList.forEach((item) => {
-    const v = variantsData.find((x) => x._id.toString() === item.variants.toString());
+    const v = variantMap.get(item.variants.toString());
     if (!v) return;
 
     const price = Number(v.price) || 0;
     const discount = Number(v.discount) || 0;
 
-    const discountAmount = (price * discount) / 100;
+    const itemTotal = price * item.quantity;
+    const discountAmount = (itemTotal * discount) / 100;
 
-    subTotal += price * item.quantity;
-    totalDiscount += discountAmount * item.quantity;
+    subTotal += itemTotal;
+    totalDiscount += discountAmount;
   });
 
   cart.subTotal = Number(subTotal.toFixed(2));
