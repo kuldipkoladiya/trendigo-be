@@ -1015,19 +1015,35 @@ export async function searchProducts(params, userId = null) {
     {
       $lookup: {
         from: 'Review',
-        localField: '_id',
-        foreignField: 'productId',
-        as: 'reviews',
-      },
-    },
-
-    // REVIEW STATS
-    {
-      $addFields: {
-        reviewCount: { $size: '$reviews' },
-        averageRating: {
-          $cond: [{ $gt: [{ $size: '$reviews' }, 0] }, { $avg: '$reviews.rating' }, 0],
-        },
+        let: { productId: '$_id' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ['$productId', '$$productId'] },
+                  { $eq: ['$isAdminAprove', true] },
+                  { $ne: ['$isDeleted', true] },
+                ],
+              },
+            },
+          },
+          {
+            $group: {
+              _id: null,
+              totalReviews: { $sum: 1 },
+              averageRating: { $avg: '$rating' },
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              totalReviews: 1,
+              averageRating: { $round: ['$averageRating', 1] }, // optional
+            },
+          },
+        ],
+        as: 'reviewSummary',
       },
     },
 
@@ -1075,12 +1091,30 @@ export async function searchProducts(params, userId = null) {
     {
       $lookup: {
         from: 'ProductVarientByProductId',
-        localField: '_id',
-        foreignField: 'productId',
+        localField: 'variants',
+        foreignField: '_id',
         as: 'variants',
+        pipeline: [
+          { $match: { isDeleted: { $ne: true } } },
+          {
+            $lookup: {
+              from: 'S3image',
+              localField: 'images',
+              foreignField: '_id',
+              as: 'images',
+            },
+          },
+          {
+            $lookup: {
+              from: 'S3image',
+              localField: 'videos',
+              foreignField: '_id',
+              as: 'videos',
+            },
+          },
+        ],
       },
     },
-
     // FINAL PRICE
     {
       $addFields: {
