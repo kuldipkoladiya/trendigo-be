@@ -11,6 +11,9 @@ const EnumCodeTypeOfCode = {
 const EnumRoleOfUser = {
   USER: 'user',
   ADMIN: 'admin',
+  PROJECT_OWNER: 'project-owner',
+  SUPER_ADMIN: 'super-admin',
+  CO_ADMIN: 'co-admin',
 };
 const EnumGenderOfUser = {
   MALE: 'male',

@@ -30,9 +30,11 @@ import inventoryAddressRoutes from './v1/inventoryAddress/inventoryAddress.route
 import testRoutes from './v1/test/test.route';
 import storeNotificationRoutes from './v1/storeNotification/storeNotification.route';
 import storeConfigRoutes from './v1/storeConfig/storeConfig.route';
+import authRoutes from './v1/auth/auth.route';
 
 const router = express.Router();
 router.use('/user', userRoutes);
+router.use('/auth', authRoutes);
 router.use('/userAddress', userAddressRoutes);
 router.use('/userDashboardConfig', userDashboardConfigRoutes);
 router.use('/productCategories', productCategoriesRoutes);

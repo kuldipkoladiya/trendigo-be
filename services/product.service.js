@@ -1,6 +1,6 @@
 import ApiError from 'utils/ApiError';
 import httpStatus from 'http-status';
-import { Product, Store, ProductCategories, ProductBrand, ProductVarientByProductId } from 'models';
+import { Product, Store, ProductCategories, ProductBrand, ProductVarientByProductId, User } from 'models';
 import mongoose from 'mongoose';
 
 export async function getProductById(id, options = {}) {
@@ -892,46 +892,113 @@ export async function getStoreProductListWithReviews(storeId, page = 1, limit = 
     storeAverageRating,
   };
 }
+export function parseSearchQuery(searchQuery = '') {
+  const query = searchQuery.toLowerCase();
+
+  let gender = null;
+
+  if (/\b(men|man|male|boy|boys)\b/i.test(query)) {
+    gender = 'men';
+  }
+
+  if (/\b(women|woman|female|girl|girls)\b/i.test(query)) {
+    gender = 'women';
+  }
+
+  let maxPrice = null;
+
+  const underMatch = query.match(/under\s+(\d+)/i);
+
+  if (underMatch) {
+    maxPrice = Number(underMatch[1]);
+  }
+
+  const colors = ['black', 'white', 'blue', 'red', 'green', 'yellow', 'pink'];
+
+  const color = colors.find((c) => query.includes(c)) || null;
+
+  const keyword = query
+    .replace(/\b(men|man|male|boy|boys)\b/gi, '')
+    .replace(/\b(women|woman|female|girl|girls)\b/gi, '')
+    .replace(/under\s+\d+/gi, '')
+    .replace(/\b(black|white|blue|red|green|yellow|pink)\b/gi, '')
+    .trim();
+
+  return {
+    keyword,
+    gender,
+    maxPrice,
+    color,
+  };
+}
 
 export async function searchProducts(params, userId = null) {
-  const {
-    keyword = '',
-    categoryId,
-    brandId,
-    storeId,
-    sellerId,
-    productTypeId,
-    minPrice,
-    maxPrice,
-    sortBy = 'relevance',
-  } = params;
+  const { keyword = '', categoryId, brandId, storeId, sellerId, sortBy = 'relevance' } = params;
 
-  // ✅ prefer-const fix
   const page = Number(params.page) || 1;
   const limit = Number(params.limit) || 12;
 
   const skip = (page - 1) * limit;
 
+  // ==========================================
+  // PARSE SMART QUERY
+  // ==========================================
+
+  const parsed = parseSearchQuery(keyword);
+
+  const { keyword: smartKeyword, gender, minPrice, maxPrice, color } = parsed;
+
+  // ==========================================
+  // AMAZON LIKE SEARCH REGEX
+  // ==========================================
+
+  const keywordRegex = new RegExp(
+    smartKeyword
+      .replace(/shirt/gi, '(shirt|tshirt|t-shirt|tee)')
+      .replace(/tshirt/gi, '(shirt|tshirt|t-shirt|tee)')
+      .replace(/shoe/gi, '(shoe|sneaker)')
+      .replace(/mobile/gi, '(mobile|phone|smartphone)')
+      .replace(/\s+/g, '.*'),
+    'i'
+  );
+
+  // ==========================================
+  // BASE MATCH
+  // ==========================================
+
   const match = {
     isDeleted: { $ne: true },
   };
 
-  if (categoryId) match.productCategoryId = new mongoose.Types.ObjectId(categoryId);
-  if (brandId) match.brandId = new mongoose.Types.ObjectId(brandId);
-  if (storeId) match.storeId = new mongoose.Types.ObjectId(storeId);
-  if (sellerId) match.sellerId = new mongoose.Types.ObjectId(sellerId);
-  if (productTypeId) match.productTypeId = new mongoose.Types.ObjectId(productTypeId);
-
-  if (minPrice || maxPrice) {
-    match.sellingPrice = {};
-    if (minPrice) match.sellingPrice.$gte = Number(minPrice);
-    if (maxPrice) match.sellingPrice.$lte = Number(maxPrice);
+  if (categoryId) {
+    match.productCategoryId = new mongoose.Types.ObjectId(categoryId);
   }
 
-  const pipeline = [
-    { $match: match },
+  if (brandId) {
+    match.brandId = new mongoose.Types.ObjectId(brandId);
+  }
 
-    // PRODUCT TYPE LOOKUP
+  if (storeId) {
+    match.storeId = new mongoose.Types.ObjectId(storeId);
+  }
+
+  if (sellerId) {
+    match.sellerId = new mongoose.Types.ObjectId(sellerId);
+  }
+
+  // ==========================================
+  // PIPELINE
+  // ==========================================
+
+  const pipeline = [
+    {
+      $match: match,
+    },
+
+    // ==========================================
+    // PRODUCT TYPE
+    // ==========================================
+
     {
       $lookup: {
         from: 'ProductType',
@@ -940,6 +1007,7 @@ export async function searchProducts(params, userId = null) {
         as: 'productType',
       },
     },
+
     {
       $unwind: {
         path: '$productType',
@@ -947,7 +1015,10 @@ export async function searchProducts(params, userId = null) {
       },
     },
 
-    // CATEGORY LOOKUP
+    // ==========================================
+    // CATEGORY
+    // ==========================================
+
     {
       $lookup: {
         from: 'ProductCategories',
@@ -956,6 +1027,7 @@ export async function searchProducts(params, userId = null) {
         as: 'category',
       },
     },
+
     {
       $unwind: {
         path: '$category',
@@ -963,7 +1035,10 @@ export async function searchProducts(params, userId = null) {
       },
     },
 
-    // BRAND LOOKUP
+    // ==========================================
+    // BRAND
+    // ==========================================
+
     {
       $lookup: {
         from: 'ProductBrand',
@@ -972,6 +1047,7 @@ export async function searchProducts(params, userId = null) {
         as: 'brand',
       },
     },
+
     {
       $unwind: {
         path: '$brand',
@@ -979,7 +1055,10 @@ export async function searchProducts(params, userId = null) {
       },
     },
 
-    // STORE LOOKUP
+    // ==========================================
+    // STORE
+    // ==========================================
+
     {
       $lookup: {
         from: 'Store',
@@ -988,6 +1067,7 @@ export async function searchProducts(params, userId = null) {
         as: 'store',
       },
     },
+
     {
       $unwind: {
         path: '$store',
@@ -995,7 +1075,10 @@ export async function searchProducts(params, userId = null) {
       },
     },
 
-    // SELLER LOOKUP
+    // ==========================================
+    // SELLER
+    // ==========================================
+
     {
       $lookup: {
         from: 'SellerUser',
@@ -1004,6 +1087,7 @@ export async function searchProducts(params, userId = null) {
         as: 'seller',
       },
     },
+
     {
       $unwind: {
         path: '$seller',
@@ -1011,11 +1095,15 @@ export async function searchProducts(params, userId = null) {
       },
     },
 
-    // REVIEW LOOKUP
+    // ==========================================
+    // REVIEWS
+    // ==========================================
+
     {
       $lookup: {
         from: 'Review',
         let: { productId: '$_id' },
+
         pipeline: [
           {
             $match: {
@@ -1028,6 +1116,7 @@ export async function searchProducts(params, userId = null) {
               },
             },
           },
+
           {
             $group: {
               _id: null,
@@ -1035,31 +1124,44 @@ export async function searchProducts(params, userId = null) {
               averageRating: { $avg: '$rating' },
             },
           },
+
           {
             $project: {
               _id: 0,
               totalReviews: 1,
-              averageRating: { $round: ['$averageRating', 1] }, // optional
+              averageRating: {
+                $round: ['$averageRating', 1],
+              },
             },
           },
         ],
+
         as: 'reviewSummary',
       },
     },
 
-    // WISHLIST LOOKUP
+    // ==========================================
+    // WISHLIST
+    // ==========================================
+
     ...(userId
       ? [
           {
             $lookup: {
               from: 'Wishlist',
-              let: { productId: '$_id' },
+
+              let: {
+                productId: '$_id',
+              },
+
               pipeline: [
                 {
                   $match: {
                     $expr: {
                       $and: [
-                        { $eq: ['$productId', '$$productId'] },
+                        {
+                          $eq: ['$productId', '$$productId'],
+                        },
                         {
                           $eq: ['$userId', new mongoose.Types.ObjectId(userId)],
                         },
@@ -1068,9 +1170,11 @@ export async function searchProducts(params, userId = null) {
                   },
                 },
               ],
+
               as: 'wishlistData',
             },
           },
+
           {
             $addFields: {
               isWishlisted: {
@@ -1087,15 +1191,25 @@ export async function searchProducts(params, userId = null) {
           },
         ]),
 
-    // VARIANT LOOKUP
+    // ==========================================
+    // VARIANTS
+    // ==========================================
+
     {
       $lookup: {
         from: 'ProductVarientByProductId',
         localField: 'variants',
         foreignField: '_id',
         as: 'variants',
+
         pipeline: [
-          { $match: { isDeleted: { $ne: true } } },
+          {
+            $match: {
+              isDeleted: { $ne: true },
+            },
+          },
+
+          // IMAGES
           {
             $lookup: {
               from: 'S3image',
@@ -1104,6 +1218,8 @@ export async function searchProducts(params, userId = null) {
               as: 'images',
             },
           },
+
+          // VIDEOS
           {
             $lookup: {
               from: 'S3image',
@@ -1115,42 +1231,270 @@ export async function searchProducts(params, userId = null) {
         ],
       },
     },
+
+    // ==========================================
     // FINAL PRICE
+    // ==========================================
+
     {
       $addFields: {
         finalPrice: {
-          $cond: ['$variantsEnabled', { $min: '$variants.price' }, '$sellingPrice'],
+          $cond: [
+            '$variantsEnabled',
+            {
+              $min: '$variants.price',
+            },
+            '$sellingPrice',
+          ],
         },
       },
     },
   ];
 
-  // KEYWORD SEARCH
-  if (keyword) {
+  // ======================================================
+  // GENDER FILTER
+  // ======================================================
+
+  if (gender) {
+    let genderKeywords = [];
+
+    // MEN
+    if (['men', 'man', 'male', 'boys', 'boy'].includes(gender.toLowerCase())) {
+      genderKeywords = ['men', 'man', 'male', 'boys', 'boy'];
+    }
+
+    // WOMEN
+    if (['women', 'woman', 'female', 'girls', 'girl'].includes(gender.toLowerCase())) {
+      genderKeywords = ['women', 'woman', 'female', 'girls', 'girl'];
+    }
+
     pipeline.push({
       $match: {
         $or: [
-          { title: { $regex: keyword, $options: 'i' } },
-          { description: { $regex: keyword, $options: 'i' } },
-          { 'category.value': { $regex: keyword, $options: 'i' } },
-          { 'brand.name': { $regex: keyword, $options: 'i' } },
-          { 'store.name': { $regex: keyword, $options: 'i' } },
-          { 'seller.businessName': { $regex: keyword, $options: 'i' } },
-          { 'productType.value': { $regex: keyword, $options: 'i' } },
+          {
+            'productType.value': {
+              $regex: new RegExp(`^(${genderKeywords.join('|')})$`, 'i'),
+            },
+          },
+
+          {
+            title: {
+              $regex: new RegExp(`\\b(${genderKeywords.join('|')})\\b`, 'i'),
+            },
+          },
+
+          {
+            description: {
+              $regex: new RegExp(`\\b(${genderKeywords.join('|')})\\b`, 'i'),
+            },
+          },
         ],
       },
     });
   }
+  // ==========================================
+  // SAVE RECENT SEARCH
+  // ==========================================
 
-  // SORT
-  let sort = { createdAt: -1 };
+  if (userId && keyword && keyword.trim()) {
+    await User.findByIdAndUpdate(userId, {
+      $pull: {
+        recentSearches: keyword.toLowerCase(),
+      },
+    });
 
-  if (sortBy === 'priceLow') sort = { finalPrice: 1 };
-  if (sortBy === 'priceHigh') sort = { finalPrice: -1 };
+    await User.findByIdAndUpdate(userId, {
+      $push: {
+        recentSearches: {
+          $each: [keyword.toLowerCase()],
+          $position: 0,
+          $slice: 10,
+        },
+      },
+    });
+  }
+  // ======================================================
+  // PRICE FILTER
+  // ======================================================
 
-  pipeline.push({ $sort: sort });
+  if (minPrice || maxPrice) {
+    pipeline.push({
+      $match: {
+        finalPrice: {
+          ...(minPrice && { $gte: Number(minPrice) }),
+          ...(maxPrice && { $lte: Number(maxPrice) }),
+        },
+      },
+    });
+  }
 
+  // ======================================================
+  // COLOR FILTER
+  // ======================================================
+
+  if (color) {
+    pipeline.push({
+      $match: {
+        'variants.variants.value': {
+          $regex: color,
+          $options: 'i',
+        },
+      },
+    });
+  }
+
+  // ======================================================
+  // KEYWORD SEARCH
+  // ======================================================
+
+  if (smartKeyword) {
+    pipeline.push({
+      $match: {
+        $or: [
+          {
+            title: {
+              $regex: keywordRegex,
+            },
+          },
+
+          {
+            description: {
+              $regex: keywordRegex,
+            },
+          },
+
+          {
+            productDetails: {
+              $regex: keywordRegex,
+            },
+          },
+
+          {
+            'category.value': {
+              $regex: keywordRegex,
+            },
+          },
+
+          {
+            'brand.name': {
+              $regex: keywordRegex,
+            },
+          },
+
+          {
+            'store.name': {
+              $regex: keywordRegex,
+            },
+          },
+
+          {
+            'seller.businessName': {
+              $regex: keywordRegex,
+            },
+          },
+
+          {
+            specifications: {
+              $elemMatch: {
+                value: {
+                  $regex: keywordRegex,
+                },
+              },
+            },
+          },
+        ],
+      },
+    });
+
+    // ==========================================
+    // RELEVANCE SCORE
+    // ==========================================
+
+    pipeline.push({
+      $addFields: {
+        relevanceScore: {
+          $add: [
+            {
+              $cond: [
+                {
+                  $regexMatch: {
+                    input: '$title',
+                    regex: keywordRegex,
+                  },
+                },
+                10,
+                0,
+              ],
+            },
+
+            {
+              $cond: [
+                {
+                  $regexMatch: {
+                    input: '$description',
+                    regex: keywordRegex,
+                  },
+                },
+                5,
+                0,
+              ],
+            },
+
+            {
+              $cond: [
+                {
+                  $gt: [
+                    {
+                      $size: '$reviewSummary',
+                    },
+                    0,
+                  ],
+                },
+                2,
+                0,
+              ],
+            },
+          ],
+        },
+      },
+    });
+  }
+
+  // ======================================================
+  // SORTING
+  // ======================================================
+
+  let sort = {
+    relevanceScore: -1,
+    createdAt: -1,
+  };
+
+  if (sortBy === 'priceLow') {
+    sort = {
+      finalPrice: 1,
+    };
+  }
+
+  if (sortBy === 'priceHigh') {
+    sort = {
+      finalPrice: -1,
+    };
+  }
+
+  if (sortBy === 'latest') {
+    sort = {
+      createdAt: -1,
+    };
+  }
+
+  pipeline.push({
+    $sort: sort,
+  });
+
+  // ======================================================
   // PAGINATION
+  // ======================================================
+
   pipeline.push({
     $facet: {
       data: [{ $skip: skip }, { $limit: limit }],
@@ -1158,20 +1502,80 @@ export async function searchProducts(params, userId = null) {
     },
   });
 
+  // ======================================================
+  // EXECUTE
+  // ======================================================
+
   const result = await Product.aggregate(pipeline);
 
-  // SAFE EXTRACTION
   const first = result && result.length ? result[0] : null;
 
-  const totalCount = first && first.totalCount && first.totalCount.length ? first.totalCount[0].count : 0;
-
-  const resultsData = first && first.data ? first.data : [];
+  const totalCount =
+    first && first.totalCount && first.totalCount[0] && first.totalCount[0].count ? first.totalCount[0].count : 0;
 
   return {
-    results: resultsData,
+    results: first && first.data ? first.data : [],
     totalResults: totalCount,
     totalPages: Math.ceil(totalCount / limit),
     page,
     limit,
   };
+}
+
+export async function searchSuggestions(keyword = '') {
+  if (!keyword) {
+    return [];
+  }
+
+  const suggestions = await Product.aggregate([
+    {
+      $match: {
+        isDeleted: { $ne: true },
+
+        $or: [
+          {
+            title: {
+              $regex: keyword,
+              $options: 'i',
+            },
+          },
+
+          {
+            description: {
+              $regex: keyword,
+              $options: 'i',
+            },
+          },
+        ],
+      },
+    },
+
+    {
+      $project: {
+        title: 1,
+      },
+    },
+
+    {
+      $group: {
+        _id: null,
+
+        suggestions: {
+          $addToSet: '$title',
+        },
+      },
+    },
+
+    {
+      $project: {
+        _id: 0,
+
+        suggestions: {
+          $slice: ['$suggestions', 10],
+        },
+      },
+    },
+  ]);
+
+  return suggestions[0] && suggestions[0].suggestions ? suggestions[0].suggestions : [];
 }

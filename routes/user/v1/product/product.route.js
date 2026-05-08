@@ -30,7 +30,11 @@ router
    * */
   .get(auth('user'), validate(productValidation.paginatedProduct), productController.paginateProduct);
 
-router.get('/search', validate(productValidation.searchProducts), productController.searchProducts);
+router.get('/search', optionalAuth, validate(productValidation.searchProducts), productController.searchProducts);
+
+router.get('/search-suggestions', productController.searchSuggestions);
+
+router.get('/recent-searches', auth(), productController.getRecentSearches);
 router
   .route('/by-product-type/:productType')
   /**

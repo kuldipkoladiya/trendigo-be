@@ -1,7 +1,7 @@
 import httpStatus from 'http-status';
 import { productService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
-import { ProductCategories, ProductType } from '../../models';
+import { ProductCategories, ProductType, User } from '../../models';
 
 export const getProduct = catchAsync(async (req, res) => {
   const { productId } = req.params;
@@ -181,7 +181,7 @@ export const getProductDetails = catchAsync(async (req, res) => {
 export const searchProducts = catchAsync(async (req, res) => {
   const userId = req.user && req.user._id ? req.user._id : null;
 
-  const { keyword, categoryId, brandId, storeId, sellerId, minPrice, maxPrice, page, limit, sortBy } = req.query;
+  const { keyword, categoryId, brandId, storeId, sellerId, page, limit, sortBy } = req.query;
 
   const result = await productService.searchProducts(
     {
@@ -190,8 +190,6 @@ export const searchProducts = catchAsync(async (req, res) => {
       brandId,
       storeId,
       sellerId,
-      minPrice,
-      maxPrice,
       page,
       limit,
       sortBy,
@@ -200,6 +198,26 @@ export const searchProducts = catchAsync(async (req, res) => {
   );
 
   return res.status(200).json({
+    success: true,
     results: result,
+  });
+});
+
+export const searchSuggestions = catchAsync(async (req, res) => {
+  const { keyword } = req.query;
+
+  const result = await productService.searchSuggestions(keyword);
+
+  return res.status(200).json({
+    success: true,
+    results: result,
+  });
+});
+
+export const getRecentSearches = catchAsync(async (req, res) => {
+  const user = await User.findById(req.user._id).select('recentSearches');
+
+  return res.status(200).json({
+    results: user && user.recentSearches ? user.recentSearches : [],
   });
 });

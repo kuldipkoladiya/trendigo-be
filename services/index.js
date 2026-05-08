@@ -71,3 +71,4 @@ module.exports.stripeService = require('./stripe.service');
 module.exports.queueService = require('./queue.service');
 module.exports.bannerService = require('./banner.service');
 module.exports.countryCodeService = require('./countryCode.service');
+module.exports.roleservice = require('./role.service');

@@ -86,10 +86,14 @@ const UserSchema = new mongoose.Schema({
   /**
    * role
    * */
+  // role: {
+  //   type: String,
+  //   enum: Object.values(enumModel.EnumRoleOfUser),
+  //   default: enumModel.EnumRoleOfUser.USER,
+  // },
   role: {
-    type: String,
-    enum: Object.values(enumModel.EnumRoleOfUser),
-    default: enumModel.EnumRoleOfUser.USER,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Role',
   },
   /**
    * custom server authentication
@@ -163,6 +167,11 @@ const UserSchema = new mongoose.Schema({
   pendingCountryCode: {
     type: String,
   },
+  recentSearches: [
+    {
+      type: String,
+    },
+  ],
   userProfilePic: [UserImagesSchema],
 });
 UserSchema.plugin(toJSON);
