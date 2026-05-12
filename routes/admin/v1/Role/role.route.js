@@ -9,7 +9,8 @@ const router = express.Router();
 /**
  * create role
  * */
-router.post('/create-role', auth([EnumRoleOfUser.SUPER_ADMIN]), validate(roleValidation.addRole), roleController.add);
+// auth([EnumRoleOfUser.SUPER_ADMIN])
+router.post('/create-role', validate(roleValidation.addRole), roleController.add);
 /**
  * get role for create role
  * */
