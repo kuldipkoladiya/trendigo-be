@@ -34,6 +34,7 @@ import authRoutes from './v1/auth/auth.route';
 import SellerauthRoutes from './v1/sellerAuth/sellerAuth.route';
 import bannerRoute from './v1/benner/banner.route';
 import countryCodeRoute from './v1/countryCode/countryCode.route';
+import razorpayRoute from './v1/razorpay.route';
 
 const router = express.Router();
 router.use('/user', userRoutes);
@@ -71,4 +72,5 @@ router.use('/auth', authRoutes);
 router.use('/seller-auth', SellerauthRoutes);
 router.use('/banner', bannerRoute);
 router.use('/country-code', countryCodeRoute);
+router.use('/razorpay', razorpayRoute);
 module.exports = router;

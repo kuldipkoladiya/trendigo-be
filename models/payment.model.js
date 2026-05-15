@@ -35,6 +35,27 @@ const PaymentSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Order',
     },
+    razorpayOrderId: {
+      type: String,
+    },
+    razorpayPaymentId: {
+      type: String,
+    },
+    razorpaySignature: {
+      type: String,
+    },
+    amount: {
+      type: Number,
+    },
+    currency: {
+      type: String,
+      default: 'INR',
+    },
+    status: {
+      type: String,
+      enum: ['pending', 'captured', 'failed'],
+      default: 'pending',
+    },
   },
   { timestamps: { createdAt: true, updatedAt: true } }
 );
