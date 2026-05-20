@@ -3,6 +3,7 @@ import { userDashboardConfigController } from 'controllers/admin';
 import { userDashboardConfigValidation } from 'validations/admin';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import { EnumRoleOfUser } from '../../../../models/enum.model';
 
 const router = express.Router();
 router
@@ -11,7 +12,7 @@ router
    * createUserDashboardConfig
    * */
   .post(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(userDashboardConfigValidation.createUserDashboardConfig),
     userDashboardConfigController.createUserDashboardConfig
   )
@@ -19,7 +20,7 @@ router
    * getUserDashboardConfig
    * */
   .get(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(userDashboardConfigValidation.getUserDashboardConfig),
     userDashboardConfigController.listUserDashboardConfig
   );
@@ -29,7 +30,7 @@ router
    * getUserDashboardConfigPaginated
    * */
   .get(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(userDashboardConfigValidation.paginatedUserDashboardConfig),
     userDashboardConfigController.paginateUserDashboardConfig
   );
@@ -39,7 +40,7 @@ router
    * getUserDashboardConfigById
    * */
   .get(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(userDashboardConfigValidation.getUserDashboardConfigById),
     userDashboardConfigController.getUserDashboardConfig
   )
@@ -47,7 +48,7 @@ router
    * updateUserDashboardConfig
    * */
   .put(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(userDashboardConfigValidation.updateUserDashboardConfig),
     userDashboardConfigController.updateUserDashboardConfig
   )
@@ -55,7 +56,7 @@ router
    * deleteUserDashboardConfigById
    * */
   .delete(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(userDashboardConfigValidation.deleteUserDashboardConfigById),
     userDashboardConfigController.removeUserDashboardConfig
   );

@@ -3,6 +3,7 @@ import { recentlyViewedController } from 'controllers/admin';
 import { recentlyViewedValidation } from 'validations/admin';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import { EnumRoleOfUser } from '../../../../models/enum.model';
 
 const router = express.Router();
 router
@@ -11,21 +12,25 @@ router
    * createRecentlyViewed
    * */
   .post(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(recentlyViewedValidation.createRecentlyViewed),
     recentlyViewedController.createRecentlyViewed
   )
   /**
    * getRecentlyViewed
    * */
-  .get(auth('admin'), validate(recentlyViewedValidation.getRecentlyViewed), recentlyViewedController.listRecentlyViewed);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(recentlyViewedValidation.getRecentlyViewed),
+    recentlyViewedController.listRecentlyViewed
+  );
 router
   .route('/paginated')
   /**
    * getRecentlyViewedPaginated
    * */
   .get(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(recentlyViewedValidation.paginatedRecentlyViewed),
     recentlyViewedController.paginateRecentlyViewed
   );
@@ -34,16 +39,24 @@ router
   /**
    * getRecentlyViewedById
    * */
-  .get(auth('admin'), validate(recentlyViewedValidation.getRecentlyViewedById), recentlyViewedController.getRecentlyViewed)
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(recentlyViewedValidation.getRecentlyViewedById),
+    recentlyViewedController.getRecentlyViewed
+  )
   /**
    * updateRecentlyViewed
    * */
-  .put(auth('admin'), validate(recentlyViewedValidation.updateRecentlyViewed), recentlyViewedController.updateRecentlyViewed)
+  .put(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(recentlyViewedValidation.updateRecentlyViewed),
+    recentlyViewedController.updateRecentlyViewed
+  )
   /**
    * deleteRecentlyViewedById
    * */
   .delete(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(recentlyViewedValidation.deleteRecentlyViewedById),
     recentlyViewedController.removeRecentlyViewed
   );

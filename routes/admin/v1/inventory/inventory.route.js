@@ -3,6 +3,7 @@ import { inventoryController } from 'controllers/admin';
 import { inventoryValidation } from 'validations/admin';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import { EnumRoleOfUser } from '../../../../models/enum.model';
 
 const router = express.Router();
 router
@@ -10,29 +11,53 @@ router
   /**
    * createInventory
    * */
-  .post(auth('admin'), validate(inventoryValidation.createInventory), inventoryController.createInventory)
+  .post(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(inventoryValidation.createInventory),
+    inventoryController.createInventory
+  )
   /**
    * getInventory
    * */
-  .get(auth('admin'), validate(inventoryValidation.getInventory), inventoryController.listInventory);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(inventoryValidation.getInventory),
+    inventoryController.listInventory
+  );
 router
   .route('/paginated')
   /**
    * getInventoryPaginated
    * */
-  .get(auth('admin'), validate(inventoryValidation.paginatedInventory), inventoryController.paginateInventory);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(inventoryValidation.paginatedInventory),
+    inventoryController.paginateInventory
+  );
 router
   .route('/:inventoryId')
   /**
    * getInventoryById
    * */
-  .get(auth('admin'), validate(inventoryValidation.getInventoryById), inventoryController.getInventory)
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(inventoryValidation.getInventoryById),
+    inventoryController.getInventory
+  )
   /**
    * updateInventory
    * */
-  .put(auth('admin'), validate(inventoryValidation.updateInventory), inventoryController.updateInventory)
+  .put(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(inventoryValidation.updateInventory),
+    inventoryController.updateInventory
+  )
   /**
    * deleteInventoryById
    * */
-  .delete(auth('admin'), validate(inventoryValidation.deleteInventoryById), inventoryController.removeInventory);
+  .delete(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(inventoryValidation.deleteInventoryById),
+    inventoryController.removeInventory
+  );
 export default router;

@@ -3,6 +3,7 @@ import { productBrandController } from 'controllers/admin';
 import { productBrandValidation } from 'validations/admin';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import { EnumRoleOfUser } from '../../../../models/enum.model';
 
 const router = express.Router();
 router
@@ -10,29 +11,53 @@ router
   /**
    * createProductBrand
    * */
-  .post(auth('admin'), validate(productBrandValidation.createProductBrand), productBrandController.createProductBrand)
+  .post(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(productBrandValidation.createProductBrand),
+    productBrandController.createProductBrand
+  )
   /**
    * getProductBrand
    * */
-  .get(auth('admin'), validate(productBrandValidation.getProductBrand), productBrandController.listProductBrand);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(productBrandValidation.getProductBrand),
+    productBrandController.listProductBrand
+  );
 router
   .route('/paginated')
   /**
    * getProductBrandPaginated
    * */
-  .get(auth('admin'), validate(productBrandValidation.paginatedProductBrand), productBrandController.paginateProductBrand);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(productBrandValidation.paginatedProductBrand),
+    productBrandController.paginateProductBrand
+  );
 router
   .route('/:productBrandId')
   /**
    * getProductBrandById
    * */
-  .get(auth('admin'), validate(productBrandValidation.getProductBrandById), productBrandController.getProductBrand)
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(productBrandValidation.getProductBrandById),
+    productBrandController.getProductBrand
+  )
   /**
    * updateProductBrand
    * */
-  .put(auth('admin'), validate(productBrandValidation.updateProductBrand), productBrandController.updateProductBrand)
+  .put(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(productBrandValidation.updateProductBrand),
+    productBrandController.updateProductBrand
+  )
   /**
    * deleteProductBrandById
    * */
-  .delete(auth('admin'), validate(productBrandValidation.deleteProductBrandById), productBrandController.removeProductBrand);
+  .delete(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(productBrandValidation.deleteProductBrandById),
+    productBrandController.removeProductBrand
+  );
 export default router;

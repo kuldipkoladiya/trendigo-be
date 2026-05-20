@@ -3,6 +3,7 @@ import { sellerPolicyController } from 'controllers/admin';
 import { sellerPolicyValidation } from 'validations/admin';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import { EnumRoleOfUser } from '../../../../models/enum.model';
 
 const router = express.Router();
 router
@@ -10,29 +11,53 @@ router
   /**
    * createSellerPolicy
    * */
-  .post(auth('admin'), validate(sellerPolicyValidation.createSellerPolicy), sellerPolicyController.createSellerPolicy)
+  .post(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(sellerPolicyValidation.createSellerPolicy),
+    sellerPolicyController.createSellerPolicy
+  )
   /**
    * getSellerPolicy
    * */
-  .get(auth('admin'), validate(sellerPolicyValidation.getSellerPolicy), sellerPolicyController.listSellerPolicy);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(sellerPolicyValidation.getSellerPolicy),
+    sellerPolicyController.listSellerPolicy
+  );
 router
   .route('/paginated')
   /**
    * getSellerPolicyPaginated
    * */
-  .get(auth('admin'), validate(sellerPolicyValidation.paginatedSellerPolicy), sellerPolicyController.paginateSellerPolicy);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(sellerPolicyValidation.paginatedSellerPolicy),
+    sellerPolicyController.paginateSellerPolicy
+  );
 router
   .route('/:sellerPolicyId')
   /**
    * getSellerPolicyById
    * */
-  .get(auth('admin'), validate(sellerPolicyValidation.getSellerPolicyById), sellerPolicyController.getSellerPolicy)
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(sellerPolicyValidation.getSellerPolicyById),
+    sellerPolicyController.getSellerPolicy
+  )
   /**
    * updateSellerPolicy
    * */
-  .put(auth('admin'), validate(sellerPolicyValidation.updateSellerPolicy), sellerPolicyController.updateSellerPolicy)
+  .put(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(sellerPolicyValidation.updateSellerPolicy),
+    sellerPolicyController.updateSellerPolicy
+  )
   /**
    * deleteSellerPolicyById
    * */
-  .delete(auth('admin'), validate(sellerPolicyValidation.deleteSellerPolicyById), sellerPolicyController.removeSellerPolicy);
+  .delete(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(sellerPolicyValidation.deleteSellerPolicyById),
+    sellerPolicyController.removeSellerPolicy
+  );
 export default router;

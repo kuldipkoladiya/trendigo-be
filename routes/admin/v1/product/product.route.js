@@ -3,6 +3,7 @@ import { productController } from 'controllers/admin';
 import { productValidation } from 'validations/admin';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import { EnumRoleOfUser } from '../../../../models/enum.model';
 
 const router = express.Router();
 router
@@ -10,29 +11,53 @@ router
   /**
    * createProduct
    * */
-  .post(auth('admin'), validate(productValidation.createProduct), productController.createProduct)
+  .post(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(productValidation.createProduct),
+    productController.createProduct
+  )
   /**
    * getProduct
    * */
-  .get(auth('admin'), validate(productValidation.getProduct), productController.listProduct);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(productValidation.getProduct),
+    productController.listProduct
+  );
 router
   .route('/paginated')
   /**
    * getProductPaginated
    * */
-  .get(auth('admin'), validate(productValidation.paginatedProduct), productController.paginateProduct);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(productValidation.paginatedProduct),
+    productController.paginateProduct
+  );
 router
   .route('/:productId')
   /**
    * getProductById
    * */
-  .get(auth('admin'), validate(productValidation.getProductById), productController.getProduct)
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(productValidation.getProductById),
+    productController.getProduct
+  )
   /**
    * updateProduct
    * */
-  .put(auth('admin'), validate(productValidation.updateProduct), productController.updateProduct)
+  .put(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(productValidation.updateProduct),
+    productController.updateProduct
+  )
   /**
    * deleteProductById
    * */
-  .delete(auth('admin'), validate(productValidation.deleteProductById), productController.removeProduct);
+  .delete(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(productValidation.deleteProductById),
+    productController.removeProduct
+  );
 export default router;

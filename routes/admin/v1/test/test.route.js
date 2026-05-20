@@ -3,6 +3,7 @@ import { testController } from 'controllers/admin';
 import { testValidation } from 'validations/admin';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import { EnumRoleOfUser } from '../../../../models/enum.model';
 
 const router = express.Router();
 router
@@ -10,29 +11,53 @@ router
   /**
    * createTest
    * */
-  .post(auth('admin'), validate(testValidation.createTest), testController.createTest)
+  .post(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(testValidation.createTest),
+    testController.createTest
+  )
   /**
    * getTest
    * */
-  .get(auth('admin'), validate(testValidation.getTest), testController.listTest);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(testValidation.getTest),
+    testController.listTest
+  );
 router
   .route('/paginated')
   /**
    * getTestPaginated
    * */
-  .get(auth('admin'), validate(testValidation.paginatedTest), testController.paginateTest);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(testValidation.paginatedTest),
+    testController.paginateTest
+  );
 router
   .route('/:testId')
   /**
    * getTestById
    * */
-  .get(auth('admin'), validate(testValidation.getTestById), testController.getTest)
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(testValidation.getTestById),
+    testController.getTest
+  )
   /**
    * updateTest
    * */
-  .put(auth('admin'), validate(testValidation.updateTest), testController.updateTest)
+  .put(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(testValidation.updateTest),
+    testController.updateTest
+  )
   /**
    * deleteTestById
    * */
-  .delete(auth('admin'), validate(testValidation.deleteTestById), testController.removeTest);
+  .delete(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(testValidation.deleteTestById),
+    testController.removeTest
+  );
 export default router;

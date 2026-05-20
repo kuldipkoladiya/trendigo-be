@@ -3,6 +3,7 @@ import { storeNotificationController } from 'controllers/admin';
 import { storeNotificationValidation } from 'validations/admin';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import { EnumRoleOfUser } from '../../../../models/enum.model';
 
 const router = express.Router();
 router
@@ -11,7 +12,7 @@ router
    * createStoreNotification
    * */
   .post(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(storeNotificationValidation.createStoreNotification),
     storeNotificationController.createStoreNotification
   )
@@ -19,7 +20,7 @@ router
    * getStoreNotification
    * */
   .get(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(storeNotificationValidation.getStoreNotification),
     storeNotificationController.listStoreNotification
   );
@@ -29,7 +30,7 @@ router
    * getStoreNotificationPaginated
    * */
   .get(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(storeNotificationValidation.paginatedStoreNotification),
     storeNotificationController.paginateStoreNotification
   );
@@ -39,7 +40,7 @@ router
    * getStoreNotificationById
    * */
   .get(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(storeNotificationValidation.getStoreNotificationById),
     storeNotificationController.getStoreNotification
   )
@@ -47,7 +48,7 @@ router
    * updateStoreNotification
    * */
   .put(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(storeNotificationValidation.updateStoreNotification),
     storeNotificationController.updateStoreNotification
   )
@@ -55,7 +56,7 @@ router
    * deleteStoreNotificationById
    * */
   .delete(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(storeNotificationValidation.deleteStoreNotificationById),
     storeNotificationController.removeStoreNotification
   );

@@ -3,6 +3,7 @@ import { productCategoriesController } from 'controllers/admin';
 import { productCategoriesValidation } from 'validations/admin';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import { EnumRoleOfUser } from '../../../../models/enum.model';
 
 const router = express.Router();
 router
@@ -11,7 +12,7 @@ router
    * createProductCategories
    * */
   .post(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(productCategoriesValidation.createProductCategories),
     productCategoriesController.createProductCategories
   )
@@ -19,7 +20,7 @@ router
    * getProductCategories
    * */
   .get(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(productCategoriesValidation.getProductCategories),
     productCategoriesController.listProductCategories
   );
@@ -29,7 +30,7 @@ router
    * getProductCategoriesPaginated
    * */
   .get(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(productCategoriesValidation.paginatedProductCategories),
     productCategoriesController.paginateProductCategories
   );
@@ -39,7 +40,7 @@ router
    * getProductCategoriesById
    * */
   .get(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(productCategoriesValidation.getProductCategoriesById),
     productCategoriesController.getProductCategories
   )
@@ -47,7 +48,7 @@ router
    * updateProductCategories
    * */
   .put(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(productCategoriesValidation.updateProductCategories),
     productCategoriesController.updateProductCategories
   )
@@ -55,7 +56,7 @@ router
    * deleteProductCategoriesById
    * */
   .delete(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(productCategoriesValidation.deleteProductCategoriesById),
     productCategoriesController.removeProductCategories
   );

@@ -3,6 +3,7 @@ import { inventoryAddressController } from 'controllers/admin';
 import { inventoryAddressValidation } from 'validations/admin';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import { EnumRoleOfUser } from '../../../../models/enum.model';
 
 const router = express.Router();
 router
@@ -11,7 +12,7 @@ router
    * createInventoryAddress
    * */
   .post(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(inventoryAddressValidation.createInventoryAddress),
     inventoryAddressController.createInventoryAddress
   )
@@ -19,7 +20,7 @@ router
    * getInventoryAddress
    * */
   .get(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(inventoryAddressValidation.getInventoryAddress),
     inventoryAddressController.listInventoryAddress
   );
@@ -29,7 +30,7 @@ router
    * getInventoryAddressPaginated
    * */
   .get(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(inventoryAddressValidation.paginatedInventoryAddress),
     inventoryAddressController.paginateInventoryAddress
   );
@@ -39,7 +40,7 @@ router
    * getInventoryAddressById
    * */
   .get(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(inventoryAddressValidation.getInventoryAddressById),
     inventoryAddressController.getInventoryAddress
   )
@@ -47,7 +48,7 @@ router
    * updateInventoryAddress
    * */
   .put(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(inventoryAddressValidation.updateInventoryAddress),
     inventoryAddressController.updateInventoryAddress
   )
@@ -55,7 +56,7 @@ router
    * deleteInventoryAddressById
    * */
   .delete(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(inventoryAddressValidation.deleteInventoryAddressById),
     inventoryAddressController.removeInventoryAddress
   );

@@ -3,6 +3,7 @@ import { storeController } from 'controllers/admin';
 import { storeValidation } from 'validations/admin';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import { EnumRoleOfUser } from '../../../../models/enum.model';
 
 const router = express.Router();
 router
@@ -10,29 +11,53 @@ router
   /**
    * createStore
    * */
-  .post(auth('admin'), validate(storeValidation.createStore), storeController.createStore)
+  .post(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(storeValidation.createStore),
+    storeController.createStore
+  )
   /**
    * getStore
    * */
-  .get(auth('admin'), validate(storeValidation.getStore), storeController.listStore);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(storeValidation.getStore),
+    storeController.listStore
+  );
 router
   .route('/paginated')
   /**
    * getStorePaginated
    * */
-  .get(auth('admin'), validate(storeValidation.paginatedStore), storeController.paginateStore);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(storeValidation.paginatedStore),
+    storeController.paginateStore
+  );
 router
   .route('/:storeId')
   /**
    * getStoreById
    * */
-  .get(auth('admin'), validate(storeValidation.getStoreById), storeController.getStore)
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(storeValidation.getStoreById),
+    storeController.getStore
+  )
   /**
    * updateStore
    * */
-  .put(auth('admin'), validate(storeValidation.updateStore), storeController.updateStore)
+  .put(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(storeValidation.updateStore),
+    storeController.updateStore
+  )
   /**
    * deleteStoreById
    * */
-  .delete(auth('admin'), validate(storeValidation.deleteStoreById), storeController.removeStore);
+  .delete(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(storeValidation.deleteStoreById),
+    storeController.removeStore
+  );
 export default router;

@@ -3,6 +3,7 @@ import { userCoupanController } from 'controllers/admin';
 import { userCoupanValidation } from 'validations/admin';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import { EnumRoleOfUser } from '../../../../models/enum.model';
 
 const router = express.Router();
 router
@@ -10,29 +11,53 @@ router
   /**
    * createUserCoupan
    * */
-  .post(auth('admin'), validate(userCoupanValidation.createUserCoupan), userCoupanController.createUserCoupan)
+  .post(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(userCoupanValidation.createUserCoupan),
+    userCoupanController.createUserCoupan
+  )
   /**
    * getUserCoupan
    * */
-  .get(auth('admin'), validate(userCoupanValidation.getUserCoupan), userCoupanController.listUserCoupan);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(userCoupanValidation.getUserCoupan),
+    userCoupanController.listUserCoupan
+  );
 router
   .route('/paginated')
   /**
    * getUserCoupanPaginated
    * */
-  .get(auth('admin'), validate(userCoupanValidation.paginatedUserCoupan), userCoupanController.paginateUserCoupan);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(userCoupanValidation.paginatedUserCoupan),
+    userCoupanController.paginateUserCoupan
+  );
 router
   .route('/:userCoupanId')
   /**
    * getUserCoupanById
    * */
-  .get(auth('admin'), validate(userCoupanValidation.getUserCoupanById), userCoupanController.getUserCoupan)
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(userCoupanValidation.getUserCoupanById),
+    userCoupanController.getUserCoupan
+  )
   /**
    * updateUserCoupan
    * */
-  .put(auth('admin'), validate(userCoupanValidation.updateUserCoupan), userCoupanController.updateUserCoupan)
+  .put(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(userCoupanValidation.updateUserCoupan),
+    userCoupanController.updateUserCoupan
+  )
   /**
    * deleteUserCoupanById
    * */
-  .delete(auth('admin'), validate(userCoupanValidation.deleteUserCoupanById), userCoupanController.removeUserCoupan);
+  .delete(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(userCoupanValidation.deleteUserCoupanById),
+    userCoupanController.removeUserCoupan
+  );
 export default router;

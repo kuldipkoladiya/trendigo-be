@@ -3,6 +3,7 @@ import { bankDetailsController } from 'controllers/admin';
 import { bankDetailsValidation } from 'validations/admin';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import { EnumRoleOfUser } from '../../../../models/enum.model';
 
 const router = express.Router();
 router
@@ -10,29 +11,53 @@ router
   /**
    * createBankDetails
    * */
-  .post(auth('admin'), validate(bankDetailsValidation.createBankDetails), bankDetailsController.createBankDetails)
+  .post(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(bankDetailsValidation.createBankDetails),
+    bankDetailsController.createBankDetails
+  )
   /**
    * getBankDetails
    * */
-  .get(auth('admin'), validate(bankDetailsValidation.getBankDetails), bankDetailsController.listBankDetails);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(bankDetailsValidation.getBankDetails),
+    bankDetailsController.listBankDetails
+  );
 router
   .route('/paginated')
   /**
    * getBankDetailsPaginated
    * */
-  .get(auth('admin'), validate(bankDetailsValidation.paginatedBankDetails), bankDetailsController.paginateBankDetails);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(bankDetailsValidation.paginatedBankDetails),
+    bankDetailsController.paginateBankDetails
+  );
 router
   .route('/:bankDetailsId')
   /**
    * getBankDetailsById
    * */
-  .get(auth('admin'), validate(bankDetailsValidation.getBankDetailsById), bankDetailsController.getBankDetails)
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(bankDetailsValidation.getBankDetailsById),
+    bankDetailsController.getBankDetails
+  )
   /**
    * updateBankDetails
    * */
-  .put(auth('admin'), validate(bankDetailsValidation.updateBankDetails), bankDetailsController.updateBankDetails)
+  .put(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(bankDetailsValidation.updateBankDetails),
+    bankDetailsController.updateBankDetails
+  )
   /**
    * deleteBankDetailsById
    * */
-  .delete(auth('admin'), validate(bankDetailsValidation.deleteBankDetailsById), bankDetailsController.removeBankDetails);
+  .delete(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(bankDetailsValidation.deleteBankDetailsById),
+    bankDetailsController.removeBankDetails
+  );
 export default router;

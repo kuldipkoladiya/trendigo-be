@@ -3,6 +3,7 @@ import { cartController } from 'controllers/admin';
 import { cartValidation } from 'validations/admin';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import { EnumRoleOfUser } from '../../../../models/enum.model';
 
 const router = express.Router();
 router
@@ -10,29 +11,53 @@ router
   /**
    * createCart
    * */
-  .post(auth('admin'), validate(cartValidation.createCart), cartController.createCart)
+  .post(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(cartValidation.createCart),
+    cartController.createCart
+  )
   /**
    * getCart
    * */
-  .get(auth('admin'), validate(cartValidation.getCart), cartController.listCart);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(cartValidation.getCart),
+    cartController.listCart
+  );
 router
   .route('/paginated')
   /**
    * getCartPaginated
    * */
-  .get(auth('admin'), validate(cartValidation.paginatedCart), cartController.paginateCart);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(cartValidation.paginatedCart),
+    cartController.paginateCart
+  );
 router
   .route('/:cartId')
   /**
    * getCartById
    * */
-  .get(auth('admin'), validate(cartValidation.getCartById), cartController.getCart)
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(cartValidation.getCartById),
+    cartController.getCart
+  )
   /**
    * updateCart
    * */
-  .put(auth('admin'), validate(cartValidation.updateCart), cartController.updateCart)
+  .put(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(cartValidation.updateCart),
+    cartController.updateCart
+  )
   /**
    * deleteCartById
    * */
-  .delete(auth('admin'), validate(cartValidation.deleteCartById), cartController.removeCart);
+  .delete(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(cartValidation.deleteCartById),
+    cartController.removeCart
+  );
 export default router;

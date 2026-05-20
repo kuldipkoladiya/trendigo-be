@@ -3,6 +3,7 @@ import { storeConfigController } from 'controllers/admin';
 import { storeConfigValidation } from 'validations/admin';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import { EnumRoleOfUser } from '../../../../models/enum.model';
 
 const router = express.Router();
 router
@@ -10,29 +11,53 @@ router
   /**
    * createStoreConfig
    * */
-  .post(auth('admin'), validate(storeConfigValidation.createStoreConfig), storeConfigController.createStoreConfig)
+  .post(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(storeConfigValidation.createStoreConfig),
+    storeConfigController.createStoreConfig
+  )
   /**
    * getStoreConfig
    * */
-  .get(auth('admin'), validate(storeConfigValidation.getStoreConfig), storeConfigController.listStoreConfig);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(storeConfigValidation.getStoreConfig),
+    storeConfigController.listStoreConfig
+  );
 router
   .route('/paginated')
   /**
    * getStoreConfigPaginated
    * */
-  .get(auth('admin'), validate(storeConfigValidation.paginatedStoreConfig), storeConfigController.paginateStoreConfig);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(storeConfigValidation.paginatedStoreConfig),
+    storeConfigController.paginateStoreConfig
+  );
 router
   .route('/:storeConfigId')
   /**
    * getStoreConfigById
    * */
-  .get(auth('admin'), validate(storeConfigValidation.getStoreConfigById), storeConfigController.getStoreConfig)
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(storeConfigValidation.getStoreConfigById),
+    storeConfigController.getStoreConfig
+  )
   /**
    * updateStoreConfig
    * */
-  .put(auth('admin'), validate(storeConfigValidation.updateStoreConfig), storeConfigController.updateStoreConfig)
+  .put(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(storeConfigValidation.updateStoreConfig),
+    storeConfigController.updateStoreConfig
+  )
   /**
    * deleteStoreConfigById
    * */
-  .delete(auth('admin'), validate(storeConfigValidation.deleteStoreConfigById), storeConfigController.removeStoreConfig);
+  .delete(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(storeConfigValidation.deleteStoreConfigById),
+    storeConfigController.removeStoreConfig
+  );
 export default router;

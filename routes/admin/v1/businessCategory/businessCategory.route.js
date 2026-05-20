@@ -3,6 +3,7 @@ import { businessCategoryController } from 'controllers/admin';
 import { businessCategoryValidation } from 'validations/admin';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import { EnumRoleOfUser } from '../../../../models/enum.model';
 
 const router = express.Router();
 router
@@ -11,7 +12,7 @@ router
    * createBusinessCategory
    * */
   .post(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(businessCategoryValidation.createBusinessCategory),
     businessCategoryController.createBusinessCategory
   )
@@ -19,7 +20,7 @@ router
    * getBusinessCategory
    * */
   .get(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(businessCategoryValidation.getBusinessCategory),
     businessCategoryController.listBusinessCategory
   );
@@ -29,7 +30,7 @@ router
    * getBusinessCategoryPaginated
    * */
   .get(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(businessCategoryValidation.paginatedBusinessCategory),
     businessCategoryController.paginateBusinessCategory
   );
@@ -39,7 +40,7 @@ router
    * getBusinessCategoryById
    * */
   .get(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(businessCategoryValidation.getBusinessCategoryById),
     businessCategoryController.getBusinessCategory
   )
@@ -47,7 +48,7 @@ router
    * updateBusinessCategory
    * */
   .put(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(businessCategoryValidation.updateBusinessCategory),
     businessCategoryController.updateBusinessCategory
   )
@@ -55,7 +56,7 @@ router
    * deleteBusinessCategoryById
    * */
   .delete(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(businessCategoryValidation.deleteBusinessCategoryById),
     businessCategoryController.removeBusinessCategory
   );

@@ -3,6 +3,7 @@ import { productVarientsController } from 'controllers/admin';
 import { productVarientsValidation } from 'validations/admin';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import { EnumRoleOfUser } from '../../../../models/enum.model';
 
 const router = express.Router();
 router
@@ -11,21 +12,25 @@ router
    * createProductVarients
    * */
   .post(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(productVarientsValidation.createProductVarients),
     productVarientsController.createProductVarients
   )
   /**
    * getProductVarients
    * */
-  .get(auth('admin'), validate(productVarientsValidation.getProductVarients), productVarientsController.listProductVarients);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(productVarientsValidation.getProductVarients),
+    productVarientsController.listProductVarients
+  );
 router
   .route('/paginated')
   /**
    * getProductVarientsPaginated
    * */
   .get(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(productVarientsValidation.paginatedProductVarients),
     productVarientsController.paginateProductVarients
   );
@@ -35,7 +40,7 @@ router
    * getProductVarientsById
    * */
   .get(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(productVarientsValidation.getProductVarientsById),
     productVarientsController.getProductVarients
   )
@@ -43,7 +48,7 @@ router
    * updateProductVarients
    * */
   .put(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(productVarientsValidation.updateProductVarients),
     productVarientsController.updateProductVarients
   )
@@ -51,7 +56,7 @@ router
    * deleteProductVarientsById
    * */
   .delete(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(productVarientsValidation.deleteProductVarientsById),
     productVarientsController.removeProductVarients
   );

@@ -3,6 +3,7 @@ import { sellerUserController } from 'controllers/admin';
 import { sellerUserValidation } from 'validations/admin';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import { EnumRoleOfUser } from '../../../../models/enum.model';
 
 const router = express.Router();
 router
@@ -10,29 +11,53 @@ router
   /**
    * createSellerUser
    * */
-  .post(auth('admin'), validate(sellerUserValidation.createSellerUser), sellerUserController.createSellerUser)
+  .post(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(sellerUserValidation.createSellerUser),
+    sellerUserController.createSellerUser
+  )
   /**
    * getSellerUser
    * */
-  .get(auth('admin'), validate(sellerUserValidation.getSellerUser), sellerUserController.listSellerUser);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(sellerUserValidation.getSellerUser),
+    sellerUserController.listSellerUser
+  );
 router
   .route('/paginated')
   /**
    * getSellerUserPaginated
    * */
-  .get(auth('admin'), validate(sellerUserValidation.paginatedSellerUser), sellerUserController.paginateSellerUser);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(sellerUserValidation.paginatedSellerUser),
+    sellerUserController.paginateSellerUser
+  );
 router
   .route('/:sellerUserId')
   /**
    * getSellerUserById
    * */
-  .get(auth('admin'), validate(sellerUserValidation.getSellerUserById), sellerUserController.getSellerUser)
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(sellerUserValidation.getSellerUserById),
+    sellerUserController.getSellerUser
+  )
   /**
    * updateSellerUser
    * */
-  .put(auth('admin'), validate(sellerUserValidation.updateSellerUser), sellerUserController.updateSellerUser)
+  .put(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(sellerUserValidation.updateSellerUser),
+    sellerUserController.updateSellerUser
+  )
   /**
    * deleteSellerUserById
    * */
-  .delete(auth('admin'), validate(sellerUserValidation.deleteSellerUserById), sellerUserController.removeSellerUser);
+  .delete(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(sellerUserValidation.deleteSellerUserById),
+    sellerUserController.removeSellerUser
+  );
 export default router;

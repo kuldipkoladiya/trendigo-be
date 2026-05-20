@@ -3,6 +3,7 @@ import { orderController } from 'controllers/admin';
 import { orderValidation } from 'validations/admin';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import { EnumRoleOfUser } from '../../../../models/enum.model';
 
 const router = express.Router();
 router
@@ -10,29 +11,53 @@ router
   /**
    * createOrder
    * */
-  .post(auth('admin'), validate(orderValidation.createOrder), orderController.createOrder)
+  .post(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(orderValidation.createOrder),
+    orderController.createOrder
+  )
   /**
    * getOrder
    * */
-  .get(auth('admin'), validate(orderValidation.getOrder), orderController.listOrder);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(orderValidation.getOrder),
+    orderController.listOrder
+  );
 router
   .route('/paginated')
   /**
    * getOrderPaginated
    * */
-  .get(auth('admin'), validate(orderValidation.paginatedOrder), orderController.paginateOrder);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(orderValidation.paginatedOrder),
+    orderController.paginateOrder
+  );
 router
   .route('/:orderId')
   /**
    * getOrderById
    * */
-  .get(auth('admin'), validate(orderValidation.getOrderById), orderController.getOrder)
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(orderValidation.getOrderById),
+    orderController.getOrder
+  )
   /**
    * updateOrder
    * */
-  .put(auth('admin'), validate(orderValidation.updateOrder), orderController.updateOrder)
+  .put(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(orderValidation.updateOrder),
+    orderController.updateOrder
+  )
   /**
    * deleteOrderById
    * */
-  .delete(auth('admin'), validate(orderValidation.deleteOrderById), orderController.removeOrder);
+  .delete(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(orderValidation.deleteOrderById),
+    orderController.removeOrder
+  );
 export default router;

@@ -3,6 +3,7 @@ import { productVarientByProductIdController } from 'controllers/admin';
 import { productVarientByProductIdValidation } from 'validations/admin';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import { EnumRoleOfUser } from '../../../../models/enum.model';
 
 const router = express.Router();
 router
@@ -11,7 +12,7 @@ router
    * createProductVarientByProductId
    * */
   .post(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(productVarientByProductIdValidation.createProductVarientByProductId),
     productVarientByProductIdController.createProductVarientByProductId
   )
@@ -19,7 +20,7 @@ router
    * getProductVarientByProductId
    * */
   .get(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(productVarientByProductIdValidation.getProductVarientByProductId),
     productVarientByProductIdController.listProductVarientByProductId
   );
@@ -29,7 +30,7 @@ router
    * getProductVarientByProductIdPaginated
    * */
   .get(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(productVarientByProductIdValidation.paginatedProductVarientByProductId),
     productVarientByProductIdController.paginateProductVarientByProductId
   );
@@ -39,7 +40,7 @@ router
    * getProductVarientByProductIdById
    * */
   .get(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(productVarientByProductIdValidation.getProductVarientByProductIdById),
     productVarientByProductIdController.getProductVarientByProductId
   )
@@ -47,7 +48,7 @@ router
    * updateProductVarientByProductId
    * */
   .put(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(productVarientByProductIdValidation.updateProductVarientByProductId),
     productVarientByProductIdController.updateProductVarientByProductId
   )
@@ -55,7 +56,7 @@ router
    * deleteProductVarientByProductIdById
    * */
   .delete(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(productVarientByProductIdValidation.deleteProductVarientByProductIdById),
     productVarientByProductIdController.removeProductVarientByProductId
   );

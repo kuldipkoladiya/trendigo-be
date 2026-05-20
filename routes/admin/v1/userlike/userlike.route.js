@@ -3,6 +3,7 @@ import { userlikeController } from 'controllers/admin';
 import { userlikeValidation } from 'validations/admin';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import { EnumRoleOfUser } from '../../../../models/enum.model';
 
 const router = express.Router();
 router
@@ -10,29 +11,53 @@ router
   /**
    * createUserlike
    * */
-  .post(auth('admin'), validate(userlikeValidation.createUserlike), userlikeController.createUserlike)
+  .post(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(userlikeValidation.createUserlike),
+    userlikeController.createUserlike
+  )
   /**
    * getUserlike
    * */
-  .get(auth('admin'), validate(userlikeValidation.getUserlike), userlikeController.listUserlike);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(userlikeValidation.getUserlike),
+    userlikeController.listUserlike
+  );
 router
   .route('/paginated')
   /**
    * getUserlikePaginated
    * */
-  .get(auth('admin'), validate(userlikeValidation.paginatedUserlike), userlikeController.paginateUserlike);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(userlikeValidation.paginatedUserlike),
+    userlikeController.paginateUserlike
+  );
 router
   .route('/:userlikeId')
   /**
    * getUserlikeById
    * */
-  .get(auth('admin'), validate(userlikeValidation.getUserlikeById), userlikeController.getUserlike)
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(userlikeValidation.getUserlikeById),
+    userlikeController.getUserlike
+  )
   /**
    * updateUserlike
    * */
-  .put(auth('admin'), validate(userlikeValidation.updateUserlike), userlikeController.updateUserlike)
+  .put(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(userlikeValidation.updateUserlike),
+    userlikeController.updateUserlike
+  )
   /**
    * deleteUserlikeById
    * */
-  .delete(auth('admin'), validate(userlikeValidation.deleteUserlikeById), userlikeController.removeUserlike);
+  .delete(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(userlikeValidation.deleteUserlikeById),
+    userlikeController.removeUserlike
+  );
 export default router;

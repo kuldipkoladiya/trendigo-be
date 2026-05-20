@@ -3,6 +3,7 @@ import { userAddressController } from 'controllers/admin';
 import { userAddressValidation } from 'validations/admin';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import { EnumRoleOfUser } from '../../../../models/enum.model';
 
 const router = express.Router();
 router
@@ -10,29 +11,53 @@ router
   /**
    * createUserAddress
    * */
-  .post(auth('admin'), validate(userAddressValidation.createUserAddress), userAddressController.createUserAddress)
+  .post(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(userAddressValidation.createUserAddress),
+    userAddressController.createUserAddress
+  )
   /**
    * getUserAddress
    * */
-  .get(auth('admin'), validate(userAddressValidation.getUserAddress), userAddressController.listUserAddress);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(userAddressValidation.getUserAddress),
+    userAddressController.listUserAddress
+  );
 router
   .route('/paginated')
   /**
    * getUserAddressPaginated
    * */
-  .get(auth('admin'), validate(userAddressValidation.paginatedUserAddress), userAddressController.paginateUserAddress);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(userAddressValidation.paginatedUserAddress),
+    userAddressController.paginateUserAddress
+  );
 router
   .route('/:userAddressId')
   /**
    * getUserAddressById
    * */
-  .get(auth('admin'), validate(userAddressValidation.getUserAddressById), userAddressController.getUserAddress)
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(userAddressValidation.getUserAddressById),
+    userAddressController.getUserAddress
+  )
   /**
    * updateUserAddress
    * */
-  .put(auth('admin'), validate(userAddressValidation.updateUserAddress), userAddressController.updateUserAddress)
+  .put(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(userAddressValidation.updateUserAddress),
+    userAddressController.updateUserAddress
+  )
   /**
    * deleteUserAddressById
    * */
-  .delete(auth('admin'), validate(userAddressValidation.deleteUserAddressById), userAddressController.removeUserAddress);
+  .delete(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(userAddressValidation.deleteUserAddressById),
+    userAddressController.removeUserAddress
+  );
 export default router;

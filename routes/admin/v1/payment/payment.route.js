@@ -3,6 +3,7 @@ import { paymentController } from 'controllers/admin';
 import { paymentValidation } from 'validations/admin';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import { EnumRoleOfUser } from '../../../../models/enum.model';
 
 const router = express.Router();
 router
@@ -10,29 +11,53 @@ router
   /**
    * createPayment
    * */
-  .post(auth('admin'), validate(paymentValidation.createPayment), paymentController.createPayment)
+  .post(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(paymentValidation.createPayment),
+    paymentController.createPayment
+  )
   /**
    * getPayment
    * */
-  .get(auth('admin'), validate(paymentValidation.getPayment), paymentController.listPayment);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(paymentValidation.getPayment),
+    paymentController.listPayment
+  );
 router
   .route('/paginated')
   /**
    * getPaymentPaginated
    * */
-  .get(auth('admin'), validate(paymentValidation.paginatedPayment), paymentController.paginatePayment);
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(paymentValidation.paginatedPayment),
+    paymentController.paginatePayment
+  );
 router
   .route('/:paymentId')
   /**
    * getPaymentById
    * */
-  .get(auth('admin'), validate(paymentValidation.getPaymentById), paymentController.getPayment)
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(paymentValidation.getPaymentById),
+    paymentController.getPayment
+  )
   /**
    * updatePayment
    * */
-  .put(auth('admin'), validate(paymentValidation.updatePayment), paymentController.updatePayment)
+  .put(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(paymentValidation.updatePayment),
+    paymentController.updatePayment
+  )
   /**
    * deletePaymentById
    * */
-  .delete(auth('admin'), validate(paymentValidation.deletePaymentById), paymentController.removePayment);
+  .delete(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(paymentValidation.deletePaymentById),
+    paymentController.removePayment
+  );
 export default router;

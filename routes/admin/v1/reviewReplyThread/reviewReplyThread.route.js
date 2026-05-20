@@ -3,6 +3,7 @@ import { reviewReplyThreadController } from 'controllers/admin';
 import { reviewReplyThreadValidation } from 'validations/admin';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import { EnumRoleOfUser } from '../../../../models/enum.model';
 
 const router = express.Router();
 router
@@ -11,7 +12,7 @@ router
    * createReviewReplyThread
    * */
   .post(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(reviewReplyThreadValidation.createReviewReplyThread),
     reviewReplyThreadController.createReviewReplyThread
   )
@@ -19,7 +20,7 @@ router
    * getReviewReplyThread
    * */
   .get(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(reviewReplyThreadValidation.getReviewReplyThread),
     reviewReplyThreadController.listReviewReplyThread
   );
@@ -29,7 +30,7 @@ router
    * getReviewReplyThreadPaginated
    * */
   .get(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(reviewReplyThreadValidation.paginatedReviewReplyThread),
     reviewReplyThreadController.paginateReviewReplyThread
   );
@@ -39,7 +40,7 @@ router
    * getReviewReplyThreadById
    * */
   .get(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(reviewReplyThreadValidation.getReviewReplyThreadById),
     reviewReplyThreadController.getReviewReplyThread
   )
@@ -47,7 +48,7 @@ router
    * updateReviewReplyThread
    * */
   .put(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(reviewReplyThreadValidation.updateReviewReplyThread),
     reviewReplyThreadController.updateReviewReplyThread
   )
@@ -55,7 +56,7 @@ router
    * deleteReviewReplyThreadById
    * */
   .delete(
-    auth('admin'),
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(reviewReplyThreadValidation.deleteReviewReplyThreadById),
     reviewReplyThreadController.removeReviewReplyThread
   );
