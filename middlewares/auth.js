@@ -1,58 +1,57 @@
 import passport from 'passport';
 import httpStatus from 'http-status';
 import ApiError from 'utils/ApiError';
-import mongoose from 'mongoose';
 import { TokenExpiredError } from 'jsonwebtoken';
 import { roleservice } from '../services';
 
+const EnumRoleOfUser = {
+  USER: 'user',
+  ADMIN: 'admin',
+  PROJECT_OWNER: 'project-owner',
+  SUPER_ADMIN: 'super-admin',
+  CO_ADMIN: 'co-admin',
+};
+
 const verifyCallback = (req, resolve, reject, roles) => async (err, user, info) => {
-  try {
-    if (err || info || !user) {
-      if (info instanceof TokenExpiredError) {
-        return reject(
-          new ApiError(
-            (httpStatus.extra && httpStatus.extra.unofficial && httpStatus.extra.unofficial.INVALID_TOKEN) || 498,
-            'Token Expired'
-          )
-        );
-      }
-
-      return reject(new ApiError(httpStatus.UNAUTHORIZED, 'Please authenticate'));
+  if (err || info || !user) {
+    if (info instanceof TokenExpiredError) {
+      return reject(new ApiError(httpStatus.extra.unofficial.INVALID_TOKEN, 'Token Expired'));
     }
 
-    req.user = user;
-
-    if (roles) {
-      let userRole = req.user.role;
-
-      // If role is ObjectId then fetch role from DB
-      if (mongoose.Types.ObjectId.isValid(userRole)) {
-        const getRole = await roleservice.getOneRole({
-          _id: userRole,
-        });
-
-        userRole = getRole ? getRole.role : null;
-      }
-
-      // Array roles check
-      if (Array.isArray(roles)) {
-        if (!roles.includes(userRole)) {
-          return reject(new ApiError(httpStatus.UNAUTHORIZED, 'You does not have permission to access this route!'));
-        }
-      }
-
-      // Single role check
-      else if (typeof roles === 'string') {
-        if (userRole !== roles) {
-          return reject(new ApiError(httpStatus.UNAUTHORIZED, 'You does not have permission to access this route!'));
-        }
-      }
-    }
-
-    resolve();
-  } catch (error) {
-    reject(error);
+    return reject(new ApiError(httpStatus.UNAUTHORIZED, 'Please authenticate'));
   }
+
+  req.user = user;
+
+  // DEFAULT ROLE
+  let userRole = EnumRoleOfUser.USER;
+
+  // IF USER HAS ROLE ID
+  if (req.user.role) {
+    const getRole = await roleservice.getOneRole({
+      _id: req.user.role,
+    });
+
+    // IF ROLE FOUND IN DB
+    if (getRole && getRole.role) {
+      userRole = getRole.role;
+    }
+  }
+
+  // CHECK PERMISSIONS
+  if (roles) {
+    if (Array.isArray(roles)) {
+      if (!roles.includes(userRole)) {
+        return reject(new ApiError(httpStatus.UNAUTHORIZED, 'You does not have permission to access this route!'));
+      }
+    } else if (typeof roles === 'string') {
+      if (userRole !== roles) {
+        return reject(new ApiError(httpStatus.UNAUTHORIZED, 'You does not have permission to access this route!'));
+      }
+    }
+  }
+
+  resolve();
 };
 
 const auth = (roles) => async (req, res, next) => {
