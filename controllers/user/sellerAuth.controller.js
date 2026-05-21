@@ -3,12 +3,13 @@ import { catchAsync } from '../../utils/catchAsync';
 import { countryCodeService, emailService, sellerUserService, tokenService } from '../../services';
 import { EnumCodeTypeOfCode } from '../../models/enum.model';
 import ApiError from '../../utils/ApiError';
-import { generateOtp } from '../../utils/common';
+import { generateOtp, generateRandomId } from '../../utils/common';
 import * as sellerAuthService from '../../services/auth.service';
 import { sendOtpToMobile } from '../../services/mobileotp.service';
 
 export const register = catchAsync(async (req, res) => {
   const { body } = req;
+  const userUniqueId = generateRandomId();
   const { email, mobileNumber, countryCodeId, businessName } = body;
 
   // ❌ At least one is required
@@ -58,6 +59,7 @@ export const register = catchAsync(async (req, res) => {
   // 🆕 Create seller
   const seller = await sellerUserService.createSellerUser({
     ...body,
+    userUniqueId,
     ...(countryCode && { countryCode }),
   });
 

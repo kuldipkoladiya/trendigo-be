@@ -51,6 +51,17 @@ export const generateOtp = () => {
   return Math.floor(1000 + Math.random() * 9000);
 };
 
+export function generateRandomId() {
+  // Current date string (MMDD)
+  const dateString = new Date().toISOString().slice(0, 10).replace(/-/g, '').slice(4, 8);
+
+  // Generate random uppercase characters
+  const randomChars = Array.from({ length: 4 }, () => Math.random().toString(36).charAt(2).toUpperCase()).join('');
+
+  // Combine date string and random characters
+  const uniqueId = dateString + randomChars;
+  return uniqueId;
+}
 export const transFormCardResponse = (paymentMethod) => {
   const {
     card: { exp_month: expMonth, exp_year: expYear, last4 },

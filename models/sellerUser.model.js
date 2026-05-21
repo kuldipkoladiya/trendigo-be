@@ -94,6 +94,9 @@ const SellerUserSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Store',
     },
+    userUniqueId: {
+      type: String,
+    },
   },
   { timestamps: { createdAt: true, updatedAt: true } }
 );

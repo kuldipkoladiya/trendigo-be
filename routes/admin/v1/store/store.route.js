@@ -35,6 +35,12 @@ router
     storeController.paginateStore
   );
 router
+  .route('/by-storeId/:storeId')
+  /**
+   * getStoreById
+   * */
+  .get(validate(storeValidation.getStoreById), storeController.getStorebyid);
+router
   .route('/:storeId')
   /**
    * getStoreById
@@ -42,7 +48,7 @@ router
   .get(
     auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(storeValidation.getStoreById),
-    storeController.getStore
+    storeController.getStorebyid
   )
   /**
    * updateStore
@@ -59,5 +65,15 @@ router
     auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(storeValidation.deleteStoreById),
     storeController.removeStore
+  );
+router
+  .route('/get-seller/:contact')
+  /**
+   * getStoreById
+   * */
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(storeValidation.StoreBySelleId),
+    storeController.getStore
   );
 export default router;
