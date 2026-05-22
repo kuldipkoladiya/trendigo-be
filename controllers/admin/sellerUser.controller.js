@@ -1,7 +1,6 @@
 import httpStatus from 'http-status';
 import { sellerUserService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
-import { pick } from '../../utils/pick';
 
 export const getSellerUser = catchAsync(async (req, res) => {
   const { sellerUserId } = req.params;
@@ -21,8 +20,9 @@ export const listSellerUser = catchAsync(async (req, res) => {
 });
 
 export const paginateSellerUser = catchAsync(async (req, res) => {
+  const { page = 1, limit = 10 } = req.query;
   const filter = {};
-  const options = {};
+  const options = { page: parseInt(page, 10), limit: parseInt(limit, 10) };
   const sellerUser = await sellerUserService.getSellerUserListWithPagination(filter, options);
   return res.status(httpStatus.OK).send({ results: sellerUser });
 });

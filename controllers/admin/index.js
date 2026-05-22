@@ -31,3 +31,4 @@ module.exports.testController = require('./test.controller');
 module.exports.storeNotificationController = require('./storeNotification.controller');
 module.exports.storeConfigController = require('./storeConfig.controller');
 module.exports.roleController = require('./role.controller');
+module.exports.bannerController = require('./banner.controller');

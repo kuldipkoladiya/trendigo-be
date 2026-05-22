@@ -32,6 +32,7 @@ import storeNotificationRoutes from './v1/storeNotification/storeNotification.ro
 import storeConfigRoutes from './v1/storeConfig/storeConfig.route';
 import authRoutes from './v1/auth/auth.route';
 import roleRoutes from './v1/Role/role.route';
+import bannerRoute from './v1/benner/banner.route';
 
 const router = express.Router();
 router.use('/user', userRoutes);
@@ -67,4 +68,5 @@ router.use('/test', testRoutes);
 router.use('/storeNotification', storeNotificationRoutes);
 router.use('/storeConfig', storeConfigRoutes);
 router.use('/role', roleRoutes);
+router.use('/banner', bannerRoute);
 module.exports = router;
