@@ -19,11 +19,7 @@ router
   /**
    * getReview
    * */
-  .get(
-    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
-    validate(reviewValidation.getReview),
-    reviewController.listReview
-  );
+  .get(validate(reviewValidation.getReview), reviewController.listReview);
 router
   .route('/paginated')
   /**
@@ -33,6 +29,32 @@ router
     auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(reviewValidation.paginatedReview),
     reviewController.paginateReview
+  );
+router
+  .route('/by-product/:productId')
+  /**
+   * getReviewById
+   * */
+  .get(validate(reviewValidation.getReviewByproductId), reviewController.getReviewByproductId);
+router
+  .route('/by-seller/:sellerId')
+  /**
+   * getReviewById
+   * */
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(reviewValidation.getReviewBysellerId),
+    reviewController.getReviewBysellerId
+  );
+router
+  .route('/by-user/:userId')
+  /**
+   * getReviewById
+   * */
+  .get(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(reviewValidation.getReviewByuserId),
+    reviewController.getReviewByUserId
   );
 router
   .route('/:reviewId')
