@@ -65,3 +65,4 @@ module.exports.authValidation = require('./auth.validation');
 module.exports.sellerAuthValidation = require('./sellerAuth.validation');
 
 module.exports.countryCodeValidation = require('./countryCode.validation');
+module.exports.razorpayValidation = require('./razorpay.validation');
