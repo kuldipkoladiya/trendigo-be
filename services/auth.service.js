@@ -429,3 +429,28 @@ export const verifySellerOtpForUpdateEmailAndMobile = async ({ email, mobileNumb
 
   return seller;
 };
+
+export const updatepss = async (resetPasswordRequest) => {
+  const { oldPassword, newPassword, seller } = resetPasswordRequest;
+
+  if (!seller) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Seller is not authenticated.');
+  }
+
+  const user = await sellerUserService.getOne({ _id: seller }, { projection: '+password' });
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Seller not found.');
+  }
+
+  // Check if the old password is correct
+  const isPasswordMatch = await bcrypt.compare(oldPassword, user.password);
+  if (!isPasswordMatch) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Old password is incorrect.');
+  }
+
+  // Update the user's password
+  await sellerUserService.updateSellerUser({ _id: seller }, { password: newPassword });
+
+  return { success: true, message: 'Password has been reset successfully' };
+};

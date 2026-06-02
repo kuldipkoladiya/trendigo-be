@@ -86,3 +86,10 @@ export const verifySellerEmailAndMobile = {
     }),
   }),
 };
+
+export const updatepss = {
+  body: Joi.object().keys({
+    oldPassword: Joi.string().required(),
+    newPassword: Joi.string().required(),
+  }),
+};

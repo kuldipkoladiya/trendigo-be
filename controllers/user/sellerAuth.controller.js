@@ -281,3 +281,13 @@ export const verifySellerEmailAndMobile = catchAsync(async (req, res) => {
     },
   });
 });
+
+export const updatepsss = catchAsync(async (req, res) => {
+  await sellerAuthService.updatepss({
+    oldPassword: req.body.oldPassword,
+    newPassword: req.body.newPassword,
+    seller: req.user._id, // Assuming user ID is stored in req.user after authentication
+  });
+
+  res.status(httpStatus.OK).send({ results: { success: true, message: 'Password has been reset successfully' } });
+});

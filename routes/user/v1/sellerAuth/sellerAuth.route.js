@@ -31,6 +31,10 @@ router.post('/refresh-tokens', validate(sellerAuthValidation.refreshTokens), sel
 // Logout
 router.post('/logout', validate(sellerAuthValidation.logout), sellerAuthController.logout);
 /**
+ * update password of user
+ */
+router.put('/update-password', sellerAuth(), validate(sellerAuthValidation.updatepss), sellerAuthController.updatepsss);
+/**
  * send otp for change email and mobile number
  *
  */
