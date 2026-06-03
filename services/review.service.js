@@ -228,6 +228,7 @@ export async function getApprovedReviewSummaryWithPopulate(productId, { page = 1
               user: {
                 _id: '$user._id',
                 name: '$user.name',
+                email: '$user.email',
                 profilePic: '$user.profilePic',
               },
             },
