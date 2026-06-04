@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import httpStatus from 'http-status';
-import { Token } from 'models';
+import { Token, SellerRole } from 'models';
 import ApiError from 'utils/ApiError';
 import config from 'config/config';
 import _ from 'lodash';
@@ -275,12 +275,36 @@ export const generateAuthTokens = async (user) => {
     },
   };
 };
+export const generateSellerToken = (userId, expires, permissions = null, secret = config.jwt.secret) => {
+  const payload = {
+    sub: userId,
+    iat: moment().unix(),
+    exp: expires.unix(),
+    permissions,
+  };
+  return jwt.sign(payload, secret);
+};
+
 export const generateSellerTokens = async (seller) => {
   const accessTokenExpires = moment().add(config.jwt.accessExpirationMinutes, 'minutes');
-  const accessToken = generateToken(seller.id, accessTokenExpires);
 
+  let permissions = null;
+  if (seller.role) {
+    const roleDetails = await SellerRole.findById(seller.role);
+    if (roleDetails) {
+      permissions = {
+        products: roleDetails.products,
+        orders: roleDetails.orders,
+        inventory: roleDetails.inventory,
+        reviews: roleDetails.reviews,
+        storeSettings: roleDetails.storeSettings,
+      };
+    }
+  }
+
+  const accessToken = generateSellerToken(seller.id, accessTokenExpires, permissions);
   const refreshTokenExpires = moment().add(config.jwt.refreshExpirationDays, 'days');
-  const refreshToken = generateToken(seller.id, refreshTokenExpires);
+  const refreshToken = generateSellerToken(seller.id, refreshTokenExpires, permissions);
 
   await saveToken(refreshToken, seller.id, refreshTokenExpires, EnumTypeOfToken.REFRESH);
 

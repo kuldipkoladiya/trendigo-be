@@ -3,30 +3,35 @@
  * Only fields name will be overwritten, if the field name will be changed.
  */
 import httpStatus from 'http-status';
-import { sellerUserService } from 'services';
+import { sellerUserService, countryCodeService } from 'services';
 import { catchAsync } from 'utils/catchAsync';
-import { pick } from '../../utils/pick';
+import ApiError from 'utils/ApiError';
 
 export const getSellerUser = catchAsync(async (req, res) => {
   const { sellerUserId } = req.params;
   const filter = {
     _id: sellerUserId,
+    storeId: req.user.storeId,
   };
-  const options = {};
+  const options = { populate: 'role' };
   const sellerUser = await sellerUserService.getOne(filter, options);
   return res.status(httpStatus.OK).send({ results: sellerUser });
 });
 
 export const listSellerUser = catchAsync(async (req, res) => {
-  const filter = {};
-  const options = {};
+  const filter = { storeId: req.user.storeId };
+  const options = { populate: 'role' };
   const sellerUser = await sellerUserService.getSellerUserList(filter, options);
   return res.status(httpStatus.OK).send({ results: sellerUser });
 });
 
 export const paginateSellerUser = catchAsync(async (req, res) => {
-  const filter = {};
-  const options = {};
+  const filter = { storeId: req.user.storeId };
+  const options = {
+    page: req.query.page || 1,
+    limit: req.query.limit || 10,
+    populate: 'role',
+  };
   const sellerUser = await sellerUserService.getSellerUserListWithPagination(filter, options);
   return res.status(httpStatus.OK).send({ results: sellerUser });
 });
@@ -35,6 +40,20 @@ export const createSellerUser = catchAsync(async (req, res) => {
   const { body } = req;
   body.createdBy = req.user._id;
   body.updatedBy = req.user._id;
+  body.storeId = req.user.storeId;
+  body.businessName = req.user.businessName;
+  body.isEmailVerified = true;
+  body.isMobileVerified = true;
+
+  // Resolve countryCode if countryCodeId is provided
+  if (body.countryCodeId) {
+    const country = await countryCodeService.getCountryCodeById(body.countryCodeId);
+    if (!country) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid countryCodeId');
+    }
+    body.countryCode = country.code;
+  }
+
   const options = {};
   const sellerUser = await sellerUserService.createSellerUser(body, options);
   return res.status(httpStatus.CREATED).send({ results: sellerUser });
@@ -42,10 +61,21 @@ export const createSellerUser = catchAsync(async (req, res) => {
 
 export const updateSellerUser = catchAsync(async (req, res) => {
   const { body } = req;
-  body.updatedBy = req.user;
+  body.updatedBy = req.user._id;
+
+  // Resolve countryCode if countryCodeId is provided
+  if (body.countryCodeId) {
+    const country = await countryCodeService.getCountryCodeById(body.countryCodeId);
+    if (!country) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid countryCodeId');
+    }
+    body.countryCode = country.code;
+  }
+
   const { sellerUserId } = req.params;
   const filter = {
     _id: sellerUserId,
+    storeId: req.user.storeId,
   };
   const options = { new: true };
   const sellerUser = await sellerUserService.updateSellerUser(filter, body, options);
@@ -56,6 +86,7 @@ export const removeSellerUser = catchAsync(async (req, res) => {
   const { sellerUserId } = req.params;
   const filter = {
     _id: sellerUserId,
+    storeId: req.user.storeId,
   };
   const sellerUser = await sellerUserService.removeSellerUser(filter);
   return res.status(httpStatus.OK).send({ results: sellerUser });

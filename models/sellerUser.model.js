@@ -94,6 +94,10 @@ const SellerUserSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Store',
     },
+    role: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'SellerRole',
+    },
     userUniqueId: {
       type: String,
     },

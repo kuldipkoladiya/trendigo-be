@@ -3,6 +3,7 @@ import { productController } from 'controllers/user';
 import { productValidation } from 'validations/user';
 import validate from 'middlewares/validate';
 import auth from 'middlewares/auth';
+import sellerPermission from 'middlewares/sellerPermission';
 import sellerAuth from '../../../../middlewares/sellerAuth';
 import optionalAuth from '../../../../middlewares/optionalAuth';
 
@@ -12,7 +13,12 @@ router
   /**
    * createProduct
    * */
-  .post(sellerAuth(), validate(productValidation.createProduct), productController.createProduct)
+  .post(
+    sellerAuth(),
+    sellerPermission('products', 'add'),
+    validate(productValidation.createProduct),
+    productController.createProduct
+  )
   /**
    * getProduct
    * */
@@ -49,7 +55,12 @@ router
   /**
    * getProductPaginated
    * */
-  .get(sellerAuth(), validate(productValidation.getSellerProduct), productController.getSellerProduct);
+  .get(
+    sellerAuth(),
+    sellerPermission('products', 'view'),
+    validate(productValidation.getSellerProduct),
+    productController.getSellerProduct
+  );
 router
   .route('/by-store/:storeId')
   /**
@@ -71,7 +82,12 @@ router
   /**
    * updateProduct
    * */
-  .put(sellerAuth(), validate(productValidation.updateProduct), productController.updateProduct)
+  .put(
+    sellerAuth(),
+    sellerPermission('products', 'update'),
+    validate(productValidation.updateProduct),
+    productController.updateProduct
+  )
   /**
    * deleteProductById
    * */

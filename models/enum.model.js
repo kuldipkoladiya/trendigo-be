@@ -15,6 +15,11 @@ const EnumRoleOfUser = {
   SUPER_ADMIN: 'super-admin',
   CO_ADMIN: 'co-admin',
 };
+const EnumRoleOfSeller = {
+  SELLER: 'seller',
+  MANAGER: 'manager',
+  STAFF: 'staff',
+};
 const EnumGenderOfUser = {
   MALE: 'male',
   FEMALE: 'female',
@@ -114,6 +119,7 @@ module.exports = {
   EnumContentType,
   EnumCodeTypeOfCode,
   EnumRoleOfUser,
+  EnumRoleOfSeller,
   EnumGenderOfUser,
   EnumPlatformOfDeviceToken,
   EnumBannerOfUserDashboardConfig,

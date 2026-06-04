@@ -3,6 +3,7 @@ import { storeController } from 'controllers/user';
 import { storeValidation } from 'validations/user';
 import validate from 'middlewares/validate';
 import sellerAuth from 'middlewares/sellerAuth';
+import sellerPermission from 'middlewares/sellerPermission';
 
 const router = express.Router();
 router
@@ -10,17 +11,32 @@ router
   /**
    * createStore
    * */
-  .post(sellerAuth(), validate(storeValidation.createStore), storeController.createStore)
+  .post(
+    sellerAuth(),
+    sellerPermission('storeSettings', 'add'),
+    validate(storeValidation.createStore),
+    storeController.createStore
+  )
   /**
    * getStore
    * */
-  .get(sellerAuth(), validate(storeValidation.getStore), storeController.listStore);
+  .get(
+    sellerAuth(),
+    sellerPermission('storeSettings', 'view'),
+    validate(storeValidation.getStore),
+    storeController.listStore
+  );
 router
   .route('/paginated')
   /**
    * getStorePaginated
    * */
-  .get(sellerAuth(), validate(storeValidation.paginatedStore), storeController.paginateStore);
+  .get(
+    sellerAuth(),
+    sellerPermission('storeSettings', 'view'),
+    validate(storeValidation.paginatedStore),
+    storeController.paginateStore
+  );
 router
   .route('/by-storeId/:storeId')
   /**
@@ -32,19 +48,39 @@ router
   /**
    * getStoreById
    * */
-  .get(sellerAuth(), validate(storeValidation.getStoreById), storeController.getStorebyid)
+  .get(
+    sellerAuth(),
+    sellerPermission('storeSettings', 'view'),
+    validate(storeValidation.getStoreById),
+    storeController.getStorebyid
+  )
   /**
    * updateStore
    * */
-  .put(sellerAuth(), validate(storeValidation.updateStore), storeController.updateStore)
+  .put(
+    sellerAuth(),
+    sellerPermission('storeSettings', 'update'),
+    validate(storeValidation.updateStore),
+    storeController.updateStore
+  )
   /**
    * deleteStoreById
    * */
-  .delete(sellerAuth(), validate(storeValidation.deleteStoreById), storeController.removeStore);
+  .delete(
+    sellerAuth(),
+    sellerPermission('storeSettings', 'delete'),
+    validate(storeValidation.deleteStoreById),
+    storeController.removeStore
+  );
 router
   .route('/get-seller/:contact')
   /**
    * getStoreById
    * */
-  .get(sellerAuth(), validate(storeValidation.StoreBySelleId), storeController.getStore);
+  .get(
+    sellerAuth(),
+    sellerPermission('storeSettings', 'view'),
+    validate(storeValidation.StoreBySelleId),
+    storeController.getStore
+  );
 export default router;

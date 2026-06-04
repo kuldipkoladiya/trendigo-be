@@ -14,6 +14,8 @@ const jwtVerify = async (payload, done) => {
     if (!seller) {
       return done(null, false);
     }
+    // Attach token permissions to req.user
+    seller.permissions = payload.permissions;
     return done(null, seller);
   } catch (error) {
     return done(error, false);

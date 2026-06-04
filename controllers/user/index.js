@@ -37,3 +37,4 @@ module.exports.sellerAuthController = require('./sellerAuth.controller');
 module.exports.bannerController = require('./banner.controller');
 module.exports.CountryCodeController = require('./countryCode.controller');
 module.exports.razorpayController = require('./razorpay.controller');
+module.exports.sellerRoleController = require('./sellerRole.controller');

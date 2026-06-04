@@ -39,3 +39,4 @@ module.exports.S3image = require('./s3images.model');
 module.exports.Banner = require('./banner.model');
 module.exports.plugins = require('./plugins');
 module.exports.Role = require('./role.model');
+module.exports.SellerRole = require('./sellerRole.model');

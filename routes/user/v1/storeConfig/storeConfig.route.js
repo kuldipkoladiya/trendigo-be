@@ -2,7 +2,8 @@ import express from 'express';
 import { storeConfigController } from 'controllers/user';
 import { storeConfigValidation } from 'validations/user';
 import validate from 'middlewares/validate';
-import auth from 'middlewares/auth';
+import sellerPermission from 'middlewares/sellerPermission';
+import sellerAuth from '../../../../middlewares/sellerAuth';
 
 const router = express.Router();
 router
@@ -10,29 +11,59 @@ router
   /**
    * createStoreConfig
    * */
-  .post(auth('user'), validate(storeConfigValidation.createStoreConfig), storeConfigController.createStoreConfig)
+  .post(
+    sellerAuth(),
+    sellerPermission('storeSettings', 'add'),
+    validate(storeConfigValidation.createStoreConfig),
+    storeConfigController.createStoreConfig
+  )
   /**
    * getStoreConfig
    * */
-  .get(auth('user'), validate(storeConfigValidation.getStoreConfig), storeConfigController.listStoreConfig);
+  .get(
+    sellerAuth(),
+    sellerPermission('storeSettings', 'view'),
+    validate(storeConfigValidation.getStoreConfig),
+    storeConfigController.listStoreConfig
+  );
 router
   .route('/paginated')
   /**
    * getStoreConfigPaginated
    * */
-  .get(auth('user'), validate(storeConfigValidation.paginatedStoreConfig), storeConfigController.paginateStoreConfig);
+  .get(
+    sellerAuth(),
+    sellerPermission('storeSettings', 'view'),
+    validate(storeConfigValidation.paginatedStoreConfig),
+    storeConfigController.paginateStoreConfig
+  );
 router
   .route('/:storeConfigId')
   /**
    * getStoreConfigById
    * */
-  .get(auth('user'), validate(storeConfigValidation.getStoreConfigById), storeConfigController.getStoreConfig)
+  .get(
+    sellerAuth(),
+    sellerPermission('storeSettings', 'view'),
+    validate(storeConfigValidation.getStoreConfigById),
+    storeConfigController.getStoreConfig
+  )
   /**
    * updateStoreConfig
    * */
-  .put(auth('user'), validate(storeConfigValidation.updateStoreConfig), storeConfigController.updateStoreConfig)
+  .put(
+    sellerAuth(),
+    sellerPermission('storeSettings', 'update'),
+    validate(storeConfigValidation.updateStoreConfig),
+    storeConfigController.updateStoreConfig
+  )
   /**
    * deleteStoreConfigById
    * */
-  .delete(auth('user'), validate(storeConfigValidation.deleteStoreConfigById), storeConfigController.removeStoreConfig);
+  .delete(
+    sellerAuth(),
+    sellerPermission('storeSettings', 'delete'),
+    validate(storeConfigValidation.deleteStoreConfigById),
+    storeConfigController.removeStoreConfig
+  );
 export default router;

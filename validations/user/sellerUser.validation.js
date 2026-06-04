@@ -4,21 +4,27 @@ Joi.objectId = require('joi-objectid')(Joi);
 
 export const createSellerUser = {
   body: Joi.object().keys({
+    name: Joi.string().required(),
     email: Joi.string().email().required(),
+    password: Joi.string().min(6).required(),
+    role: Joi.objectId(),
     isEmailVerified: Joi.bool(),
     mobileNumber: Joi.number().integer(),
-    countryCode: Joi.string(),
-    isMobileVerifed: Joi.bool(),
+    countryCodeId: Joi.objectId(),
+    isMobileVerified: Joi.bool(),
   }),
 };
 
 export const updateSellerUser = {
   body: Joi.object().keys({
+    name: Joi.string(),
     email: Joi.string().email(),
+    password: Joi.string().min(6),
+    role: Joi.objectId(),
     isEmailVerified: Joi.bool(),
     mobileNumber: Joi.number().integer(),
-    countryCode: Joi.string(),
-    isMobileVerifed: Joi.bool(),
+    countryCodeId: Joi.objectId(),
+    isMobileVerified: Joi.bool(),
   }),
   params: Joi.object().keys({
     sellerUserId: Joi.objectId().required(),

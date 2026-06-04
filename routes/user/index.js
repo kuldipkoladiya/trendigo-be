@@ -32,6 +32,7 @@ import storeNotificationRoutes from './v1/storeNotification/storeNotification.ro
 import storeConfigRoutes from './v1/storeConfig/storeConfig.route';
 import authRoutes from './v1/auth/auth.route';
 import SellerauthRoutes from './v1/sellerAuth/sellerAuth.route';
+import sellerRoleRoutes from './v1/sellerRole/sellerRole.route';
 import bannerRoute from './v1/benner/banner.route';
 import countryCodeRoute from './v1/countryCode/countryCode.route';
 import razorpayRoute from './v1/razorpay.route';
@@ -70,6 +71,7 @@ router.use('/storeNotification', storeNotificationRoutes);
 router.use('/storeConfig', storeConfigRoutes);
 router.use('/auth', authRoutes);
 router.use('/seller-auth', SellerauthRoutes);
+router.use('/sellerRole', sellerRoleRoutes);
 router.use('/banner', bannerRoute);
 router.use('/country-code', countryCodeRoute);
 router.use('/razorpay', razorpayRoute);

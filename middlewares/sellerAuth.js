@@ -2,6 +2,7 @@ import passport from 'passport';
 import httpStatus from 'http-status';
 import ApiError from 'utils/ApiError';
 import { TokenExpiredError } from 'jsonwebtoken';
+import mongoose from 'mongoose';
 
 const verifyCallback = (req, resolve, reject) => async (err, user, info) => {
   if (err || info || !user) {
@@ -13,7 +14,9 @@ const verifyCallback = (req, resolve, reject) => async (err, user, info) => {
 
   // IMPORTANT: Check seller role
   if (user.role && user.role !== 'SELLER') {
-    return reject(new ApiError(httpStatus.UNAUTHORIZED, 'Not allowed — Seller only route'));
+    if (!mongoose.Types.ObjectId.isValid(user.role)) {
+      return reject(new ApiError(httpStatus.UNAUTHORIZED, 'Not allowed — Seller only route'));
+    }
   }
 
   req.user = user;
