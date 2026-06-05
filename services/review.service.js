@@ -218,6 +218,47 @@ export async function getApprovedReviewSummaryWithPopulate(productId, { page = 1
           { $skip: skip },
           { $limit: limit },
           {
+            $lookup: {
+              from: 'ReviewReplyThread',
+              let: { reviewId: '$_id' },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: { $eq: ['$reviewMessageId', '$$reviewId'] },
+                    isDeleted: { $ne: true },
+                  },
+                },
+                {
+                  $lookup: {
+                    from: 'SellerUser',
+                    localField: 'storeUserId',
+                    foreignField: '_id',
+                    as: 'seller',
+                  },
+                },
+                {
+                  $unwind: {
+                    path: '$seller',
+                    preserveNullAndEmptyArrays: true,
+                  },
+                },
+                {
+                  $project: {
+                    _id: 1,
+                    message: 1,
+                    createdAt: 1,
+                    seller: {
+                      _id: '$seller._id',
+                      name: '$seller.name',
+                      email: '$seller.email',
+                    },
+                  },
+                },
+              ],
+              as: 'replies',
+            },
+          },
+          {
             $project: {
               _id: 1,
               rating: 1,
@@ -231,6 +272,7 @@ export async function getApprovedReviewSummaryWithPopulate(productId, { page = 1
                 email: '$user.email',
                 profilePic: '$user.profilePic',
               },
+              replies: 1,
             },
           },
         ],
@@ -387,6 +429,47 @@ export async function getApprovedReviewSummaryBySellerId(sellerId, { page = 1, l
           { $skip: skip },
           { $limit: limit },
           {
+            $lookup: {
+              from: 'ReviewReplyThread',
+              let: { reviewId: '$_id' },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: { $eq: ['$reviewMessageId', '$$reviewId'] },
+                    isDeleted: { $ne: true },
+                  },
+                },
+                {
+                  $lookup: {
+                    from: 'SellerUser',
+                    localField: 'storeUserId',
+                    foreignField: '_id',
+                    as: 'seller',
+                  },
+                },
+                {
+                  $unwind: {
+                    path: '$seller',
+                    preserveNullAndEmptyArrays: true,
+                  },
+                },
+                {
+                  $project: {
+                    _id: 1,
+                    message: 1,
+                    createdAt: 1,
+                    seller: {
+                      _id: '$seller._id',
+                      name: '$seller.name',
+                      email: '$seller.email',
+                    },
+                  },
+                },
+              ],
+              as: 'replies',
+            },
+          },
+          {
             $project: {
               _id: 1,
               rating: 1,
@@ -407,6 +490,7 @@ export async function getApprovedReviewSummaryBySellerId(sellerId, { page = 1, l
                 title: '$product.title',
                 images: '$product.images',
               },
+              replies: 1,
             },
           },
         ],
@@ -542,6 +626,47 @@ export async function getApprovedReviewSummaryByUserId(userId, { page = 1, limit
           { $skip: skip },
           { $limit: limit },
           {
+            $lookup: {
+              from: 'ReviewReplyThread',
+              let: { reviewId: '$_id' },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: { $eq: ['$reviewMessageId', '$$reviewId'] },
+                    isDeleted: { $ne: true },
+                  },
+                },
+                {
+                  $lookup: {
+                    from: 'SellerUser',
+                    localField: 'storeUserId',
+                    foreignField: '_id',
+                    as: 'seller',
+                  },
+                },
+                {
+                  $unwind: {
+                    path: '$seller',
+                    preserveNullAndEmptyArrays: true,
+                  },
+                },
+                {
+                  $project: {
+                    _id: 1,
+                    message: 1,
+                    createdAt: 1,
+                    seller: {
+                      _id: '$seller._id',
+                      name: '$seller.name',
+                      email: '$seller.email',
+                    },
+                  },
+                },
+              ],
+              as: 'replies',
+            },
+          },
+          {
             $project: {
               _id: 1,
               rating: 1,
@@ -561,6 +686,7 @@ export async function getApprovedReviewSummaryByUserId(userId, { page = 1, limit
                 title: '$product.title',
                 images: '$product.images',
               },
+              replies: 1,
             },
           },
         ],

@@ -2,7 +2,7 @@ import express from 'express';
 import { reviewReplyThreadController } from 'controllers/user';
 import { reviewReplyThreadValidation } from 'validations/user';
 import validate from 'middlewares/validate';
-import auth from 'middlewares/auth';
+import sellerAuth from '../../../../middlewares/sellerAuth';
 
 const router = express.Router();
 router
@@ -11,7 +11,7 @@ router
    * createReviewReplyThread
    * */
   .post(
-    auth('user'),
+    sellerAuth(),
     validate(reviewReplyThreadValidation.createReviewReplyThread),
     reviewReplyThreadController.createReviewReplyThread
   )
@@ -19,7 +19,7 @@ router
    * getReviewReplyThread
    * */
   .get(
-    auth('user'),
+    sellerAuth(),
     validate(reviewReplyThreadValidation.getReviewReplyThread),
     reviewReplyThreadController.listReviewReplyThread
   );
@@ -29,7 +29,7 @@ router
    * getReviewReplyThreadPaginated
    * */
   .get(
-    auth('user'),
+    sellerAuth(),
     validate(reviewReplyThreadValidation.paginatedReviewReplyThread),
     reviewReplyThreadController.paginateReviewReplyThread
   );
@@ -39,7 +39,7 @@ router
    * getReviewReplyThreadById
    * */
   .get(
-    auth('user'),
+    sellerAuth(),
     validate(reviewReplyThreadValidation.getReviewReplyThreadById),
     reviewReplyThreadController.getReviewReplyThread
   )
@@ -47,7 +47,7 @@ router
    * updateReviewReplyThread
    * */
   .put(
-    auth('user'),
+    sellerAuth(),
     validate(reviewReplyThreadValidation.updateReviewReplyThread),
     reviewReplyThreadController.updateReviewReplyThread
   )
@@ -55,7 +55,7 @@ router
    * deleteReviewReplyThreadById
    * */
   .delete(
-    auth('user'),
+    sellerAuth(),
     validate(reviewReplyThreadValidation.deleteReviewReplyThreadById),
     reviewReplyThreadController.removeReviewReplyThread
   );

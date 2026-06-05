@@ -91,5 +91,5 @@ router
   /**
    * deleteProductById
    * */
-  .delete(auth('user'), validate(productValidation.deleteProductById), productController.removeProduct);
+  .delete(sellerAuth(), validate(productValidation.deleteProductById), productController.removeProduct);
 export default router;
