@@ -51,7 +51,12 @@ router
   /**
    * getReviewById
    * */
-  .get(auth('user'), validate(reviewValidation.getReviewById), reviewController.getReview)
+  .get(
+    sellerAuth(),
+    sellerPermission('reviews', 'view'),
+    validate(reviewValidation.getReviewById),
+    reviewController.getReview
+  )
   /**
    * updateReview
    * */

@@ -9,7 +9,10 @@ export async function getReviewById(id, options = {}) {
 }
 
 export async function getOne(query, options = {}) {
-  const review = await Review.findOne(query, options.projection, options);
+  const review = await Review.findOne(query, options.projection, options)
+    .populate('sellerId')
+    .populate('productId')
+    .populate('userId');
   return review;
 }
 
