@@ -53,7 +53,7 @@ export const getReview = catchAsync(async (req, res) => {
   };
   const options = {};
   const review = await reviewService.getOne(filter, options);
-  return res.status(httpStatus.OK).send({ results: review });
+  return res.status(httpStatus.OK).send({ results: review.toObject() });
 });
 
 export const listReview = catchAsync(async (req, res) => {
