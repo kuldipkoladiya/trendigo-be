@@ -6,7 +6,7 @@ import mongoose from 'mongoose';
 import TempS3 from 'models/tempS3.model';
 import { asyncForEach } from 'utils/common';
 import ApiError from 'utils/ApiError';
-import { Review } from '../../models';
+import { Review, ReviewReplyThread } from '../../models';
 
 const moveFileAndUpdateTempS3 = async ({ url, newFilePath }) => {
   const newUrl = await s3Service.moveFile({ key: url, newFilePath });
@@ -53,7 +53,37 @@ export const getReview = catchAsync(async (req, res) => {
   };
   const options = {};
   const review = await reviewService.getOne(filter, options);
-  return res.status(httpStatus.OK).send({ results: review });
+  if (!review) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Review not found');
+  }
+
+  const replies = await ReviewReplyThread.find({
+    reviewMessageId: reviewId,
+    isDeleted: { $ne: true },
+  }).populate('storeUserId', 'name email');
+
+  const formattedReplies = replies.map((reply) => {
+    const replyObj = reply.toObject();
+    const seller = replyObj.storeUserId
+      ? {
+          _id: replyObj.storeUserId._id,
+          name: replyObj.storeUserId.name,
+          email: replyObj.storeUserId.email,
+        }
+      : null;
+    delete replyObj.storeUserId;
+    return {
+      ...replyObj,
+      seller,
+    };
+  });
+
+  const results = {
+    ...review.toObject(),
+    replies: formattedReplies,
+  };
+
+  return res.status(httpStatus.OK).send({ results });
 });
 
 export const listReview = catchAsync(async (req, res) => {
