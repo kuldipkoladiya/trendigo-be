@@ -33,7 +33,10 @@ export const SellerloginUserWithEmailOrMobileAndPassword = async (email, mobileN
 
   // 🔐 Email login
   if (email) {
-    seller = await SellerUser.findOne({ email }).select('+password');
+    seller = await SellerUser.findOne({ email }).select('+password').populate({
+      path: 'role',
+      model: 'SellerRole',
+    });
   }
 
   // 📱 Mobile login
@@ -46,7 +49,12 @@ export const SellerloginUserWithEmailOrMobileAndPassword = async (email, mobileN
     seller = await SellerUser.findOne({
       mobileNumber,
       countryCode: countryCode.code,
-    }).select('+password');
+    })
+      .select('+password')
+      .populate({
+        path: 'role',
+        model: 'SellerRole',
+      });
   }
 
   // ❌ Missing credentials
