@@ -298,6 +298,7 @@ export const generateSellerTokens = async (seller) => {
         inventory: roleDetails.inventory,
         reviews: roleDetails.reviews,
         storeSettings: roleDetails.storeSettings,
+        sellerPolicy: roleDetails.sellerPolicy,
       };
     }
   }

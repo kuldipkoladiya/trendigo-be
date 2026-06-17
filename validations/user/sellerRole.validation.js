@@ -20,6 +20,7 @@ export const addRole = {
     inventory: accessSchema,
     reviews: accessSchema,
     storeSettings: accessSchema,
+    sellerPolicy: accessSchema,
   }),
 };
 
@@ -31,6 +32,7 @@ export const updateRole = {
     inventory: accessSchema,
     reviews: accessSchema,
     storeSettings: accessSchema,
+    sellerPolicy: accessSchema,
   }),
   params: Joi.object().keys({
     roleId: Joi.objectId().required(),

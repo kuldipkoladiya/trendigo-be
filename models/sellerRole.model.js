@@ -28,6 +28,7 @@ const SellerRoleSchema = new mongoose.Schema(
     inventory: accessSchema,
     reviews: accessSchema,
     storeSettings: accessSchema,
+    sellerPolicy: accessSchema,
   },
   { timestamps: { createdAt: true, updatedAt: true } }
 );

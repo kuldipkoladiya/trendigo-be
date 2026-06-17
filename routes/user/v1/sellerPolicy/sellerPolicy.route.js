@@ -2,6 +2,7 @@ import express from 'express';
 import { sellerPolicyController } from 'controllers/user';
 import { sellerPolicyValidation } from 'validations/user';
 import validate from 'middlewares/validate';
+import sellerPermission from 'middlewares/sellerPermission';
 import sellerAuth from '../../../../middlewares/sellerAuth';
 
 const router = express.Router();
@@ -10,17 +11,32 @@ router
   /**
    * createSellerPolicy
    * */
-  .post(sellerAuth(), validate(sellerPolicyValidation.createSellerPolicy), sellerPolicyController.createSellerPolicy)
+  .post(
+    sellerAuth(),
+    sellerPermission('sellerPolicy', 'add'),
+    validate(sellerPolicyValidation.createSellerPolicy),
+    sellerPolicyController.createSellerPolicy
+  )
   /**
    * getSellerPolicy
    * */
-  .get(sellerAuth(), validate(sellerPolicyValidation.getSellerPolicy), sellerPolicyController.listSellerPolicy);
+  .get(
+    sellerAuth(),
+    sellerPermission('sellerPolicy', 'view'),
+    validate(sellerPolicyValidation.getSellerPolicy),
+    sellerPolicyController.listSellerPolicy
+  );
 router
   .route('/paginated')
   /**
    * getSellerPolicyPaginated
    * */
-  .get(sellerAuth(), validate(sellerPolicyValidation.paginatedSellerPolicy), sellerPolicyController.paginateSellerPolicy);
+  .get(
+    sellerAuth(),
+    sellerPermission('sellerPolicy', 'view'),
+    validate(sellerPolicyValidation.paginatedSellerPolicy),
+    sellerPolicyController.paginateSellerPolicy
+  );
 router
   .route('/by-store/:storeId')
   /**
@@ -28,6 +44,7 @@ router
    * */
   .get(
     sellerAuth(),
+    sellerPermission('sellerPolicy', 'view'),
     validate(sellerPolicyValidation.getSellerPolicyByStoreId),
     sellerPolicyController.getSellerPolicyByStoreId
   );
@@ -36,13 +53,28 @@ router
   /**
    * getSellerPolicyById
    * */
-  .get(sellerAuth(), validate(sellerPolicyValidation.getSellerPolicyById), sellerPolicyController.getSellerPolicy)
+  .get(
+    sellerAuth(),
+    sellerPermission('sellerPolicy', 'view'),
+    validate(sellerPolicyValidation.getSellerPolicyById),
+    sellerPolicyController.getSellerPolicy
+  )
   /**
    * updateSellerPolicy
    * */
-  .put(sellerAuth(), validate(sellerPolicyValidation.updateSellerPolicy), sellerPolicyController.updateSellerPolicy)
+  .put(
+    sellerAuth(),
+    sellerPermission('sellerPolicy', 'update'),
+    validate(sellerPolicyValidation.updateSellerPolicy),
+    sellerPolicyController.updateSellerPolicy
+  )
   /**
    * deleteSellerPolicyById
    * */
-  .delete(sellerAuth(), validate(sellerPolicyValidation.deleteSellerPolicyById), sellerPolicyController.removeSellerPolicy);
+  .delete(
+    sellerAuth(),
+    sellerPermission('sellerPolicy', 'delete'),
+    validate(sellerPolicyValidation.deleteSellerPolicyById),
+    sellerPolicyController.removeSellerPolicy
+  );
 export default router;
