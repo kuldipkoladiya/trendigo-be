@@ -65,6 +65,72 @@ export async function getProductList(filter = {}) {
     });
 }
 
+export async function getProductListSummary(filter = {}) {
+  const products = await Product.find(filter)
+    .populate({
+      path: 'productTypeId',
+      select: 'value',
+    })
+    .populate({
+      path: 'productCategoryId',
+      select: 'value parentCategoryId',
+    })
+    .populate({
+      path: 'images',
+      select: 'imageUrl imageName isSelectedForMainScreen',
+    })
+    .populate({
+      path: 'variants',
+      match: { isDeleted: false },
+      populate: {
+        path: 'images',
+        select: 'imageUrl imageName isSelectedForMainScreen',
+      },
+    });
+
+  return products.map((product) => {
+    const productObj = product.toJSON ? product.toJSON() : product;
+
+    // Calculate total stock
+    let totalStock = 0;
+    if (productObj.variantsEnabled && productObj.variants) {
+      totalStock = productObj.variants.reduce((sum, v) => sum + (v.quantity || 0), 0);
+    } else if (productObj.variants) {
+      totalStock = productObj.variants.reduce((sum, v) => sum + (v.quantity || 0), 0);
+    }
+    // Return ONLY the requested fields, keeping the original variants structure but clean of other fields
+    return {
+      id: productObj.id,
+      _id: productObj._id,
+      title: productObj.title,
+      productCode: productObj.productCode,
+      sku: productObj.sku,
+      productCategoryId: productObj.productCategoryId,
+      productTypeId: productObj.productTypeId,
+      variantsEnabled: productObj.variantsEnabled,
+      images: productObj.images || [],
+      variants: (productObj.variants || []).map((v) => ({
+        id: v.id,
+        _id: v._id,
+        productId: v.productId,
+        quantity: v.quantity,
+        price: v.price,
+        sku: v.sku,
+        images: v.images || [],
+        variants: v.variants || [],
+        isDeleted: v.isDeleted || false,
+        deletedAt: v.deletedAt || null,
+      })),
+      totalStock,
+      price:
+        productObj.variantsEnabled && productObj.variants && productObj.variants.length > 0
+          ? productObj.variants[0].price
+          : productObj.sellingPrice,
+      status: productObj.isDeleted ? 'Inactive' : 'Active',
+    };
+  });
+}
+
 export async function getProductListWithPagination(filter, options = {}) {
   const product = await Product.paginate(filter, options);
   return product;

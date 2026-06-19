@@ -13,6 +13,15 @@ export const getProduct = catchAsync(async (req, res) => {
   return res.status(httpStatus.OK).send({ results: product });
 });
 
+export const getSellerProductSummary = catchAsync(async (req, res) => {
+  const { sellerId } = req.params;
+  const filter = {
+    sellerId,
+  };
+  const product = await productService.getProductListSummary(filter);
+  return res.status(httpStatus.OK).send({ results: product });
+});
+
 export const getSellerProduct = catchAsync(async (req, res) => {
   const { sellerId } = req.params;
   const filter = {

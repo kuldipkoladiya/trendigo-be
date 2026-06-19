@@ -51,6 +51,14 @@ router
   .route('/by-product-category/:category')
   .get(validate(productValidation.getProductsByProductCategory), productController.getProductsByProductCategory);
 router
+  .route('/by-seller/summary/:sellerId')
+  .get(
+    sellerAuth(),
+    sellerPermission('products', 'view'),
+    validate(productValidation.getSellerProduct),
+    productController.getSellerProductSummary
+  );
+router
   .route('/by-seller/:sellerId')
   /**
    * getProductPaginated
