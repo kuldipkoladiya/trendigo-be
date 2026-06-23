@@ -36,6 +36,7 @@ import sellerRoleRoutes from './v1/sellerRole/sellerRole.route';
 import bannerRoute from './v1/benner/banner.route';
 import countryCodeRoute from './v1/countryCode/countryCode.route';
 import razorpayRoute from './v1/razorpay.route';
+import chatRoutes from './v1/chat/chat.route';
 
 const router = express.Router();
 router.use('/user', userRoutes);
@@ -75,4 +76,5 @@ router.use('/sellerRole', sellerRoleRoutes);
 router.use('/banner', bannerRoute);
 router.use('/country-code', countryCodeRoute);
 router.use('/razorpay', razorpayRoute);
+router.use('/chat', chatRoutes);
 module.exports = router;

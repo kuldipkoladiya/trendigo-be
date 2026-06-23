@@ -40,3 +40,4 @@ module.exports.Banner = require('./banner.model');
 module.exports.plugins = require('./plugins');
 module.exports.Role = require('./role.model');
 module.exports.SellerRole = require('./sellerRole.model');
+module.exports.ChatMessage = require('./chatMessage.model');
