@@ -256,7 +256,49 @@ export async function getRecentlyViewedListPaginate(userId, page = 1, limit = 12
           localField: 'variants',
           foreignField: '_id',
           pipeline: [
-            { $match: { isDeleted: { $ne: true } } },
+            {
+              $match: {
+                isDeleted: { $ne: true },
+              },
+            },
+
+            {
+              $addFields: {
+                discountAmount: {
+                  $round: [
+                    {
+                      $multiply: [
+                        '$price',
+                        {
+                          $divide: ['$discount', 100],
+                        },
+                      ],
+                    },
+                    2,
+                  ],
+                },
+
+                sellingPrice: {
+                  $round: [
+                    {
+                      $subtract: [
+                        '$price',
+                        {
+                          $multiply: [
+                            '$price',
+                            {
+                              $divide: ['$discount', 100],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                    2,
+                  ],
+                },
+              },
+            },
+
             {
               $lookup: {
                 from: 'S3image',
@@ -265,6 +307,7 @@ export async function getRecentlyViewedListPaginate(userId, page = 1, limit = 12
                 as: 'images',
               },
             },
+
             {
               $lookup: {
                 from: 'S3image',

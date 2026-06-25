@@ -694,6 +694,38 @@ export async function getProductDetailsById(productId, userId = null) {
               isDeleted: { $ne: true },
             },
           },
+
+          {
+            $addFields: {
+              discountAmount: {
+                $round: [
+                  {
+                    $multiply: [
+                      '$price',
+                      {
+                        $divide: ['$discount', 100],
+                      },
+                    ],
+                  },
+                  2,
+                ],
+              },
+            },
+          },
+
+          {
+            $addFields: {
+              sellingPrice: {
+                $round: [
+                  {
+                    $subtract: ['$price', '$discountAmount'],
+                  },
+                  2,
+                ],
+              },
+            },
+          },
+
           {
             $lookup: {
               from: 'S3image',
@@ -931,7 +963,53 @@ export async function getStoreProductListWithReviews(storeId, page = 1, limit = 
               localField: 'variants',
               foreignField: '_id',
               pipeline: [
-                { $match: { isDeleted: { $ne: true } } },
+                {
+                  $match: {
+                    isDeleted: { $ne: true },
+                  },
+                },
+
+                {
+                  $addFields: {
+                    discountAmount: {
+                      $round: [
+                        {
+                          $multiply: [
+                            '$price',
+                            {
+                              $divide: [{ $ifNull: ['$discount', 0] }, 100],
+                            },
+                          ],
+                        },
+                        2,
+                      ],
+                    },
+                  },
+                },
+
+                {
+                  $addFields: {
+                    sellingPrice: {
+                      $round: [
+                        {
+                          $subtract: [
+                            '$price',
+                            {
+                              $multiply: [
+                                '$price',
+                                {
+                                  $divide: [{ $ifNull: ['$discount', 0] }, 100],
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                        2,
+                      ],
+                    },
+                  },
+                },
+
                 {
                   $lookup: {
                     from: 'S3image',
@@ -940,6 +1018,7 @@ export async function getStoreProductListWithReviews(storeId, page = 1, limit = 
                     as: 'images',
                   },
                 },
+
                 {
                   $lookup: {
                     from: 'S3image',
@@ -1303,7 +1382,6 @@ export async function searchProducts(params, userId = null) {
         localField: 'variants',
         foreignField: '_id',
         as: 'variants',
-
         pipeline: [
           {
             $match: {
@@ -1311,7 +1389,43 @@ export async function searchProducts(params, userId = null) {
             },
           },
 
-          // IMAGES
+          {
+            $addFields: {
+              discountAmount: {
+                $round: [
+                  {
+                    $multiply: [
+                      '$price',
+                      {
+                        $divide: [{ $ifNull: ['$discount', 0] }, 100],
+                      },
+                    ],
+                  },
+                  2,
+                ],
+              },
+
+              sellingPrice: {
+                $round: [
+                  {
+                    $subtract: [
+                      '$price',
+                      {
+                        $multiply: [
+                          '$price',
+                          {
+                            $divide: [{ $ifNull: ['$discount', 0] }, 100],
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                  2,
+                ],
+              },
+            },
+          },
+
           {
             $lookup: {
               from: 'S3image',
@@ -1321,7 +1435,6 @@ export async function searchProducts(params, userId = null) {
             },
           },
 
-          // VIDEOS
           {
             $lookup: {
               from: 'S3image',
