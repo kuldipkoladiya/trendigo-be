@@ -30,12 +30,17 @@ const ProductVarientByProductIdSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-
+    sellingPrice: {
+      type: Number,
+    },
     discount: {
       type: Number,
       default: 0,
     },
-
+    discountAmount: {
+      type: Number,
+      default: 0,
+    },
     sku: {
       type: String,
       required: true,

@@ -390,7 +390,43 @@ export async function getProductListByReviewWithPagination(page = 1, limit = 10,
               foreignField: '_id',
               as: 'variants',
               pipeline: [
-                { $match: { isDeleted: { $ne: true } } },
+                {
+                  $match: {
+                    isDeleted: { $ne: true },
+                  },
+                },
+
+                {
+                  $addFields: {
+                    discountAmount: {
+                      $round: [
+                        {
+                          $multiply: [
+                            '$price',
+                            {
+                              $divide: ['$discount', 100],
+                            },
+                          ],
+                        },
+                        2,
+                      ],
+                    },
+                  },
+                },
+
+                {
+                  $addFields: {
+                    sellingPrice: {
+                      $round: [
+                        {
+                          $subtract: ['$price', '$discountAmount'],
+                        },
+                        2,
+                      ],
+                    },
+                  },
+                },
+
                 {
                   $lookup: {
                     from: 'S3image',
