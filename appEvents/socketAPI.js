@@ -28,6 +28,13 @@ socketAPI.bindEvents = (io) => {
         // Broadcast to receiver
         io.to(receiverId.toString()).emit('receive_message', chatMessage);
 
+        // Auto-update conversations list for sender and receiver
+        const senderConversations = await chatMessageService.getConversations(senderId, senderModel);
+        io.to(senderId).emit('conversations_list', senderConversations);
+
+        const receiverConversations = await chatMessageService.getConversations(receiverId.toString(), receiverModel);
+        io.to(receiverId.toString()).emit('conversations_list', receiverConversations);
+
         // Respond to sender
         if (typeof callback === 'function') {
           callback({ success: true, data: chatMessage });
@@ -55,6 +62,13 @@ socketAPI.bindEvents = (io) => {
         });
 
         io.to(admin._id.toString()).emit('receive_message', chatMessage);
+
+        // Auto-update conversations list for sender and receiver (admin)
+        const senderConversations = await chatMessageService.getConversations(senderId, senderModel);
+        io.to(senderId).emit('conversations_list', senderConversations);
+
+        const receiverConversations = await chatMessageService.getConversations(admin._id.toString(), 'User');
+        io.to(admin._id.toString()).emit('conversations_list', receiverConversations);
 
         if (typeof callback === 'function') {
           callback({ success: true, data: chatMessage });
@@ -117,6 +131,10 @@ socketAPI.bindEvents = (io) => {
         // Mark messages from the counterparty as read
         await chatMessageService.markAsRead(counterpartyId, senderId);
 
+        // Emit updated conversations to the sender (so their unread count decreases to 0)
+        const updatedConversations = await chatMessageService.getConversations(senderId, senderModel);
+        socket.emit('conversations_list', updatedConversations);
+
         const filter = {
           $or: [
             { senderId, receiverId: counterpartyId },
@@ -151,6 +169,16 @@ socketAPI.bindEvents = (io) => {
 
         // Broadcast/emit to receiver that message is deleted
         io.to(deletedMessage.receiverId.toString()).emit('message_deleted', { messageId });
+
+        // Update conversations for both parties
+        const senderConversations = await chatMessageService.getConversations(senderId, senderModel);
+        io.to(senderId).emit('conversations_list', senderConversations);
+
+        const receiverConversations = await chatMessageService.getConversations(
+          deletedMessage.receiverId.toString(),
+          deletedMessage.receiverModel
+        );
+        io.to(deletedMessage.receiverId.toString()).emit('conversations_list', receiverConversations);
 
         if (typeof callback === 'function') {
           callback({ success: true, messageId });

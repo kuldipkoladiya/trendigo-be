@@ -26,7 +26,6 @@ const ChatMessageSchema = new mongoose.Schema(
     },
     message: {
       type: String,
-      required: true,
     },
     product: {
       type: mongoose.Schema.Types.ObjectId,
