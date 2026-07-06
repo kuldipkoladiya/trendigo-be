@@ -8,11 +8,35 @@ export async function sendMessage(body = {}) {
   const message = await ChatMessage.create(body);
 
   // Fetch the created message with populated fields so the socket emits full data instantly
-  const populatedMessage = await ChatMessage.findById(message._id).populate([
-    { path: 'senderId', select: 'name email profilePic businessName' },
-    { path: 'receiverId', select: 'name email profilePic businessName' },
-    { path: 'product' },
-  ]);
+  const populatedMessage = await ChatMessage.findById(message._id)
+    .populate([
+      { path: 'senderId', select: 'name email profilePic businessName' },
+      { path: 'receiverId', select: 'name email profilePic businessName' },
+      {
+        path: 'product',
+        select: 'title variants',
+        populate: {
+          path: 'variants',
+          select: 'price sellingPrice discount discountAmount images',
+          populate: {
+            path: 'images',
+            select: 'imageUrl',
+          },
+        },
+      },
+    ])
+    .lean();
+
+  if (populatedMessage && populatedMessage.product && Array.isArray(populatedMessage.product.variants)) {
+    populatedMessage.product.variants = populatedMessage.product.variants.slice(0, 1);
+    const variant = populatedMessage.product.variants[0];
+    if (variant) {
+      const price = variant.price || 0;
+      const discount = variant.discount || 0;
+      variant.discountAmount = (price * discount) / 100;
+      variant.sellingPrice = price - variant.discountAmount;
+    }
+  }
 
   return populatedMessage;
 }
@@ -46,9 +70,36 @@ export async function getMessages(filter, options = {}) {
     populate: [
       { path: 'senderId', select: 'name email profilePic businessName' },
       { path: 'receiverId', select: 'name email profilePic businessName' },
-      { path: 'product' },
+      {
+        path: 'product',
+        select: 'title variants',
+        populate: {
+          path: 'variants',
+          select: 'price sellingPrice discount discountAmount images',
+          populate: {
+            path: 'images',
+            select: 'imageUrl',
+          },
+        },
+      },
     ],
   });
+
+  if (messages && Array.isArray(messages.docs)) {
+    messages.docs.forEach((doc) => {
+      if (doc && doc.product && Array.isArray(doc.product.variants)) {
+        doc.product.variants = doc.product.variants.slice(0, 1);
+        const variant = doc.product.variants[0];
+        if (variant) {
+          const price = variant.price || 0;
+          const discount = variant.discount || 0;
+          variant.discountAmount = (price * discount) / 100;
+          variant.sellingPrice = price - variant.discountAmount;
+        }
+      }
+    });
+  }
+
   return messages;
 }
 
