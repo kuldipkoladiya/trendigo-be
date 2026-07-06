@@ -4,6 +4,74 @@ import httpStatus from 'http-status';
 import { ChatMessage, Role, User } from 'models';
 import mongoose from 'mongoose';
 
+function formatMessage(doc) {
+  if (!doc) return doc;
+
+  const obj = typeof doc.toObject === 'function' ? doc.toObject({ virtuals: true }) : { ...doc };
+
+  if (obj._id) {
+    obj.id = obj._id.toString();
+    delete obj._id;
+  }
+  delete obj.__v;
+  delete obj.createdAt;
+  delete obj.updatedAt;
+
+  if (obj.senderId && typeof obj.senderId === 'object') {
+    if (obj.senderId._id) {
+      obj.senderId.id = obj.senderId._id.toString();
+      delete obj.senderId._id;
+    }
+  }
+
+  if (obj.receiverId && typeof obj.receiverId === 'object') {
+    if (obj.receiverId._id) {
+      obj.receiverId.id = obj.receiverId._id.toString();
+      delete obj.receiverId._id;
+    }
+  }
+
+  if (obj.product && typeof obj.product === 'object') {
+    if (obj.product._id) {
+      obj.product.id = obj.product._id.toString();
+      delete obj.product._id;
+    }
+    if (Array.isArray(obj.product.variants)) {
+      obj.product.variants = obj.product.variants.slice(0, 1).map((variant) => {
+        if (typeof variant === 'object' && variant) {
+          const v = { ...variant };
+          if (v._id) {
+            v.id = v._id.toString();
+            delete v._id;
+          }
+          const price = v.price || 0;
+          const discount = v.discount || 0;
+          v.discountAmount = (price * discount) / 100;
+          v.sellingPrice = price - v.discountAmount;
+
+          if (Array.isArray(v.images)) {
+            v.images = v.images.map((img) => {
+              if (typeof img === 'object' && img) {
+                const i = { ...img };
+                if (i._id) {
+                  i.id = i._id.toString();
+                  delete i._id;
+                }
+                return i;
+              }
+              return img;
+            });
+          }
+          return v;
+        }
+        return variant;
+      });
+    }
+  }
+
+  return obj;
+}
+
 export async function sendMessage(body = {}) {
   const message = await ChatMessage.create(body);
 
@@ -27,18 +95,7 @@ export async function sendMessage(body = {}) {
     ])
     .lean();
 
-  if (populatedMessage && populatedMessage.product && Array.isArray(populatedMessage.product.variants)) {
-    populatedMessage.product.variants = populatedMessage.product.variants.slice(0, 1);
-    const variant = populatedMessage.product.variants[0];
-    if (variant) {
-      const price = variant.price || 0;
-      const discount = variant.discount || 0;
-      variant.discountAmount = (price * discount) / 100;
-      variant.sellingPrice = price - variant.discountAmount;
-    }
-  }
-
-  return populatedMessage;
+  return formatMessage(populatedMessage);
 }
 
 export async function getMessages(filter, options = {}) {
@@ -86,18 +143,7 @@ export async function getMessages(filter, options = {}) {
   });
 
   if (messages && Array.isArray(messages.docs)) {
-    messages.docs.forEach((doc) => {
-      if (doc && doc.product && Array.isArray(doc.product.variants)) {
-        doc.product.variants = doc.product.variants.slice(0, 1);
-        const variant = doc.product.variants[0];
-        if (variant) {
-          const price = variant.price || 0;
-          const discount = variant.discount || 0;
-          variant.discountAmount = (price * discount) / 100;
-          variant.sellingPrice = price - variant.discountAmount;
-        }
-      }
-    });
+    messages.docs = messages.docs.map((doc) => formatMessage(doc));
   }
 
   return messages;
