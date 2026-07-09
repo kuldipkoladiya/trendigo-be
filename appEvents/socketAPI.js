@@ -191,6 +191,49 @@ socketAPI.bindEvents = (io) => {
       }
     });
 
+    socket.on('read_message', async function (data, callback) {
+      try {
+        let messageId;
+        if (typeof data === 'string') {
+          messageId = data;
+        } else if (data && typeof data === 'object') {
+          messageId = data.messageId;
+        }
+
+        if (!messageId) throw new Error('messageId is required');
+
+        const { message, allRead, updatedMessageIds } = await chatMessageService.readMessage(messageId, senderId);
+
+        // Broadcast status update to sender
+        io.to(message.senderId.toString()).emit('message_read', {
+          messageId: message.id,
+          senderId: message.senderId.toString(),
+          receiverId: message.receiverId.toString(),
+          allRead,
+          updatedMessageIds,
+        });
+
+        // Broadcast to receiver (or sender user) conversations_list updates
+        const senderConversations = await chatMessageService.getConversations(
+          message.senderId.toString(),
+          message.senderModel
+        );
+        io.to(message.senderId.toString()).emit('conversations_list', senderConversations);
+
+        const receiverConversations = await chatMessageService.getConversations(senderId, senderModel);
+        io.to(senderId).emit('conversations_list', receiverConversations);
+
+        if (typeof callback === 'function') {
+          callback({ success: true, messageId: message.id, allRead, updatedMessageIds });
+        } else {
+          socket.emit('message_read', { messageId: message.id, allRead, updatedMessageIds });
+        }
+      } catch (err) {
+        if (typeof callback === 'function') callback({ success: false, error: err.message });
+        else socket.emit('error', { event: 'read_message', message: 'Failed to read message', error: err.message });
+      }
+    });
+
     socket.on('disconnect', function () {
       // console.log(`Socket disconnected: ${socket.id}`);
     });

@@ -7,7 +7,7 @@ import mongoose from 'mongoose';
 function formatMessage(doc) {
   if (!doc) return doc;
 
-  const obj = typeof doc.toObject === 'function' ? doc.toObject({ virtuals: true }) : { ...doc };
+  const obj = JSON.parse(JSON.stringify(doc));
 
   if (obj._id) {
     obj.id = obj._id.toString();
@@ -38,21 +38,31 @@ function formatMessage(doc) {
     }
     if (Array.isArray(obj.product.variants)) {
       obj.product.variants = obj.product.variants.slice(0, 1).map((variant) => {
-        if (typeof variant === 'object' && variant) {
-          const v = { ...variant };
+        if (variant && typeof variant === 'object') {
+          // If it is a Mongoose ObjectId, convert it to a simple object with id
+          if (variant.constructor && variant.constructor.name === 'ObjectId') {
+            return { id: variant.toString() };
+          }
+
+          const v = typeof variant.toObject === 'function' ? variant.toObject() : { ...variant };
           if (v._id) {
             v.id = v._id.toString();
             delete v._id;
           }
-          const price = v.price || 0;
-          const discount = v.discount || 0;
+
+          const price = parseFloat(v.price) || 0;
+          const discount = parseFloat(v.discount) || 0;
+
           v.discountAmount = (price * discount) / 100;
           v.sellingPrice = price - v.discountAmount;
 
           if (Array.isArray(v.images)) {
             v.images = v.images.map((img) => {
-              if (typeof img === 'object' && img) {
-                const i = { ...img };
+              if (img && typeof img === 'object') {
+                if (img.constructor && img.constructor.name === 'ObjectId') {
+                  return { id: img.toString() };
+                }
+                const i = typeof img.toObject === 'function' ? img.toObject() : { ...img };
                 if (i._id) {
                   i.id = i._id.toString();
                   delete i._id;
@@ -242,6 +252,52 @@ export async function getMainAdmin() {
 
 export async function markAsRead(senderId, receiverId) {
   await ChatMessage.updateMany({ senderId, receiverId, read: false }, { $set: { read: true } });
+}
+
+export async function readMessage(messageId, receiverId) {
+  const message = await ChatMessage.findById(messageId);
+  if (!message) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Message not found');
+  }
+
+  if (message.receiverId.toString() !== receiverId.toString()) {
+    throw new ApiError(httpStatus.FORBIDDEN, 'You do not have permission to mark this message as read');
+  }
+
+  // Find the last message sent by this sender to this receiver
+  const lastSentMessage = await ChatMessage.findOne({
+    senderId: message.senderId,
+    receiverId: message.receiverId,
+  }).sort({ createdAt: -1 });
+
+  let allRead = false;
+  let updatedMessageIds = [message._id.toString()];
+
+  if (lastSentMessage && lastSentMessage._id.toString() === message._id.toString()) {
+    // If the message being read is indeed the last message, find all unread messages from sender to receiver
+    const unreadMessages = await ChatMessage.find({
+      senderId: message.senderId,
+      receiverId: message.receiverId,
+      read: false,
+    });
+
+    updatedMessageIds = unreadMessages.map((msg) => msg._id.toString());
+    if (!updatedMessageIds.includes(message._id.toString())) {
+      updatedMessageIds.push(message._id.toString());
+    }
+
+    await ChatMessage.updateMany(
+      { senderId: message.senderId, receiverId: message.receiverId, read: false },
+      { $set: { read: true } }
+    );
+    allRead = true;
+  } else {
+    // Just mark this message as read
+    message.read = true;
+    await message.save();
+  }
+
+  return { message: formatMessage(message), allRead, updatedMessageIds };
 }
 
 export async function deleteMessage(messageId, userId, userModel) {

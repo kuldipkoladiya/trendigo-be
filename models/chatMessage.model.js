@@ -12,7 +12,7 @@ const ChatMessageSchema = new mongoose.Schema(
     senderModel: {
       type: String,
       required: true,
-      enum: ['User', 'SellerUser'],
+      enum: ['User', 'SellerUser', 'Admin'],
     },
     receiverId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -22,7 +22,7 @@ const ChatMessageSchema = new mongoose.Schema(
     receiverModel: {
       type: String,
       required: true,
-      enum: ['User', 'SellerUser'],
+      enum: ['User', 'SellerUser', 'Admin'],
     },
     message: {
       type: String,
