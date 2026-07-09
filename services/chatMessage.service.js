@@ -202,7 +202,7 @@ export async function getConversations(userId, userModel) {
   // Manually populate the counter-party details
   await Promise.all(
     conversations.map(async (conv) => {
-      if (conv._id && conv._id.model === 'User') {
+      if (conv._id && (conv._id.model === 'User' || conv._id.model === 'Admin')) {
         const user = await mongoose
           .model('User')
           .findById(conv._id.id)

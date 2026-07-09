@@ -4,7 +4,10 @@ import { catchAsync } from 'utils/catchAsync';
 
 export const getUserConversations = catchAsync(async (req, res) => {
   const senderId = req.user._id.toString();
-  const senderModel = 'User';
+  await req.user.populate('role');
+  const roleName = req.user.role && req.user.role.role;
+  const isAdmin = ['admin', 'super-admin', 'co-admin'].includes(roleName);
+  const senderModel = isAdmin ? 'Admin' : 'User';
   const conversations = await chatMessageService.getConversations(senderId, senderModel);
   return res.status(httpStatus.OK).send({ results: conversations });
 });

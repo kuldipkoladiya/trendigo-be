@@ -20,8 +20,11 @@ module.exports = {
 
       const user = await userService.getUserById(decoded.sub);
       if (user) {
+        await user.populate('role');
+        const roleName = user.role && user.role.role;
+        const isAdmin = ['admin', 'super-admin', 'co-admin'].includes(roleName);
         socket.user = { _id: user._id };
-        socket.userModel = 'User';
+        socket.userModel = isAdmin ? 'Admin' : 'User';
         socket.startedAt = new Date();
         socket.join(user._id.toString());
         socket.on('disconnect', function () {});
