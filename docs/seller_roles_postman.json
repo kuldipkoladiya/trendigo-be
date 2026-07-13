@@ -1,0 +1,292 @@
+{
+  "info": {
+    "_postman_id": "d1a8e9b4-ef78-45a0-8bc2-10f8e9d9e45a",
+    "name": "Trendigo Seller Roles & Sub-Users",
+    "description": "Collection for Trendigo Seller custom roles and sub-user management.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Seller Role APIs",
+      "item": [
+        {
+          "name": "Create Seller Role",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"manager\",\n  \"products\": { \"view\": true, \"add\": true, \"update\": true, \"delete\": false },\n  \"orders\": { \"view\": true, \"add\": false, \"update\": true, \"delete\": false },\n  \"inventory\": { \"view\": true, \"add\": true, \"update\": true, \"delete\": true },\n  \"reviews\": { \"view\": true, \"add\": true, \"update\": false, \"delete\": false },\n  \"storeSettings\": { \"view\": true, \"add\": false, \"update\": false, \"delete\": false }\n}"
+            },
+            "url": {
+              "raw": "{{base-url}}/v1/user/sellerRole",
+              "host": [
+                "{{base-url}}"
+              ],
+              "path": [
+                "v1",
+                "user",
+                "sellerRole"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Seller Roles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base-url}}/v1/user/sellerRole",
+              "host": [
+                "{{base-url}}"
+              ],
+              "path": [
+                "v1",
+                "user",
+                "sellerRole"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Seller Role",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"staff\",\n  \"products\": { \"view\": true, \"add\": true, \"update\": true, \"delete\": true }\n}"
+            },
+            "url": {
+              "raw": "{{base-url}}/v1/user/sellerRole/:roleId",
+              "host": [
+                "{{base-url}}"
+              ],
+              "path": [
+                "v1",
+                "user",
+                "sellerRole",
+                ":roleId"
+              ],
+              "variable": [
+                {
+                  "key": "roleId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Seller Role",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base-url}}/v1/user/sellerRole/:roleId",
+              "host": [
+                "{{base-url}}"
+              ],
+              "path": [
+                "v1",
+                "user",
+                "sellerRole",
+                ":roleId"
+              ],
+              "variable": [
+                {
+                  "key": "roleId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Seller Sub-User APIs",
+      "item": [
+        {
+          "name": "Create Seller Sub-User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"johndoe@example.com\",\n  \"password\": \"securepassword123\",\n  \"role\": \"65b2f8a1e2f7b123456789ab\",\n  \"mobileNumber\": 9876543210,\n  \"countryCodeId\": \"60ceba70a5303d040bb8fead\"\n}"
+            },
+            "url": {
+              "raw": "{{base-url}}/v1/user/sellerUser",
+              "host": [
+                "{{base-url}}"
+              ],
+              "path": [
+                "v1",
+                "user",
+                "sellerUser"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Store Sub-Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base-url}}/v1/user/sellerUser",
+              "host": [
+                "{{base-url}}"
+              ],
+              "path": [
+                "v1",
+                "user",
+                "sellerUser"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Sub-User By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base-url}}/v1/user/sellerUser/:sellerUserId",
+              "host": [
+                "{{base-url}}"
+              ],
+              "path": [
+                "v1",
+                "user",
+                "sellerUser",
+                ":sellerUserId"
+              ],
+              "variable": [
+                {
+                  "key": "sellerUserId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Sub-User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Updated\",\n  \"role\": \"65b2f8a1e2f7b123456789ab\"\n}"
+            },
+            "url": {
+              "raw": "{{base-url}}/v1/user/sellerUser/:sellerUserId",
+              "host": [
+                "{{base-url}}"
+              ],
+              "path": [
+                "v1",
+                "user",
+                "sellerUser",
+                ":sellerUserId"
+              ],
+              "variable": [
+                {
+                  "key": "sellerUserId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Sub-User",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base-url}}/v1/user/sellerUser/:sellerUserId",
+              "host": [
+                "{{base-url}}"
+              ],
+              "path": [
+                "v1",
+                "user",
+                "sellerUser",
+                ":sellerUserId"
+              ],
+              "variable": [
+                {
+                  "key": "sellerUserId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{sellerToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ]
+}

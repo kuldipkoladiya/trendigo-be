@@ -1,6 +1,11 @@
 import { chatMessageService } from '../services';
 
+const mongoose = require('mongoose');
 const { initSubscription } = require('./subscriptions');
+
+if (!mongoose.models.Admin) {
+  mongoose.model('Admin', mongoose.model('User').schema, 'User');
+}
 
 const socketAPI = {};
 
@@ -67,7 +72,7 @@ socketAPI.bindEvents = (io) => {
         const senderConversations = await chatMessageService.getConversations(senderId, senderModel);
         io.to(senderId).emit('conversations_list', senderConversations);
 
-        const receiverConversations = await chatMessageService.getConversations(admin._id.toString(), 'Admin');
+        const receiverConversations = await chatMessageService.getConversations(admin._id.toString(), 'User');
         io.to(admin._id.toString()).emit('conversations_list', receiverConversations);
 
         if (typeof callback === 'function') {
