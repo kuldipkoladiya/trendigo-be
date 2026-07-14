@@ -1,4 +1,4 @@
-import { chatMessageService } from '../services';
+import { chatMessageService, s3Service } from '../services';
 
 const mongoose = require('mongoose');
 const { initSubscription } = require('./subscriptions');
@@ -19,7 +19,12 @@ socketAPI.bindEvents = (io) => {
     // Standard chat message payload: { receiverId, receiverModel, message, productId? }
     socket.on('send_message', async function (data, callback) {
       try {
-        const { receiverId, receiverModel, message, productId } = data;
+        const { receiverId, receiverModel, message, productId, file, fileName, fileType } = data;
+
+        let fileUrl = null;
+        if (file) {
+          fileUrl = await s3Service.uploadBase64ToS3(file, fileName, fileType);
+        }
 
         const chatMessage = await chatMessageService.sendMessage({
           senderId,
@@ -28,6 +33,9 @@ socketAPI.bindEvents = (io) => {
           receiverModel,
           message,
           product: productId || null,
+          fileUrl,
+          fileType: file ? fileType : null,
+          fileName: file ? fileName : null,
         });
 
         // Broadcast to receiver
@@ -55,8 +63,13 @@ socketAPI.bindEvents = (io) => {
     // Specifically for Seller sending a message to the main Admin without knowing the Admin's ID
     socket.on('send_message_to_admin', async function (data, callback) {
       try {
-        const { message } = data;
+        const { message, file, fileName, fileType } = data;
         const admin = await chatMessageService.getMainAdmin();
+
+        let fileUrl = null;
+        if (file) {
+          fileUrl = await s3Service.uploadBase64ToS3(file, fileName, fileType);
+        }
 
         const chatMessage = await chatMessageService.sendMessage({
           senderId,
@@ -64,6 +77,9 @@ socketAPI.bindEvents = (io) => {
           receiverId: admin._id,
           receiverModel: 'Admin',
           message,
+          fileUrl,
+          fileType: file ? fileType : null,
+          fileName: file ? fileName : null,
         });
 
         io.to(admin._id.toString()).emit('receive_message', chatMessage);

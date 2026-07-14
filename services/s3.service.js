@@ -410,3 +410,18 @@ export const validateExtensionForPutObjectv2 = async (preSignedReq) => {
 
   return { url, key: preSignedReq.key, imageUrl };
 };
+
+export const uploadBase64ToS3 = async (base64Data, fileName, fileType) => {
+  const base64Content = base64Data.replace(/^data:.*;base64,/, '');
+  const buffer = Buffer.from(base64Content, 'base64');
+  const key = `chats/${mongoose.Types.ObjectId()}/${fileName || 'file'}`;
+  const params = {
+    Bucket: config.aws.bucket,
+    Key: key,
+    Body: buffer,
+    ContentType: fileType || 'application/octet-stream',
+    ACL: 'public-read',
+  };
+  await s3.putObject(params).promise();
+  return `https://${config.aws.bucket}.s3.amazonaws.com/${key}`;
+};

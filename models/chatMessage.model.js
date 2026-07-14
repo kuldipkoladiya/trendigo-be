@@ -27,6 +27,18 @@ const ChatMessageSchema = new mongoose.Schema(
     message: {
       type: String,
     },
+    fileUrl: {
+      type: String,
+      default: null,
+    },
+    fileType: {
+      type: String,
+      default: null,
+    },
+    fileName: {
+      type: String,
+      default: null,
+    },
     product: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Product',
