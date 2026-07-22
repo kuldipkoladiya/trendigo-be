@@ -52,6 +52,9 @@ const ChatMessageSchema = new mongoose.Schema(
   { timestamps: { createdAt: true, updatedAt: true } }
 );
 
+ChatMessageSchema.index({ senderId: 1, receiverId: 1, createdAt: -1 });
+ChatMessageSchema.index({ receiverId: 1, senderId: 1, createdAt: -1 });
+
 ChatMessageSchema.plugin(toJSON);
 ChatMessageSchema.plugin(mongoosePaginateV2);
 

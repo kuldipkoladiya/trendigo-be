@@ -18,5 +18,6 @@ const eitherAuth = () => async (req, res, next) => {
 router.get('/conversations', auth(), chatController.getUserConversations);
 router.get('/seller-conversations', sellerAuth(), chatController.getSellerConversations);
 router.get('/messages/:counterpartyId', eitherAuth(), chatController.getMessages);
+router.post('/upload-url', eitherAuth(), chatController.getChatUploadUrl);
 
 export default router;

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { chatMessageService, s3Service } from '../services';
 
 const mongoose = require('mongoose');
@@ -19,10 +20,10 @@ socketAPI.bindEvents = (io) => {
     // Standard chat message payload: { receiverId, receiverModel, message, productId? }
     socket.on('send_message', async function (data, callback) {
       try {
-        const { receiverId, receiverModel, message, productId, file, fileName, fileType } = data;
+        const { receiverId, receiverModel, message, productId, file, fileName, fileType, fileUrl: providedFileUrl } = data;
 
-        let fileUrl = null;
-        if (file) {
+        let fileUrl = providedFileUrl || null;
+        if (file && !fileUrl) {
           fileUrl = await s3Service.uploadBase64ToS3(file, fileName, fileType);
         }
 
@@ -34,26 +35,38 @@ socketAPI.bindEvents = (io) => {
           message,
           product: productId || null,
           fileUrl,
-          fileType: file ? fileType : null,
-          fileName: file ? fileName : null,
+          fileType: file || fileUrl ? fileType : null,
+          fileName: file || fileUrl ? fileName : null,
         });
 
         // Broadcast to receiver
         io.to(receiverId.toString()).emit('receive_message', chatMessage);
 
-        // Auto-update conversations list for sender and receiver
-        const senderConversations = await chatMessageService.getConversations(senderId, senderModel);
-        io.to(senderId).emit('conversations_list', senderConversations);
-
-        const receiverConversations = await chatMessageService.getConversations(receiverId.toString(), receiverModel);
-        io.to(receiverId.toString()).emit('conversations_list', receiverConversations);
-
-        // Respond to sender
+        // Respond to sender immediately
         if (typeof callback === 'function') {
           callback({ success: true, data: chatMessage });
         } else {
           socket.emit('message_sent', chatMessage);
         }
+
+        // Auto-update conversations list for sender and receiver asynchronously in background
+        chatMessageService
+          .getConversations(senderId, senderModel)
+          .then((senderConversations) => {
+            io.to(senderId).emit('conversations_list', senderConversations);
+          })
+          .catch((err) => {
+            console.error('Error updating sender conversations:', err);
+          });
+
+        chatMessageService
+          .getConversations(receiverId.toString(), receiverModel)
+          .then((receiverConversations) => {
+            io.to(receiverId.toString()).emit('conversations_list', receiverConversations);
+          })
+          .catch((err) => {
+            console.error('Error updating receiver conversations:', err);
+          });
       } catch (err) {
         if (typeof callback === 'function') callback({ success: false, error: err.message });
         else socket.emit('error', { event: 'send_message', message: 'Failed to send message', error: err.message });
@@ -63,11 +76,11 @@ socketAPI.bindEvents = (io) => {
     // Specifically for Seller sending a message to the main Admin without knowing the Admin's ID
     socket.on('send_message_to_admin', async function (data, callback) {
       try {
-        const { message, file, fileName, fileType } = data;
+        const { message, file, fileName, fileType, fileUrl: providedFileUrl } = data;
         const admin = await chatMessageService.getMainAdmin();
 
-        let fileUrl = null;
-        if (file) {
+        let fileUrl = providedFileUrl || null;
+        if (file && !fileUrl) {
           fileUrl = await s3Service.uploadBase64ToS3(file, fileName, fileType);
         }
 
@@ -78,24 +91,36 @@ socketAPI.bindEvents = (io) => {
           receiverModel: 'Admin',
           message,
           fileUrl,
-          fileType: file ? fileType : null,
-          fileName: file ? fileName : null,
+          fileType: file || fileUrl ? fileType : null,
+          fileName: file || fileUrl ? fileName : null,
         });
 
         io.to(admin._id.toString()).emit('receive_message', chatMessage);
-
-        // Auto-update conversations list for sender and receiver (admin)
-        const senderConversations = await chatMessageService.getConversations(senderId, senderModel);
-        io.to(senderId).emit('conversations_list', senderConversations);
-
-        const receiverConversations = await chatMessageService.getConversations(admin._id.toString(), 'Admin');
-        io.to(admin._id.toString()).emit('conversations_list', receiverConversations);
 
         if (typeof callback === 'function') {
           callback({ success: true, data: chatMessage });
         } else {
           socket.emit('message_sent', chatMessage);
         }
+
+        // Auto-update conversations list for sender and receiver asynchronously in background
+        chatMessageService
+          .getConversations(senderId, senderModel)
+          .then((senderConversations) => {
+            io.to(senderId).emit('conversations_list', senderConversations);
+          })
+          .catch((err) => {
+            console.error('Error updating sender conversations:', err);
+          });
+
+        chatMessageService
+          .getConversations(admin._id.toString(), 'Admin')
+          .then((receiverConversations) => {
+            io.to(admin._id.toString()).emit('conversations_list', receiverConversations);
+          })
+          .catch((err) => {
+            console.error('Error updating admin conversations:', err);
+          });
       } catch (err) {
         if (typeof callback === 'function') callback({ success: false, error: err.message });
         else
