@@ -82,7 +82,28 @@ function formatMessage(doc) {
   return obj;
 }
 
+function filterPrivacyInfo(text) {
+  if (!text || typeof text !== 'string') return text;
+
+  // Regex to match email addresses
+  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+
+  // Regex to match phone/mobile numbers (8-15 digits, ignoring symbols/spaces)
+  const phoneRegex = /(\+?\d{1,4}[\s-]?)?\(?\d{2,4}\)?[\s-]?\d{3,4}[\s-]?\d{3,4}/g;
+
+  return text.replace(emailRegex, '[Email Blocked]').replace(phoneRegex, (match) => {
+    const digits = match.replace(/\D/g, '');
+    if (digits.length >= 8 && digits.length <= 15) {
+      return '[Phone Blocked]';
+    }
+    return match;
+  });
+}
+
 export async function sendMessage(body = {}) {
+  if (body.message) {
+    body.message = filterPrivacyInfo(body.message);
+  }
   const message = await ChatMessage.create(body);
 
   // Fetch the created message with populated fields so the socket emits full data instantly
