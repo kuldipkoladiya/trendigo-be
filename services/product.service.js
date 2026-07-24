@@ -215,7 +215,7 @@ export async function aggregateProduct(query) {
 }
 
 export async function getProductListPaginated(filter, options) {
-  return Product.paginate(filter, {
+  const result = await Product.paginate(filter, {
     ...options,
     lean: true,
     populate: [
@@ -233,6 +233,41 @@ export async function getProductListPaginated(filter, options) {
       },
     ],
   });
+
+  const docs = result.results || result.docs || [];
+
+  /* eslint-disable no-param-reassign */
+  docs.forEach((product) => {
+    if (product && Array.isArray(product.variants)) {
+      product.variants.forEach((variant) => {
+        if (variant && typeof variant === 'object') {
+          const price = Number(variant.price) || 0;
+          const discount = Number(variant.discount) || 0;
+          const discountAmount = Math.round(price * (discount / 100) * 100) / 100;
+          const sellingPrice = Math.round((price - discountAmount) * 100) / 100;
+
+          variant.discountAmount =
+            variant.discountAmount !== undefined && variant.discountAmount !== null && variant.discountAmount !== 0
+              ? variant.discountAmount
+              : discountAmount;
+
+          variant.sellingPrice =
+            variant.sellingPrice !== undefined && variant.sellingPrice !== null ? variant.sellingPrice : sellingPrice;
+        }
+      });
+    }
+
+    if (
+      (product.sellingPrice === undefined || product.sellingPrice === null) &&
+      product.variants &&
+      product.variants.length > 0
+    ) {
+      product.sellingPrice = product.variants[0].sellingPrice;
+    }
+  });
+  /* eslint-enable no-param-reassign */
+
+  return result;
 }
 
 export async function getProductListByReviewWithPagination(page = 1, limit = 10, userId = null) {
@@ -1133,6 +1168,7 @@ export async function searchProducts(params, userId = null) {
   // AMAZON LIKE SEARCH REGEX
   // ==========================================
 
+  // eslint-disable-next-line security/detect-non-literal-regexp
   const keywordRegex = new RegExp(
     smartKeyword
       .replace(/shirt/gi, '(shirt|tshirt|t-shirt|tee)')
@@ -1488,18 +1524,21 @@ export async function searchProducts(params, userId = null) {
         $or: [
           {
             'productType.value': {
+              // eslint-disable-next-line security/detect-non-literal-regexp
               $regex: new RegExp(`^(${genderKeywords.join('|')})$`, 'i'),
             },
           },
 
           {
             title: {
+              // eslint-disable-next-line security/detect-non-literal-regexp
               $regex: new RegExp(`\\b(${genderKeywords.join('|')})\\b`, 'i'),
             },
           },
 
           {
             description: {
+              // eslint-disable-next-line security/detect-non-literal-regexp
               $regex: new RegExp(`\\b(${genderKeywords.join('|')})\\b`, 'i'),
             },
           },

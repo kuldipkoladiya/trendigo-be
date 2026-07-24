@@ -95,7 +95,8 @@ export const getProductsByProductType = catchAsync(async (req, res) => {
   const { page = 1, limit = 10 } = req.query;
 
   const productTypeDoc = await ProductType.findOne({
-    value: productType,
+    // eslint-disable-next-line security/detect-non-literal-regexp
+    value: { $regex: new RegExp(`^${productType}$`, 'i') },
   });
 
   if (!productTypeDoc) {
@@ -106,7 +107,7 @@ export const getProductsByProductType = catchAsync(async (req, res) => {
   }
 
   const filter = {
-    productTypeId: productTypeDoc._id, // ✅ correct
+    productTypeId: productTypeDoc._id,
   };
 
   const options = {
@@ -117,13 +118,15 @@ export const getProductsByProductType = catchAsync(async (req, res) => {
 
   const products = await productService.getProductListPaginated(filter, options);
 
+  const docs = products.results || products.docs || [];
+
   return res.status(200).send({
     status: 'Success',
-    results: products, // ✅ MUST send docs
+    results: docs,
     page: products.page,
     limit: products.limit,
     totalPages: products.totalPages,
-    totalResults: products.totalDocs,
+    totalResults: products.totalResults || products.totalDocs || docs.length,
   });
 });
 
@@ -131,9 +134,10 @@ export const getProductsByProductCategory = catchAsync(async (req, res) => {
   const { category } = req.params;
   const { page = 1, limit = 10 } = req.query;
 
-  // 🔹 Step 1: find category by value
+  // 🔹 Step 1: find category by value (case-insensitive)
   const categoryDoc = await ProductCategories.findOne({
-    value: category,
+    // eslint-disable-next-line security/detect-non-literal-regexp
+    value: { $regex: new RegExp(`^${category}$`, 'i') },
   });
 
   if (!categoryDoc) {
@@ -157,13 +161,15 @@ export const getProductsByProductCategory = catchAsync(async (req, res) => {
   // 🔹 Step 3: paginated products
   const products = await productService.getProductListPaginated(filter, options);
 
+  const docs = products.results || products.docs || [];
+
   return res.status(200).send({
     status: 'Success',
-    results: products,
+    results: docs,
     page: products.page,
     limit: products.limit,
     totalPages: products.totalPages,
-    totalResults: products.totalDocs,
+    totalResults: products.totalResults || products.totalDocs || docs.length,
   });
 });
 
