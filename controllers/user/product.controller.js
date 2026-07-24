@@ -118,15 +118,13 @@ export const getProductsByProductType = catchAsync(async (req, res) => {
 
   const products = await productService.getProductListPaginated(filter, options);
 
-  const docs = products.results || products.docs || [];
-
   return res.status(200).send({
     status: 'Success',
-    results: docs,
+    results: products,
     page: products.page,
     limit: products.limit,
     totalPages: products.totalPages,
-    totalResults: products.totalResults || products.totalDocs || docs.length,
+    totalResults: products.totalDocs,
   });
 });
 
@@ -161,15 +159,13 @@ export const getProductsByProductCategory = catchAsync(async (req, res) => {
   // 🔹 Step 3: paginated products
   const products = await productService.getProductListPaginated(filter, options);
 
-  const docs = products.results || products.docs || [];
-
   return res.status(200).send({
     status: 'Success',
-    results: docs,
+    results: products,
     page: products.page,
     limit: products.limit,
     totalPages: products.totalPages,
-    totalResults: products.totalResults || products.totalDocs || docs.length,
+    totalResults: products.totalDocs,
   });
 });
 
