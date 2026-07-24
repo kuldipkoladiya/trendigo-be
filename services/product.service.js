@@ -226,6 +226,7 @@ export async function getProductListPaginated(filter, options) {
       { path: 'productCategoryId', select: 'value parentCategoryId' },
       {
         path: 'variants',
+        perDocumentLimit: 1,
         populate: {
           path: 'images videos',
           select: 'imageUrl imageName isSelectedForMainScreen',
@@ -239,6 +240,9 @@ export async function getProductListPaginated(filter, options) {
   /* eslint-disable no-param-reassign */
   docs.forEach((product) => {
     if (product && Array.isArray(product.variants)) {
+      if (product.variants.length > 1) {
+        product.variants = product.variants.slice(0, 1);
+      }
       product.variants.forEach((variant) => {
         if (variant && typeof variant === 'object') {
           const price = Number(variant.price) || 0;
@@ -260,7 +264,8 @@ export async function getProductListPaginated(filter, options) {
     if (
       (product.sellingPrice === undefined || product.sellingPrice === null) &&
       product.variants &&
-      product.variants.length > 0
+      product.variants.length > 0 &&
+      product.variants[0]
     ) {
       product.sellingPrice = product.variants[0].sellingPrice;
     }

@@ -97,7 +97,7 @@ export const getProductsByProductType = catchAsync(async (req, res) => {
   const productTypeDoc = await ProductType.findOne({
     // eslint-disable-next-line security/detect-non-literal-regexp
     value: { $regex: new RegExp(`^${productType}$`, 'i') },
-  });
+  }).select('_id');
 
   if (!productTypeDoc) {
     return res.status(404).send({
@@ -136,7 +136,7 @@ export const getProductsByProductCategory = catchAsync(async (req, res) => {
   const categoryDoc = await ProductCategories.findOne({
     // eslint-disable-next-line security/detect-non-literal-regexp
     value: { $regex: new RegExp(`^${category}$`, 'i') },
-  });
+  }).select('_id');
 
   if (!categoryDoc) {
     return res.status(404).send({
