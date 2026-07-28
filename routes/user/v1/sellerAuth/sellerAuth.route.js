@@ -25,6 +25,25 @@ router.post('/login', validate(sellerAuthValidation.login), sellerAuthController
  * get the Current LoggedIn UserInfo
  */
 router.get('/me', sellerAuth(), sellerAuthController.userInfo);
+/**
+ * OTP-based verification
+ * When User Forgot to Password call this API and he gets the OTP in his Email to reset Password
+ */
+router.post('/forgot-password', validate(sellerAuthValidation.forgotPassword), sellerAuthController.forgotPassword);
+/**
+ * OTP-based verification
+ * verify that OTP is for changePassword is Valid.
+ */
+router.post(
+  '/verify-reset-otp',
+  validate(sellerAuthValidation.resetPasswordOtpVerify),
+  sellerAuthController.resetPasswordOtpVerify
+);
+/**
+ * OTP-based verification
+ * Reset the password Using the OTP and Email provided by User.
+ */
+router.post('/reset-password', validate(sellerAuthValidation.resetPasswordOtp), sellerAuthController.resetPasswordOtp);
 // Refresh tokens
 router.post('/refresh-tokens', validate(sellerAuthValidation.refreshTokens), sellerAuthController.refreshTokens);
 
