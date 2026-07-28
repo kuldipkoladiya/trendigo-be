@@ -17,6 +17,7 @@ export const getSellerProductSummary = catchAsync(async (req, res) => {
   const { sellerId } = req.params;
   const filter = {
     sellerId,
+    includeAllListingStatus: true,
   };
   const product = await productService.getProductListSummary(filter);
   return res.status(httpStatus.OK).send({ results: product });
@@ -26,6 +27,7 @@ export const getSellerProduct = catchAsync(async (req, res) => {
   const { sellerId } = req.params;
   const filter = {
     sellerId,
+    includeAllListingStatus: true,
   };
   const options = {};
   const product = await productService.getProductList(filter, options);
