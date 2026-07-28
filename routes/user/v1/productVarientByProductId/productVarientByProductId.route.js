@@ -23,6 +23,24 @@ router
     sellerAuth(),
     validate(productVarientByProductIdValidation.getProductVarientByProductId),
     productVarientByProductIdController.listProductVarientByProductId
+  )
+  /**
+   * deleteManyProductVarientByProductId
+   * */
+  .delete(
+    sellerAuth(),
+    validate(productVarientByProductIdValidation.deleteManyProductVarientByProductId),
+    productVarientByProductIdController.removeManyProductVarients
+  );
+router
+  .route('/delete-many')
+  /**
+   * deleteManyProductVarientByProductId
+   * */
+  .delete(
+    sellerAuth(),
+    validate(productVarientByProductIdValidation.deleteManyProductVarientByProductId),
+    productVarientByProductIdController.removeManyProductVarients
   );
 router
   .route('/paginated')

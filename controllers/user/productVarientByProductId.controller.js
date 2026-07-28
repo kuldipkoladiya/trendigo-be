@@ -96,3 +96,13 @@ export const removeImageFromProductVarient = catchAsync(async (req, res) => {
     results: result,
   });
 });
+
+export const removeManyProductVarients = catchAsync(async (req, res) => {
+  const ids = req.body.ids || req.body.variantIds || req.body.productVarientIds || [];
+  const result = await productVarientByProductIdService.removeManyProductVarients(ids);
+  return res.status(httpStatus.OK).send({
+    status: 'Success',
+    message: 'Product variants deleted successfully',
+    results: result,
+  });
+});

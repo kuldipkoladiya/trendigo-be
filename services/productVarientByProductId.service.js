@@ -108,6 +108,60 @@ export async function removeManyProductVarientByProductId(filter) {
   return productVarientByProductId;
 }
 
+export async function removeManyProductVarients(ids = []) {
+  if (!Array.isArray(ids) || ids.length === 0) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Please provide an array of variant IDs (ids or variantIds)');
+  }
+
+  // 1️⃣ Find matching active variants
+  const variants = await ProductVarientByProductId.find({ _id: { $in: ids } });
+  if (!variants || variants.length === 0) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'No product variants found for provided IDs');
+  }
+
+  const foundIds = variants.map((v) => v._id);
+
+  // 2️⃣ Soft delete variants
+  await ProductVarientByProductId.updateMany({ _id: { $in: foundIds } }, { $set: { isDeleted: true } });
+
+  // 3️⃣ Update parent Products
+  const productVariantMap = {};
+  variants.forEach((v) => {
+    if (v.productId) {
+      const pId = v.productId.toString();
+      if (!productVariantMap[pId]) {
+        productVariantMap[pId] = [];
+      }
+      productVariantMap[pId].push(v._id);
+    }
+  });
+
+  const productEntries = Object.entries(productVariantMap);
+  await Promise.all(
+    productEntries.map(async ([productId, variantIds]) => {
+      // Pull deleted variants from product
+      await Product.findByIdAndUpdate(productId, { $pull: { variants: { $in: variantIds } } }, { new: true });
+
+      // Check remaining active variants
+      const remainingVariants = await ProductVarientByProductId.countDocuments({
+        productId,
+        isDeleted: { $ne: true },
+      });
+
+      if (remainingVariants === 0) {
+        await Product.findByIdAndUpdate(productId, {
+          variantsEnabled: false,
+        });
+      }
+    })
+  );
+
+  return {
+    deletedCount: variants.length,
+    deletedIds: foundIds,
+  };
+}
+
 export async function aggregateProductVarientByProductId(query) {
   const productVarientByProductId = await ProductVarientByProductId.aggregate(query);
   return productVarientByProductId;

@@ -23,6 +23,24 @@ router
     auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
     validate(productVarientByProductIdValidation.getProductVarientByProductId),
     productVarientByProductIdController.listProductVarientByProductId
+  )
+  /**
+   * deleteManyProductVarientByProductId
+   * */
+  .delete(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(productVarientByProductIdValidation.deleteManyProductVarientByProductId),
+    productVarientByProductIdController.removeManyProductVarients
+  );
+router
+  .route('/delete-many')
+  /**
+   * deleteManyProductVarientByProductId
+   * */
+  .delete(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(productVarientByProductIdValidation.deleteManyProductVarientByProductId),
+    productVarientByProductIdController.removeManyProductVarients
   );
 router
   .route('/paginated')

@@ -107,3 +107,13 @@ export const removeImageFromProductVarient = {
     images: Joi.array().items(Joi.objectId()).optional(),
   }),
 };
+
+export const deleteManyProductVarientByProductId = {
+  body: Joi.object()
+    .keys({
+      ids: Joi.array().items(Joi.objectId()).optional(),
+      variantIds: Joi.array().items(Joi.objectId()).optional(),
+      productVarientIds: Joi.array().items(Joi.objectId()).optional(),
+    })
+    .or('ids', 'variantIds', 'productVarientIds'),
+};
