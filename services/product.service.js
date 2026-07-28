@@ -116,6 +116,7 @@ export async function getProductListSummary(filter = {}) {
     return {
       id: productObj.id,
       _id: productObj._id,
+      isListingDone: productObj.isListingDone,
       title: productObj.title,
       productCode: productObj.productCode,
       sku: productObj.sku,
