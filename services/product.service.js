@@ -34,10 +34,12 @@ export async function getOne(filter, options = {}) {
 }
 
 export async function getProductList(filter = {}) {
+  const { includeAllListingStatus, ...queryFilter } = filter;
+  const showAllListing = includeAllListingStatus || !!queryFilter.sellerId;
   const finalFilter = {
     isDeleted: { $ne: true },
-    isListingDone: true,
-    ...filter,
+    ...(showAllListing ? {} : { isListingDone: true }),
+    ...queryFilter,
   };
   return Product.find(finalFilter)
     .populate({
@@ -71,10 +73,12 @@ export async function getProductList(filter = {}) {
 }
 
 export async function getProductListSummary(filter = {}) {
+  const { includeAllListingStatus, ...queryFilter } = filter;
+  const showAllListing = includeAllListingStatus || !!queryFilter.sellerId;
   const finalFilter = {
     isDeleted: { $ne: true },
-    isListingDone: true,
-    ...filter,
+    ...(showAllListing ? {} : { isListingDone: true }),
+    ...queryFilter,
   };
   const products = await Product.find(finalFilter)
     .populate({
@@ -142,10 +146,12 @@ export async function getProductListSummary(filter = {}) {
 }
 
 export async function getProductListWithPagination(filter = {}, options = {}) {
+  const { includeAllListingStatus, ...queryFilter } = filter;
+  const showAllListing = includeAllListingStatus || !!queryFilter.sellerId;
   const finalFilter = {
     isDeleted: { $ne: true },
-    isListingDone: true,
-    ...filter,
+    ...(showAllListing ? {} : { isListingDone: true }),
+    ...queryFilter,
   };
   const product = await Product.paginate(finalFilter, options);
   return product;
@@ -230,10 +236,12 @@ export async function aggregateProduct(query) {
 }
 
 export async function getProductListPaginated(filter = {}, options = {}) {
+  const { includeAllListingStatus, ...queryFilter } = filter;
+  const showAllListing = includeAllListingStatus || !!queryFilter.sellerId;
   const finalFilter = {
     isDeleted: { $ne: true },
-    isListingDone: true,
-    ...filter,
+    ...(showAllListing ? {} : { isListingDone: true }),
+    ...queryFilter,
   };
   const result = await Product.paginate(finalFilter, {
     ...options,
