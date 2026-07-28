@@ -90,4 +90,14 @@ router
     validate(productVarientByProductIdValidation.getVarientByProductId),
     productVarientByProductIdController.getVarientByProductId
   );
+router
+  .route('/:productVarientByProductIdId/image/:imageId?')
+  /**
+   * removeImageFromProductVarient
+   * */
+  .delete(
+    sellerAuth(),
+    validate(productVarientByProductIdValidation.removeImageFromProductVarient),
+    productVarientByProductIdController.removeImageFromProductVarient
+  );
 export default router;

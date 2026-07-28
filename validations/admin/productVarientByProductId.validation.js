@@ -54,3 +54,14 @@ export const paginatedProductVarientByProductId = {
     })
     .unknown(true),
 };
+
+export const removeImageFromProductVarient = {
+  params: Joi.object().keys({
+    productVarientByProductIdId: Joi.objectId().required(),
+    imageId: Joi.objectId().optional(),
+  }),
+  body: Joi.object().keys({
+    imageId: Joi.objectId().optional(),
+    images: Joi.array().items(Joi.objectId()).optional(),
+  }),
+};

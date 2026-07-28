@@ -78,3 +78,21 @@ export const updateProductVarientByProductId = catchAsync(async (req, res) => {
     results: result,
   });
 });
+
+export const removeImageFromProductVarient = catchAsync(async (req, res) => {
+  const { productVarientByProductIdId, imageId } = req.params;
+  const { imageId: bodyImageId, images } = req.body;
+
+  const targetImageId = imageId || bodyImageId;
+
+  const result = await productVarientByProductIdService.removeImageFromProductVarient(
+    productVarientByProductIdId,
+    targetImageId,
+    images
+  );
+
+  return res.status(httpStatus.OK).send({
+    status: 'Success',
+    results: result,
+  });
+});

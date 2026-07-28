@@ -60,4 +60,14 @@ router
     validate(productVarientByProductIdValidation.deleteProductVarientByProductIdById),
     productVarientByProductIdController.removeProductVarientByProductId
   );
+router
+  .route('/:productVarientByProductIdId/image/:imageId?')
+  /**
+   * removeImageFromProductVarient
+   * */
+  .delete(
+    auth([EnumRoleOfUser.ADMIN, EnumRoleOfUser.SUPER_ADMIN, EnumRoleOfUser.CO_ADMIN]),
+    validate(productVarientByProductIdValidation.removeImageFromProductVarient),
+    productVarientByProductIdController.removeImageFromProductVarient
+  );
 export default router;

@@ -183,3 +183,35 @@ export async function updateProductVarientById(id, body, user) {
 
   return updated;
 }
+
+export async function removeImageFromProductVarient(productVarientId, imageId, images) {
+  if (!mongoose.Types.ObjectId.isValid(productVarientId)) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid product variant ID');
+  }
+
+  let pullCondition;
+  if (Array.isArray(images) && images.length > 0) {
+    pullCondition = { images: { $in: images } };
+  } else if (imageId) {
+    if (!mongoose.Types.ObjectId.isValid(imageId)) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid image ID');
+    }
+    pullCondition = { images: imageId };
+  } else {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'imageId or images array is required');
+  }
+
+  const updatedVariant = await ProductVarientByProductId.findByIdAndUpdate(
+    productVarientId,
+    {
+      $pull: pullCondition,
+    },
+    { new: true }
+  ).populate('images videos');
+
+  if (!updatedVariant) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Product variant not found');
+  }
+
+  return updatedVariant;
+}
