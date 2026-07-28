@@ -36,7 +36,7 @@ export async function getOne(filter, options = {}) {
 export async function getProductList(filter = {}) {
   const finalFilter = {
     isDeleted: { $ne: true },
-    isListingDone: { $ne: false },
+    isListingDone: true,
     ...filter,
   };
   return Product.find(finalFilter)
@@ -73,7 +73,7 @@ export async function getProductList(filter = {}) {
 export async function getProductListSummary(filter = {}) {
   const finalFilter = {
     isDeleted: { $ne: true },
-    isListingDone: { $ne: false },
+    isListingDone: true,
     ...filter,
   };
   const products = await Product.find(finalFilter)
@@ -144,7 +144,7 @@ export async function getProductListSummary(filter = {}) {
 export async function getProductListWithPagination(filter = {}, options = {}) {
   const finalFilter = {
     isDeleted: { $ne: true },
-    isListingDone: { $ne: false },
+    isListingDone: true,
     ...filter,
   };
   const product = await Product.paginate(finalFilter, options);
@@ -232,7 +232,7 @@ export async function aggregateProduct(query) {
 export async function getProductListPaginated(filter = {}, options = {}) {
   const finalFilter = {
     isDeleted: { $ne: true },
-    isListingDone: { $ne: false },
+    isListingDone: true,
     ...filter,
   };
   const result = await Product.paginate(finalFilter, {
@@ -302,7 +302,7 @@ export async function getProductListByReviewWithPagination(page = 1, limit = 10,
     {
       $match: {
         isDeleted: { $ne: true },
-        isListingDone: { $ne: false },
+        isListingDone: true,
       },
     },
     // ======================================================
@@ -831,7 +831,7 @@ export async function getStoreProductListWithReviews(storeId, page = 1, limit = 
       $match: {
         storeId: storeObjectId,
         isDeleted: { $ne: true },
-        isListingDone: { $ne: false },
+        isListingDone: true,
       },
     },
 
@@ -1217,7 +1217,7 @@ export async function searchProducts(params, userId = null) {
 
   const match = {
     isDeleted: { $ne: true },
-    isListingDone: { $ne: false },
+    isListingDone: true,
   };
 
   if (categoryId) {
