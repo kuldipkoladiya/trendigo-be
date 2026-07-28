@@ -100,8 +100,8 @@ export const verifyEmail = catchAsync(async (req, res) => {
 });
 
 export const forgotPassword = catchAsync(async (req, res) => {
-  const { email, mobileNumber } = req.body;
-  await authService.forgotPassword({ email, mobileNumber });
+  const { email } = req.body;
+  await authService.forgotPassword(email);
   res.status(httpStatus.OK).send({ results: { success: true, message: 'Code has been sent' } });
 });
 
@@ -158,8 +158,8 @@ export const resetPasswordOtp = catchAsync(async (req, res) => {
 });
 
 export const resetPasswordOtpVerify = catchAsync(async (req, res) => {
-  const { email, mobileNumber, otp } = req.body;
-  const user = await tokenService.verifyResetOtpVerify({ email, mobileNumber, otp, isSeller: false });
+  const { email, otp } = req.body;
+  const user = await tokenService.verifyResetOtpVerify(email, otp);
   if (!user) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'something is went wrong!');
   }

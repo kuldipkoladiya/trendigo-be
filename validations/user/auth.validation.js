@@ -32,14 +32,9 @@ export const verifyEmail = {
 };
 
 export const forgotPassword = {
-  body: Joi.object()
-    .keys({
-      email: Joi.string().email(),
-      mobileNumber: Joi.alternatives().try(Joi.number(), Joi.string().pattern(/^\d+$/)),
-      countryCodeId: Joi.string().optional(),
-      countryCode: Joi.string().optional(),
-    })
-    .or('email', 'mobileNumber'),
+  body: Joi.object().keys({
+    email: Joi.string().email().required(),
+  }),
 };
 
 export const verifyOtp = {
@@ -80,25 +75,18 @@ export const resetPassword = {
 };
 
 export const resetPasswordOtp = {
-  body: Joi.object()
-    .keys({
-      password: Joi.string(),
-      email: Joi.string().email(),
-      newMail: Joi.string().email(),
-      mobileNumber: Joi.alternatives().try(Joi.number(), Joi.string().pattern(/^\d+$/)),
-      otp: Joi.number().required(),
-    })
-    .or('email', 'mobileNumber'),
+  body: Joi.object().keys({
+    password: Joi.string().required(),
+    email: Joi.string().email().required(),
+    otp: Joi.number().required(),
+  }),
 };
 
 export const resetPasswordOtpVerify = {
-  body: Joi.object()
-    .keys({
-      email: Joi.string().email(),
-      mobileNumber: Joi.alternatives().try(Joi.number(), Joi.string().pattern(/^\d+$/)),
-      otp: Joi.number().required(),
-    })
-    .or('email', 'mobileNumber'),
+  body: Joi.object().keys({
+    email: Joi.string().email().required(),
+    otp: Joi.number().required(),
+  }),
 };
 
 // Token-based resetPassword validation

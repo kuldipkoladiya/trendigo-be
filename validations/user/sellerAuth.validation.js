@@ -95,34 +95,24 @@ export const updatepss = {
 };
 
 export const forgotPassword = {
-  body: Joi.object()
-    .keys({
-      email: Joi.string().email(),
-      mobileNumber: Joi.number(),
-      countryCodeId: Joi.string().optional(),
-      countryCode: Joi.string().optional(),
-    })
-    .or('email', 'mobileNumber'),
+  body: Joi.object().keys({
+    email: Joi.string().email().required(),
+  }),
 };
 
 export const resetPasswordOtpVerify = {
-  body: Joi.object()
-    .keys({
-      email: Joi.string().email(),
-      mobileNumber: Joi.number(),
-      otp: Joi.number().required(),
-    })
-    .or('email', 'mobileNumber'),
+  body: Joi.object().keys({
+    email: Joi.string().email().required(),
+    otp: Joi.number().required(),
+  }),
 };
 
 export const resetPasswordOtp = {
-  body: Joi.object()
-    .keys({
-      password: Joi.string(),
-      email: Joi.string().email(),
-      newMail: Joi.string().email(),
-      mobileNumber: Joi.number(),
-      otp: Joi.number().required(),
-    })
-    .or('email', 'mobileNumber'),
+  body: Joi.object({
+    password: Joi.string(),
+    email: Joi.string().email(),
+    newMail: Joi.string().email(),
+    mobileNumber: Joi.number(),
+    otp: Joi.number().required(),
+  }).or('email', 'mobileNumber'),
 };

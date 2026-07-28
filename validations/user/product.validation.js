@@ -47,6 +47,7 @@ export const createProduct = {
     images: Joi.array().items(Joi.objectId()).optional(),
     videos: Joi.array().items(Joi.objectId()).optional(),
     tags: Joi.array().items(Joi.string().trim()).optional(),
+    isListingDone: Joi.boolean().optional(),
   }),
 };
 
@@ -94,6 +95,7 @@ export const updateProduct = {
     images: Joi.array().items(Joi.objectId()).optional(),
     videos: Joi.array().items(Joi.objectId()).optional(),
     tags: Joi.array().items(Joi.string().trim()).optional(),
+    isListingDone: Joi.boolean().optional(),
   }).min(1),
 };
 

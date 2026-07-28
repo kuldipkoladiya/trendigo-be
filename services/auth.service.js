@@ -97,199 +97,53 @@ export const verifyEmail = async (verifyRequest) => {
 };
 
 /**
- * forgotPassword for User with Email or Mobile Number
- * @param {string|Object} emailOrObj
+ * forgotPassword with Email
+ * @param {string} email
  * @returns {Promise<User>}
  */
-/**
- * forgotPassword for User with Email or Mobile Number
- * @param {string|Object} emailOrObj
- * @returns {Promise<User>}
- */
-export const forgotPassword = async (emailOrObj) => {
-  let email;
-  let mobileNumber;
-  let countryCodeId;
-  let countryCode;
-
-  if (typeof emailOrObj === 'object' && emailOrObj !== null) {
-    email = emailOrObj.email;
-    mobileNumber = emailOrObj.mobileNumber;
-    countryCodeId = emailOrObj.countryCodeId;
-    countryCode = emailOrObj.countryCode;
-  } else {
-    email = emailOrObj;
-  }
-
-  if (!email && !mobileNumber) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Email or mobile number is required');
-  }
-
-  let user;
-  if (email) {
-    user = await userService.getOne({ email });
-  } else if (mobileNumber) {
-    user = await userService.getOne({ mobileNumber });
-  }
-
+export const forgotPassword = async (email) => {
+  const user = await userService.getOne({ email });
   if (!user) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'No user found with this email or mobile number');
+    throw new ApiError(httpStatus.BAD_REQUEST, 'no user found with this email');
   }
-
-  let resolvedCountryCode = countryCode || '';
-  if (countryCodeId) {
-    try {
-      const country = await countryCodeService.getCountryCodeById(countryCodeId);
-      if (!country) {
-        throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid countryCodeId');
-      }
-      resolvedCountryCode = country.code;
-    } catch (err) {
-      if (err instanceof ApiError) throw err;
-      throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid countryCodeId');
-    }
-  }
-
   const otp = generateOtp();
   user.codes.push({
-    code: String(otp),
+    code: otp,
     expirationDate: Date.now() + 10 * 60 * 1000,
     used: false,
     codeType: EnumCodeTypeOfCode.RESETPASSWORD,
   });
   await user.save();
-
-  // Send SMS if mobileNumber was provided in API body
-  if (mobileNumber) {
-    const targetCountryCode = resolvedCountryCode || user.countryCode || '';
-    try {
-      await sendOtpToMobile(`${targetCountryCode}${mobileNumber}`, otp);
-      console.log(`OTP sent to mobile: ${targetCountryCode}${mobileNumber}`);
-    } catch (error) {
-      console.error('Error sending OTP to mobile:', error);
-    }
-  }
-
-  // Send Email if email was provided in API body
-  if (email) {
-    try {
-      await emailService.sendResetPasswordEmail(email, otp);
-      console.log(`OTP sent to email: ${email}`);
-    } catch (error) {
-      console.error('Error sending OTP to email:', error);
-    }
-  }
-
+  await emailService.sendResetPasswordEmail(email, otp);
   return user;
-};
-
-/**
- * forgotPassword for SellerUser with Email or Mobile Number
- * @param {Object} sellerForgotRequest
- * @returns {Promise<SellerUser>}
- */
-export const sellerForgotPassword = async ({ email, mobileNumber, countryCodeId, countryCode }) => {
-  if (!email && !mobileNumber) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Email or mobile number is required');
-  }
-
-  let seller;
-  if (email) {
-    seller = await sellerUserService.getOne({ email });
-  } else if (mobileNumber) {
-    seller = await sellerUserService.getOne({ mobileNumber });
-  }
-
-  if (!seller) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'No seller found with this email or mobile number');
-  }
-
-  let resolvedCountryCode = countryCode || '';
-  if (countryCodeId) {
-    try {
-      const country = await countryCodeService.getCountryCodeById(countryCodeId);
-      if (!country) {
-        throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid countryCodeId');
-      }
-      resolvedCountryCode = country.code;
-    } catch (err) {
-      if (err instanceof ApiError) throw err;
-      throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid countryCodeId');
-    }
-  }
-
-  const otp = generateOtp();
-  seller.codes.push({
-    code: String(otp),
-    expirationDate: Date.now() + 10 * 60 * 1000,
-    used: false,
-    codeType: EnumCodeTypeOfCode.RESETPASSWORD,
-  });
-  await seller.save();
-
-  // Send SMS if mobileNumber was provided in API body
-  if (mobileNumber) {
-    const targetCountryCode = resolvedCountryCode || seller.countryCode || '';
-    try {
-      await sendOtpToMobile(`${targetCountryCode}${mobileNumber}`, otp);
-      console.log(`OTP sent to seller mobile: ${targetCountryCode}${mobileNumber}`);
-    } catch (error) {
-      console.error('Error sending OTP to mobile:', error);
-    }
-  }
-
-  // Send Email if email was provided in API body
-  if (email) {
-    try {
-      await emailService.sendResetPasswordEmail(email, otp);
-      console.log(`OTP sent to seller email: ${email}`);
-    } catch (error) {
-      console.error('Error sending OTP to email:', error);
-    }
-  }
-
-  return seller;
 };
 
 export const resetPasswordOtp = async (resetPasswordRequest) => {
   const { email, otp, password, newMail, mobileNumber } = resetPasswordRequest;
-
-  if (!email && !mobileNumber) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Email or mobile number is required.');
+  // const existingUserWithNewMail = await userService.getOne({ email: newMail });
+  const existingUserWithMobile = mobileNumber ? await userService.getOne({ mobileNumber }) : null;
+  // if (existingUserWithNewMail) {
+  //   throw new Error('New email is already associated with another user.');
+  // }
+  if (existingUserWithMobile) {
+    throw new Error('Mobile number is already associated with another user.');
   }
-
-  const user = await tokenService.verifyResetOtp({ email, mobileNumber, otp, isSeller: false });
-
-  if (password) {
-    user.password = password;
+  if (!mobileNumber && !password && !newMail) {
+    throw new Error('At least one of mobileNumber, password, or newMail is required.');
   }
-  if (newMail) {
-    user.email = newMail;
+  const providedFields = [mobileNumber, password, newMail].filter((field) => field !== undefined);
+  if (providedFields.length !== 1) {
+    throw new Error('Exactly one of mobileNumber, password, or newMail is required.');
   }
-  if (mobileNumber && email) {
-    user.mobileNumber = mobileNumber;
-  }
-  await user.save();
-  return user;
-};
-
-export const sellerResetPasswordOtp = async (resetPasswordRequest) => {
-  const { email, mobileNumber, otp, password, newMail } = resetPasswordRequest;
-
-  if (!email && !mobileNumber) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Email or mobile number is required.');
-  }
-
-  const seller = await tokenService.verifyResetOtp({ email, mobileNumber, otp, isSeller: true });
-
-  if (password) {
-    seller.password = password;
-  }
-  if (newMail) {
-    seller.email = newMail;
-  }
-  await seller.save();
-  return seller;
+  const user = await tokenService.verifyResetOtp(email, otp);
+  const filter = {
+    _id: user._id,
+  };
+  return userService.updateUser(filter, {
+    ...(password && { password }),
+    ...(newMail && { email: newMail }),
+    ...(mobileNumber && { mobileNumber }),
+  });
 };
 
 /**
@@ -618,6 +472,7 @@ export const updatepss = async (resetPasswordRequest) => {
 
   // Check if the old password is correct
   const isPasswordMatch = await bcrypt.compare(oldPassword, user.password);
+
   if (!isPasswordMatch) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Old password is incorrect.');
   }
@@ -625,5 +480,8 @@ export const updatepss = async (resetPasswordRequest) => {
   // Update the user's password
   await sellerUserService.updateSellerUser({ _id: seller }, { password: newPassword });
 
-  return { success: true, message: 'Password has been reset successfully' };
+  return {
+    success: true,
+    message: 'Password has been reset successfully',
+  };
 };

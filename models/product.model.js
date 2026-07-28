@@ -107,6 +107,10 @@ const ProductSchema = new mongoose.Schema(
         },
       },
     ],
+    isListingDone: {
+      type: Boolean,
+      default: true,
+    },
   },
   { timestamps: { createdAt: true, updatedAt: true } }
 );

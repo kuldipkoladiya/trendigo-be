@@ -22,6 +22,7 @@ export const createProduct = {
     variants: Joi.array().items(Joi.objectId()).required(),
     tages: Joi.array().items(Joi.string()),
     storeDiscount: Joi.number().integer(),
+    isListingDone: Joi.boolean().optional(),
   }),
 };
 
@@ -41,6 +42,7 @@ export const updateProduct = {
     variants: Joi.array().items(Joi.objectId()),
     tages: Joi.array().items(Joi.string()),
     storeDiscount: Joi.number().integer(),
+    isListingDone: Joi.boolean().optional(),
   }),
   params: Joi.object().keys({
     productId: Joi.objectId().required(),

@@ -34,7 +34,12 @@ export async function getOne(filter, options = {}) {
 }
 
 export async function getProductList(filter = {}) {
-  return Product.find(filter)
+  const finalFilter = {
+    isDeleted: { $ne: true },
+    isListingDone: { $ne: false },
+    ...filter,
+  };
+  return Product.find(finalFilter)
     .populate({
       path: 'storeId',
       select: 'name storeUrl profileImage',
@@ -66,7 +71,12 @@ export async function getProductList(filter = {}) {
 }
 
 export async function getProductListSummary(filter = {}) {
-  const products = await Product.find(filter)
+  const finalFilter = {
+    isDeleted: { $ne: true },
+    isListingDone: { $ne: false },
+    ...filter,
+  };
+  const products = await Product.find(finalFilter)
     .populate({
       path: 'productTypeId',
       select: 'value',
@@ -131,8 +141,13 @@ export async function getProductListSummary(filter = {}) {
   });
 }
 
-export async function getProductListWithPagination(filter, options = {}) {
-  const product = await Product.paginate(filter, options);
+export async function getProductListWithPagination(filter = {}, options = {}) {
+  const finalFilter = {
+    isDeleted: { $ne: true },
+    isListingDone: { $ne: false },
+    ...filter,
+  };
+  const product = await Product.paginate(finalFilter, options);
   return product;
 }
 
@@ -214,8 +229,13 @@ export async function aggregateProduct(query) {
   return product;
 }
 
-export async function getProductListPaginated(filter, options) {
-  const result = await Product.paginate(filter, {
+export async function getProductListPaginated(filter = {}, options = {}) {
+  const finalFilter = {
+    isDeleted: { $ne: true },
+    isListingDone: { $ne: false },
+    ...filter,
+  };
+  const result = await Product.paginate(finalFilter, {
     ...options,
     lean: true,
     populate: [
@@ -279,6 +299,12 @@ export async function getProductListByReviewWithPagination(page = 1, limit = 10,
   const skip = (page - 1) * limit;
 
   const pipeline = [
+    {
+      $match: {
+        isDeleted: { $ne: true },
+        isListingDone: { $ne: false },
+      },
+    },
     // ======================================================
     // REVIEWS
     // ======================================================
@@ -805,6 +831,7 @@ export async function getStoreProductListWithReviews(storeId, page = 1, limit = 
       $match: {
         storeId: storeObjectId,
         isDeleted: { $ne: true },
+        isListingDone: { $ne: false },
       },
     },
 
@@ -1190,6 +1217,7 @@ export async function searchProducts(params, userId = null) {
 
   const match = {
     isDeleted: { $ne: true },
+    isListingDone: { $ne: false },
   };
 
   if (categoryId) {

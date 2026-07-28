@@ -293,21 +293,20 @@ export const updatepsss = catchAsync(async (req, res) => {
 });
 
 export const forgotPassword = catchAsync(async (req, res) => {
-  const { email, mobileNumber } = req.body;
-  await sellerAuthService.sellerForgotPassword({ email, mobileNumber });
+  const { email } = req.body;
+  await sellerAuthService.forgotPassword(email);
   res.status(httpStatus.OK).send({ results: { success: true, message: 'Code has been sent' } });
 });
 
 export const resetPasswordOtpVerify = catchAsync(async (req, res) => {
-  const { email, mobileNumber, otp } = req.body;
-  const user = await tokenService.verifyResetOtpVerify({ email, mobileNumber, otp, isSeller: true });
+  const { email, otp } = req.body;
+  const user = await tokenService.verifyResetOtpVerify(email, otp);
   if (!user) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'something is went wrong!');
   }
   res.status(httpStatus.OK).send({ results: { success: true } });
 });
-
 export const resetPasswordOtp = catchAsync(async (req, res) => {
-  await sellerAuthService.sellerResetPasswordOtp(req.body);
+  await sellerAuthService.resetPasswordOtp(req.body);
   res.status(httpStatus.OK).send({ results: { success: true, message: 'Data has been reset successfully' } });
 });

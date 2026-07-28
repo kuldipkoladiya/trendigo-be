@@ -200,134 +200,48 @@ export const generateResetPasswordToken = async (email) => {
   return resetPasswordToken;
 };
 
-export const verifyResetOtp = async (params, otpArg) => {
-  let email;
-  let mobileNumber;
-  let otp;
-  let isSeller = false;
+export const verifyResetOtp = async (email, otp) => {
+  const user = await userService.getOne({ email });
 
-  if (typeof params === 'object' && params !== null) {
-    email = params.email;
-    mobileNumber = params.mobileNumber;
-    otp = params.otp;
-    isSeller = !!params.isSeller;
-  } else {
-    email = params;
-    otp = otpArg;
+  if (!user) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'No user found with this email');
   }
 
-  const otpStr = String(otp).trim();
-  let account;
+  const otpCode = user.codes.find((code) => code.code === otp && code.codeType === EnumCodeTypeOfCode.RESETPASSWORD);
 
-  if (isSeller) {
-    if (email) {
-      account = await sellerUserService.getOne({ email });
-    } else if (mobileNumber) {
-      account = await sellerUserService.getOne({ mobileNumber });
-    }
-    if (!account) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'No seller found with this email or mobile number');
-    }
-  } else {
-    if (email) {
-      account = await userService.getOne({ email });
-    } else if (mobileNumber) {
-      account = await userService.getOne({ mobileNumber });
-    }
-    if (!account) {
-      if (email) {
-        account = await sellerUserService.getOne({ email });
-      } else if (mobileNumber) {
-        account = await sellerUserService.getOne({ mobileNumber });
-      }
-    }
-    if (!account) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'No user found with this email or mobile number');
-    }
+  if (!otpCode || otpCode.expirationDate < Date.now()) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'OTP is invalid');
   }
 
-  const otpCodeIndex = account.codes
-    ? account.codes.findIndex(
-        (code) => String(code.code).trim() === otpStr && code.codeType === EnumCodeTypeOfCode.RESETPASSWORD
-      )
-    : -1;
+  user.codes = user.codes.filter((code) => code.code !== otp);
 
-  if (otpCodeIndex === -1) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'otp is Invalid');
-  }
+  await user.save();
 
-  const otpCode = account.codes[otpCodeIndex];
-  if (new Date(otpCode.expirationDate).getTime() < Date.now()) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'otp is expired');
-  }
-
-  account.codes.splice(otpCodeIndex, 1);
-  if (typeof account.markModified === 'function') {
-    account.markModified('codes');
-  }
-  await account.save();
-  return account;
+  return user;
 };
 
-export const verifyResetOtpVerify = async (params, otpArg) => {
-  let email;
-  let mobileNumber;
-  let otp;
-  let isSeller = false;
+export const verifyResetOtpVerify = async (email, otp) => {
+  const user = await userService.getOne({ email });
 
-  if (typeof params === 'object' && params !== null) {
-    email = params.email;
-    mobileNumber = params.mobileNumber;
-    otp = params.otp;
-    isSeller = !!params.isSeller;
-  } else {
-    email = params;
-    otp = otpArg;
+  if (!user) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'No user found with this email');
   }
 
-  const otpStr = String(otp).trim();
-  let account;
-
-  if (isSeller) {
-    if (email) {
-      account = await sellerUserService.getOne({ email });
-    } else if (mobileNumber) {
-      account = await sellerUserService.getOne({ mobileNumber });
-    }
-    if (!account) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'No seller found with this email or mobile number');
-    }
-  } else {
-    if (email) {
-      account = await userService.getOne({ email });
-    } else if (mobileNumber) {
-      account = await userService.getOne({ mobileNumber });
-    }
-    if (!account) {
-      if (email) {
-        account = await sellerUserService.getOne({ email });
-      } else if (mobileNumber) {
-        account = await sellerUserService.getOne({ mobileNumber });
-      }
-    }
-    if (!account) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'No user found with this email or mobile number');
-    }
-  }
-
-  const otpCode = account.codes
-    ? account.codes.find((code) => String(code.code).trim() === otpStr && code.codeType === EnumCodeTypeOfCode.RESETPASSWORD)
-    : null;
+  const otpCode = user.codes.find((code) => code.code === otp && code.codeType === EnumCodeTypeOfCode.RESETPASSWORD);
 
   if (!otpCode) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'otp is Invalid');
+    throw new ApiError(httpStatus.BAD_REQUEST, 'OTP is invalid');
   }
 
-  if (new Date(otpCode.expirationDate).getTime() < Date.now()) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'otp is expired');
+  if (otpCode.expirationDate < Date.now()) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'OTP has expired');
   }
 
-  return account;
+  user.codes = user.codes.filter((code) => code.code !== otp);
+
+  await user.save();
+
+  return user;
 };
 
 /**
