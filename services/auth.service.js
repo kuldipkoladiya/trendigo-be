@@ -151,54 +151,62 @@ export const sellerForgotPassword = async (requestData) => {
 
 export const resetPasswordOtp = async (resetPasswordRequest) => {
   const { email, otp, password, newMail, mobileNumber } = resetPasswordRequest;
-  // const existingUserWithNewMail = await userService.getOne({ email: newMail });
-  const existingUserWithMobile = mobileNumber ? await userService.getOne({ mobileNumber }) : null;
-  // if (existingUserWithNewMail) {
-  //   throw new Error('New email is already associated with another user.');
-  // }
-  if (existingUserWithMobile) {
-    throw new Error('Mobile number is already associated with another user.');
+
+  const user = await tokenService.verifyResetOtp({ email, mobileNumber }, otp, false);
+
+  if (newMail) {
+    const existingUserWithNewMail = await userService.getOne({ email: newMail, _id: { $ne: user._id } });
+    if (existingUserWithNewMail) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'New email is already associated with another user.');
+    }
   }
-  if (!mobileNumber && !password && !newMail) {
-    throw new Error('At least one of mobileNumber, password, or newMail is required.');
+
+  if (mobileNumber && String(mobileNumber) !== String(user.mobileNumber)) {
+    const existingUserWithMobile = await userService.getOne({ mobileNumber, _id: { $ne: user._id } });
+    if (existingUserWithMobile) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Mobile number is already associated with another user.');
+    }
   }
-  const providedFields = [mobileNumber, password, newMail].filter((field) => field !== undefined);
-  if (providedFields.length !== 1) {
-    throw new Error('Exactly one of mobileNumber, password, or newMail is required.');
-  }
-  const user = await tokenService.verifyResetOtp(email, otp, false);
+
+  const updateData = {};
+  if (password) updateData.password = password;
+  if (newMail) updateData.email = newMail;
+  if (mobileNumber && String(mobileNumber) !== String(user.mobileNumber)) updateData.mobileNumber = mobileNumber;
+
   const filter = {
     _id: user._id,
   };
-  return userService.updateUser(filter, {
-    ...(password && { password }),
-    ...(newMail && { email: newMail }),
-    ...(mobileNumber && { mobileNumber }),
-  });
+  return userService.updateUser(filter, updateData);
 };
 
 export const sellerResetPasswordOtp = async (resetPasswordRequest) => {
   const { email, otp, password, newMail, mobileNumber } = resetPasswordRequest;
-  const existingUserWithMobile = mobileNumber ? await sellerUserService.getOne({ mobileNumber }) : null;
-  if (existingUserWithMobile) {
-    throw new Error('Mobile number is already associated with another user.');
+
+  const seller = await tokenService.verifyResetOtp({ email, mobileNumber }, otp, true);
+
+  if (newMail) {
+    const existingUserWithNewMail = await sellerUserService.getOne({ email: newMail, _id: { $ne: seller._id } });
+    if (existingUserWithNewMail) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'New email is already associated with another user.');
+    }
   }
-  if (!mobileNumber && !password && !newMail) {
-    throw new Error('At least one of mobileNumber, password, or newMail is required.');
+
+  if (mobileNumber && String(mobileNumber) !== String(seller.mobileNumber)) {
+    const existingUserWithMobile = await sellerUserService.getOne({ mobileNumber, _id: { $ne: seller._id } });
+    if (existingUserWithMobile) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Mobile number is already associated with another user.');
+    }
   }
-  const providedFields = [mobileNumber, password, newMail].filter((field) => field !== undefined);
-  if (providedFields.length !== 1) {
-    throw new Error('Exactly one of mobileNumber, password, or newMail is required.');
-  }
-  const seller = await tokenService.verifyResetOtp(email, otp, true);
+
+  const updateData = {};
+  if (password) updateData.password = password;
+  if (newMail) updateData.email = newMail;
+  if (mobileNumber && String(mobileNumber) !== String(seller.mobileNumber)) updateData.mobileNumber = mobileNumber;
+
   const filter = {
     _id: seller._id,
   };
-  return sellerUserService.updateSellerUser(filter, {
-    ...(password && { password }),
-    ...(newMail && { email: newMail }),
-    ...(mobileNumber && { mobileNumber }),
-  });
+  return sellerUserService.updateSellerUser(filter, updateData);
 };
 
 /**

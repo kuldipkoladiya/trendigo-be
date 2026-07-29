@@ -225,8 +225,12 @@ export const verifyResetOtp = async (accountIdentifier, otp, isSeller = false) =
     (code) => String(code.code) === String(otp) && code.codeType === EnumCodeTypeOfCode.RESETPASSWORD
   );
 
-  if (!otpCode || otpCode.expirationDate < Date.now()) {
+  if (!otpCode) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'OTP is invalid');
+  }
+
+  if (otpCode.expirationDate < Date.now()) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'OTP has expired');
   }
 
   user.codes = user.codes.filter((code) => String(code.code) !== String(otp));
@@ -259,10 +263,6 @@ export const verifyResetOtpVerify = async (accountIdentifier, otp, isSeller = fa
   if (otpCode.expirationDate < Date.now()) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'OTP has expired');
   }
-
-  user.codes = user.codes.filter((code) => String(code.code) !== String(otp));
-
-  await user.save();
 
   return user;
 };
