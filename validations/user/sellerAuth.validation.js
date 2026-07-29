@@ -95,16 +95,22 @@ export const updatepss = {
 };
 
 export const forgotPassword = {
-  body: Joi.object().keys({
-    email: Joi.string().email().required(),
-  }),
+  body: Joi.object()
+    .keys({
+      email: Joi.string().email(),
+      mobileNumber: Joi.number(),
+    })
+    .or('email', 'mobileNumber'),
 };
 
 export const resetPasswordOtpVerify = {
-  body: Joi.object().keys({
-    email: Joi.string().email().required(),
-    otp: Joi.number().required(),
-  }),
+  body: Joi.object()
+    .keys({
+      email: Joi.string().email(),
+      mobileNumber: Joi.number(),
+      otp: Joi.number().required(),
+    })
+    .or('email', 'mobileNumber'),
 };
 
 export const resetPasswordOtp = {

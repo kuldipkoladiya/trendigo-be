@@ -80,8 +80,6 @@ export const verifyCode = async (verificationRequest) => {
 };
 
 export const verifyOtp = async ({ email, mobileNumber, otp }) => {
-  console.log('➡️ verifyOtp called');
-
   let user;
 
   if (email) {
@@ -122,8 +120,6 @@ export const verifyOtp = async ({ email, mobileNumber, otp }) => {
   return user;
 };
 export const verifySellerOtp = async ({ email, mobileNumber, otp }) => {
-  console.log('➡️ verifySellerOtp called');
-
   let seller;
 
   // 🔍 Find seller by email or mobile
@@ -200,14 +196,29 @@ export const generateResetPasswordToken = async (email) => {
   return resetPasswordToken;
 };
 
-export const verifyResetOtp = async (email, otp, isSeller = false) => {
-  let user = isSeller ? await sellerUserService.getOne({ email }) : await userService.getOne({ email });
+const getAccountQuery = (accountIdentifier) => {
+  if (typeof accountIdentifier === 'object' && accountIdentifier !== null) {
+    if (accountIdentifier.email) {
+      return { email: accountIdentifier.email };
+    }
+    return { mobileNumber: accountIdentifier.mobileNumber };
+  }
+  if (String(accountIdentifier).includes('@')) {
+    return { email: accountIdentifier };
+  }
+  return { mobileNumber: accountIdentifier };
+};
+
+export const verifyResetOtp = async (accountIdentifier, otp, isSeller = false) => {
+  const query = getAccountQuery(accountIdentifier);
+
+  let user = isSeller ? await sellerUserService.getOne(query) : await userService.getOne(query);
   if (!user && !isSeller) {
-    user = await sellerUserService.getOne({ email });
+    user = await sellerUserService.getOne(query);
   }
 
   if (!user) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'No user found with this email');
+    throw new ApiError(httpStatus.BAD_REQUEST, 'No user found with provided email or mobile number');
   }
 
   const otpCode = user.codes.find(
@@ -225,14 +236,16 @@ export const verifyResetOtp = async (email, otp, isSeller = false) => {
   return user;
 };
 
-export const verifyResetOtpVerify = async (email, otp, isSeller = false) => {
-  let user = isSeller ? await sellerUserService.getOne({ email }) : await userService.getOne({ email });
+export const verifyResetOtpVerify = async (accountIdentifier, otp, isSeller = false) => {
+  const query = getAccountQuery(accountIdentifier);
+
+  let user = isSeller ? await sellerUserService.getOne(query) : await userService.getOne(query);
   if (!user && !isSeller) {
-    user = await sellerUserService.getOne({ email });
+    user = await sellerUserService.getOne(query);
   }
 
   if (!user) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'No user found with this email');
+    throw new ApiError(httpStatus.BAD_REQUEST, 'No user found with provided email or mobile number');
   }
 
   const otpCode = user.codes.find(

@@ -101,10 +101,12 @@ export const verifyEmail = async (verifyRequest) => {
  * @param {string} email
  * @returns {Promise<User>}
  */
-export const forgotPassword = async (email) => {
-  const user = await userService.getOne({ email });
+export const forgotPassword = async (requestData) => {
+  const { email, mobileNumber } = typeof requestData === 'object' ? requestData : { email: requestData };
+  const query = email ? { email } : { mobileNumber };
+  const user = await userService.getOne(query);
   if (!user) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'no user found with this email');
+    throw new ApiError(httpStatus.BAD_REQUEST, 'no user found with this email or mobile number');
   }
   const otp = generateOtp();
   user.codes.push({
@@ -114,14 +116,21 @@ export const forgotPassword = async (email) => {
     codeType: EnumCodeTypeOfCode.RESETPASSWORD,
   });
   await user.save();
-  await emailService.sendResetPasswordEmail(email, otp);
+  if (email || user.email) {
+    await emailService.sendResetPasswordEmail(user.email || email, otp);
+  }
+  if (mobileNumber || user.mobileNumber) {
+    await sendOtpToMobile(`${user.countryCode}${user.mobileNumber}`, otp);
+  }
   return user;
 };
 
-export const sellerForgotPassword = async (email) => {
-  const seller = await sellerUserService.getOne({ email });
+export const sellerForgotPassword = async (requestData) => {
+  const { email, mobileNumber } = typeof requestData === 'object' ? requestData : { email: requestData };
+  const query = email ? { email } : { mobileNumber };
+  const seller = await sellerUserService.getOne(query);
   if (!seller) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'no user found with this email');
+    throw new ApiError(httpStatus.BAD_REQUEST, 'no user found with this email or mobile number');
   }
   const otp = generateOtp();
   seller.codes.push({
@@ -131,7 +140,12 @@ export const sellerForgotPassword = async (email) => {
     codeType: EnumCodeTypeOfCode.RESETPASSWORD,
   });
   await seller.save();
-  await emailService.sendResetPasswordEmail(email, otp);
+  if (email || seller.email) {
+    await emailService.sendResetPasswordEmail(seller.email || email, otp);
+  }
+  if (mobileNumber || seller.mobileNumber) {
+    await sendOtpToMobile(`${seller.countryCode}${seller.mobileNumber}`, otp);
+  }
   return seller;
 };
 
