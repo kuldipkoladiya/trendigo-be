@@ -200,34 +200,44 @@ export const generateResetPasswordToken = async (email) => {
   return resetPasswordToken;
 };
 
-export const verifyResetOtp = async (email, otp) => {
-  const user = await userService.getOne({ email });
+export const verifyResetOtp = async (email, otp, isSeller = false) => {
+  let user = isSeller ? await sellerUserService.getOne({ email }) : await userService.getOne({ email });
+  if (!user && !isSeller) {
+    user = await sellerUserService.getOne({ email });
+  }
 
   if (!user) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'No user found with this email');
   }
 
-  const otpCode = user.codes.find((code) => code.code === otp && code.codeType === EnumCodeTypeOfCode.RESETPASSWORD);
+  const otpCode = user.codes.find(
+    (code) => String(code.code) === String(otp) && code.codeType === EnumCodeTypeOfCode.RESETPASSWORD
+  );
 
   if (!otpCode || otpCode.expirationDate < Date.now()) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'OTP is invalid');
   }
 
-  user.codes = user.codes.filter((code) => code.code !== otp);
+  user.codes = user.codes.filter((code) => String(code.code) !== String(otp));
 
   await user.save();
 
   return user;
 };
 
-export const verifyResetOtpVerify = async (email, otp) => {
-  const user = await userService.getOne({ email });
+export const verifyResetOtpVerify = async (email, otp, isSeller = false) => {
+  let user = isSeller ? await sellerUserService.getOne({ email }) : await userService.getOne({ email });
+  if (!user && !isSeller) {
+    user = await sellerUserService.getOne({ email });
+  }
 
   if (!user) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'No user found with this email');
   }
 
-  const otpCode = user.codes.find((code) => code.code === otp && code.codeType === EnumCodeTypeOfCode.RESETPASSWORD);
+  const otpCode = user.codes.find(
+    (code) => String(code.code) === String(otp) && code.codeType === EnumCodeTypeOfCode.RESETPASSWORD
+  );
 
   if (!otpCode) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'OTP is invalid');
@@ -237,7 +247,7 @@ export const verifyResetOtpVerify = async (email, otp) => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'OTP has expired');
   }
 
-  user.codes = user.codes.filter((code) => code.code !== otp);
+  user.codes = user.codes.filter((code) => String(code.code) !== String(otp));
 
   await user.save();
 

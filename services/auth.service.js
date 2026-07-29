@@ -108,7 +108,7 @@ export const forgotPassword = async (email) => {
   }
   const otp = generateOtp();
   user.codes.push({
-    code: otp,
+    code: String(otp),
     expirationDate: Date.now() + 10 * 60 * 1000,
     used: false,
     codeType: EnumCodeTypeOfCode.RESETPASSWORD,
@@ -116,6 +116,23 @@ export const forgotPassword = async (email) => {
   await user.save();
   await emailService.sendResetPasswordEmail(email, otp);
   return user;
+};
+
+export const sellerForgotPassword = async (email) => {
+  const seller = await sellerUserService.getOne({ email });
+  if (!seller) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'no user found with this email');
+  }
+  const otp = generateOtp();
+  seller.codes.push({
+    code: String(otp),
+    expirationDate: Date.now() + 10 * 60 * 1000,
+    used: false,
+    codeType: EnumCodeTypeOfCode.RESETPASSWORD,
+  });
+  await seller.save();
+  await emailService.sendResetPasswordEmail(email, otp);
+  return seller;
 };
 
 export const resetPasswordOtp = async (resetPasswordRequest) => {
@@ -135,11 +152,35 @@ export const resetPasswordOtp = async (resetPasswordRequest) => {
   if (providedFields.length !== 1) {
     throw new Error('Exactly one of mobileNumber, password, or newMail is required.');
   }
-  const user = await tokenService.verifyResetOtp(email, otp);
+  const user = await tokenService.verifyResetOtp(email, otp, false);
   const filter = {
     _id: user._id,
   };
   return userService.updateUser(filter, {
+    ...(password && { password }),
+    ...(newMail && { email: newMail }),
+    ...(mobileNumber && { mobileNumber }),
+  });
+};
+
+export const sellerResetPasswordOtp = async (resetPasswordRequest) => {
+  const { email, otp, password, newMail, mobileNumber } = resetPasswordRequest;
+  const existingUserWithMobile = mobileNumber ? await sellerUserService.getOne({ mobileNumber }) : null;
+  if (existingUserWithMobile) {
+    throw new Error('Mobile number is already associated with another user.');
+  }
+  if (!mobileNumber && !password && !newMail) {
+    throw new Error('At least one of mobileNumber, password, or newMail is required.');
+  }
+  const providedFields = [mobileNumber, password, newMail].filter((field) => field !== undefined);
+  if (providedFields.length !== 1) {
+    throw new Error('Exactly one of mobileNumber, password, or newMail is required.');
+  }
+  const seller = await tokenService.verifyResetOtp(email, otp, true);
+  const filter = {
+    _id: seller._id,
+  };
+  return sellerUserService.updateSellerUser(filter, {
     ...(password && { password }),
     ...(newMail && { email: newMail }),
     ...(mobileNumber && { mobileNumber }),
