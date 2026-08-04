@@ -152,6 +152,10 @@ export const getSellerProduct = {
   params: Joi.object().keys({
     sellerId: Joi.objectId().required(),
   }),
+  query: Joi.object().keys({
+    page: Joi.number().min(1).optional(),
+    limit: Joi.number().min(1).optional(),
+  }),
 };
 export const getStoreProduct = {
   params: Joi.object().keys({
@@ -180,5 +184,18 @@ export const searchProducts = {
     limit: Joi.number().min(1).max(100).default(12),
 
     sortBy: Joi.string().valid('relevance', 'priceLow', 'priceHigh', 'newest').default('relevance'),
+  }),
+};
+
+export const sellerSearchProducts = {
+  body: Joi.object().keys({
+    title: Joi.string().trim().allow('').optional(),
+    sku: Joi.string().trim().allow('').optional(),
+    page: Joi.number().min(1).optional(),
+    limit: Joi.number().min(1).max(100).optional(),
+  }),
+  query: Joi.object().keys({
+    page: Joi.number().min(1).optional(),
+    limit: Joi.number().min(1).max(100).optional(),
   }),
 };

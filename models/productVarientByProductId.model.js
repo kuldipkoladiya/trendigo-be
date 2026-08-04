@@ -61,6 +61,8 @@ const ProductVarientByProductIdSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+ProductVarientByProductIdSchema.index({ sku: 1 });
+ProductVarientByProductIdSchema.index({ productId: 1, isDeleted: 1 });
 
 ProductVarientByProductIdSchema.plugin(toJSON);
 ProductVarientByProductIdSchema.plugin(mongoosePaginateV2);
@@ -75,4 +77,4 @@ const ProductVarientByProductId =
   mongoose.models.ProductVarientByProductId ||
   mongoose.model('ProductVarientByProductId', ProductVarientByProductIdSchema, 'ProductVarientByProductId');
 
-export default ProductVarientByProductId;
+module.exports = ProductVarientByProductId;

@@ -15,12 +15,18 @@ export const getProduct = catchAsync(async (req, res) => {
 
 export const getSellerProductSummary = catchAsync(async (req, res) => {
   const { sellerId } = req.params;
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 10;
   const filter = {
     sellerId,
     includeAllListingStatus: true,
   };
-  const product = await productService.getProductListSummary(filter);
-  return res.status(httpStatus.OK).send({ results: product });
+  const options = {
+    page,
+    limit,
+  };
+  const product = await productService.getProductListSummary(filter, options);
+  return res.status(httpStatus.OK).send(product);
 });
 
 export const getSellerProduct = catchAsync(async (req, res) => {
@@ -232,5 +238,33 @@ export const getRecentSearches = catchAsync(async (req, res) => {
 
   return res.status(200).json({
     results: user && user.recentSearches ? user.recentSearches : [],
+  });
+});
+
+export const sellerSearchProducts = catchAsync(async (req, res) => {
+  const { title, sku } = req.body;
+  const page = Number(req.body.page || req.query.page) || 1;
+  const limit = Number(req.body.limit || req.query.limit) || 10;
+
+  const filterParams = {
+    sellerId: req.user._id,
+    title,
+    sku,
+  };
+
+  const options = {
+    page,
+    limit,
+    sort: { createdAt: -1 },
+  };
+
+  const result = await productService.sellerSearchProducts(filterParams, options);
+
+  return res.status(httpStatus.OK).send({
+    results: result.results,
+    page: result.page,
+    limit: result.limit,
+    totalPages: result.totalPages,
+    totalResults: result.totalResults,
   });
 });

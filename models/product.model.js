@@ -114,6 +114,10 @@ const ProductSchema = new mongoose.Schema(
   },
   { timestamps: { createdAt: true, updatedAt: true } }
 );
+ProductSchema.index({ sellerId: 1, isDeleted: 1 });
+ProductSchema.index({ sku: 1 });
+ProductSchema.index({ title: 1 });
+
 ProductSchema.plugin(toJSON);
 ProductSchema.plugin(mongoosePaginateV2);
 ProductSchema.plugin(softDelete, {

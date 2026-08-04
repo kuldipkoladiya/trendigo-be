@@ -22,6 +22,9 @@ export const login = {
     email: Joi.string().email().required(),
     password: Joi.string().required(),
     deviceToken: Joi.string().allow(''),
+    platform: Joi.string()
+      .valid(...Object.values(enumFields.EnumPlatformOfDeviceToken))
+      .optional(),
   }),
 };
 
@@ -47,6 +50,9 @@ export const verifyOtp = {
       mobileNumber: Joi.string().pattern(/^\d+$/), // Allow only digits
       otp: Joi.number().required(),
       deviceToken: Joi.string().allow(''),
+      platform: Joi.string()
+        .valid(...Object.values(enumFields.EnumPlatformOfDeviceToken))
+        .optional(),
     })
     .or('email', 'mobileNumber') // At least one is required
     .messages({

@@ -72,7 +72,7 @@ export async function getProductList(filter = {}) {
     });
 }
 
-export async function getProductListSummary(filter = {}) {
+export async function getProductListSummary(filter = {}, options = {}) {
   const { includeAllListingStatus, ...queryFilter } = filter;
   const showAllListing = includeAllListingStatus || !!queryFilter.sellerId;
   const finalFilter = {
@@ -80,7 +80,17 @@ export async function getProductListSummary(filter = {}) {
     ...(showAllListing ? {} : { isListingDone: true }),
     ...queryFilter,
   };
+
+  const page = Number(options.page) || 1;
+  const limit = Number(options.limit) || 10;
+  const skip = (page - 1) * limit;
+
+  const totalResults = await Product.countDocuments(finalFilter);
+
   const products = await Product.find(finalFilter)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
     .populate({
       path: 'productTypeId',
       select: 'value',
@@ -102,7 +112,7 @@ export async function getProductListSummary(filter = {}) {
       },
     });
 
-  return products.map((product) => {
+  const results = products.map((product) => {
     const productObj = product.toJSON ? product.toJSON() : product;
 
     // Calculate total stock
@@ -144,6 +154,14 @@ export async function getProductListSummary(filter = {}) {
       status: productObj.isDeleted ? 'Inactive' : 'Active',
     };
   });
+
+  return {
+    results,
+    page,
+    limit,
+    totalPages: Math.ceil(totalResults / limit),
+    totalResults,
+  };
 }
 
 export async function getProductListWithPagination(filter = {}, options = {}) {
@@ -1874,4 +1892,46 @@ export async function searchSuggestions(keyword = '') {
   ]);
 
   return suggestions[0] && suggestions[0].suggestions ? suggestions[0].suggestions : [];
+}
+
+export async function sellerSearchProducts(filterParams, options = {}) {
+  const { sellerId, title, sku } = filterParams;
+
+  const filter = {
+    sellerId: new mongoose.Types.ObjectId(sellerId),
+    isDeleted: { $ne: true },
+  };
+
+  if (title) {
+    filter.title = { $regex: title, $options: 'i' };
+  }
+
+  if (sku) {
+    const variantProducts = await ProductVarientByProductId.find({
+      sku: { $regex: sku, $options: 'i' },
+      isDeleted: { $ne: true },
+    }).distinct('productId');
+
+    filter.$or = [{ sku: { $regex: sku, $options: 'i' } }, { _id: { $in: variantProducts } }];
+  }
+
+  const paginationOptions = {
+    ...options,
+    populate: [
+      { path: 'storeId', select: 'name storeUrl profileImage' },
+      { path: 'productTypeId', select: 'value' },
+      { path: 'brandId', select: 'name logo' },
+      { path: 'productCategoryId', select: 'value parentCategoryId' },
+      {
+        path: 'variants',
+        match: { isDeleted: false },
+        populate: {
+          path: 'images videos',
+          select: 'imageUrl imageName isSelectedForMainScreen',
+        },
+      },
+    ],
+  };
+
+  return Product.paginate(filter, paginationOptions);
 }

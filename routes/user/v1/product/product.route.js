@@ -38,6 +38,14 @@ router
 
 router.get('/search', optionalAuth, validate(productValidation.searchProducts), productController.searchProducts);
 
+router.post(
+  '/seller-search',
+  sellerAuth(),
+  sellerPermission('products', 'view'),
+  validate(productValidation.sellerSearchProducts),
+  productController.sellerSearchProducts
+);
+
 router.get('/search-suggestions', productController.searchSuggestions);
 
 router.get('/recent-searches', auth(), productController.getRecentSearches);
