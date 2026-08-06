@@ -112,7 +112,7 @@ export async function getProductListSummary(filter = {}, options = {}) {
       },
     });
 
-  const productIds = products.map((p) => p._id);
+  const productIds = products.map((p) => p._id).filter(Boolean);
   const reviewsData = await mongoose.model('Review').aggregate([
     {
       $match: {
@@ -132,10 +132,12 @@ export async function getProductListSummary(filter = {}, options = {}) {
 
   const reviewMap = {};
   reviewsData.forEach((r) => {
-    reviewMap[r._id.toString()] = {
-      averageRating: Number(r.averageRating.toFixed(1)),
-      totalReviews: r.totalReviews,
-    };
+    if (r._id) {
+      reviewMap[r._id.toString()] = {
+        averageRating: r.averageRating ? Number(r.averageRating.toFixed(1)) : 0,
+        totalReviews: r.totalReviews || 0,
+      };
+    }
   });
 
   const results = products.map((product) => {
@@ -149,7 +151,7 @@ export async function getProductListSummary(filter = {}, options = {}) {
       totalStock = productObj.variants.reduce((sum, v) => sum + (v.quantity || 0), 0);
     }
 
-    const reviewInfo = reviewMap[productObj._id.toString()] || { averageRating: 0, totalReviews: 0 };
+    const reviewInfo = (productObj._id && reviewMap[productObj._id.toString()]) || { averageRating: 0, totalReviews: 0 };
 
     // Return ONLY the requested fields, keeping the original variants structure but clean of other fields
     return {
