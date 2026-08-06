@@ -151,7 +151,8 @@ export async function getProductListSummary(filter = {}, options = {}) {
       totalStock = productObj.variants.reduce((sum, v) => sum + (v.quantity || 0), 0);
     }
 
-    const reviewInfo = (productObj._id && reviewMap[productObj._id.toString()]) || { averageRating: 0, totalReviews: 0 };
+    const prodId = product._id ? product._id.toString() : (productObj.id || '').toString();
+    const reviewInfo = (prodId && reviewMap[prodId]) || { averageRating: 0, totalReviews: 0 };
 
     // Return ONLY the requested fields, keeping the original variants structure but clean of other fields
     return {
