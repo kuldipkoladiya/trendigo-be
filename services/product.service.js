@@ -1,6 +1,6 @@
 import ApiError from 'utils/ApiError';
 import httpStatus from 'http-status';
-import { Product, Store, ProductCategories, ProductBrand, ProductVarientByProductId, User } from 'models';
+import { Product, Store, ProductCategories, ProductBrand, ProductVarientByProductId, User, Review } from 'models';
 import mongoose from 'mongoose';
 
 export async function getProductById(id, options = {}) {
@@ -112,6 +112,32 @@ export async function getProductListSummary(filter = {}, options = {}) {
       },
     });
 
+  const productIds = products.map((product) => product._id);
+  const reviewStats = await Review.aggregate([
+    {
+      $match: {
+        productId: { $in: productIds },
+        isAdminAprove: true,
+        isDeleted: { $ne: true },
+      },
+    },
+    {
+      $group: {
+        _id: '$productId',
+        totalReviews: { $sum: 1 },
+        averageRating: { $avg: '$rating' },
+      },
+    },
+  ]);
+
+  const reviewStatsMap = reviewStats.reduce((acc, stat) => {
+    acc[stat._id.toString()] = {
+      totalReviews: stat.totalReviews || 0,
+      averageRating: stat.averageRating ? Number(stat.averageRating.toFixed(1)) : 0,
+    };
+    return acc;
+  }, {});
+
   const results = products.map((product) => {
     const productObj = product.toJSON ? product.toJSON() : product;
 
@@ -122,6 +148,9 @@ export async function getProductListSummary(filter = {}, options = {}) {
     } else if (productObj.variants) {
       totalStock = productObj.variants.reduce((sum, v) => sum + (v.quantity || 0), 0);
     }
+
+    const stats = reviewStatsMap[productObj._id.toString()] || { totalReviews: 0, averageRating: 0 };
+
     // Return ONLY the requested fields, keeping the original variants structure but clean of other fields
     return {
       id: productObj.id,
@@ -152,6 +181,8 @@ export async function getProductListSummary(filter = {}, options = {}) {
           ? productObj.variants[0].price
           : productObj.sellingPrice,
       status: productObj.isDeleted ? 'Inactive' : 'Active',
+      averageRating: stats.averageRating,
+      totalReviews: stats.totalReviews,
     };
   });
 
