@@ -1,6 +1,6 @@
 import ApiError from 'utils/ApiError';
 import httpStatus from 'http-status';
-import { Product, Store, ProductCategories, ProductBrand, ProductVarientByProductId, User, Review } from 'models';
+import { Product, Store, ProductCategories, ProductBrand, ProductVarientByProductId, User } from 'models';
 import mongoose from 'mongoose';
 
 export async function getProductById(id, options = {}) {
@@ -112,8 +112,8 @@ export async function getProductListSummary(filter = {}, options = {}) {
       },
     });
 
-  const productIds = products.map((product) => product._id);
-  const reviewStats = await Review.aggregate([
+  const productIds = products.map((p) => p._id);
+  const reviewsData = await mongoose.model('Review').aggregate([
     {
       $match: {
         productId: { $in: productIds },
@@ -124,21 +124,19 @@ export async function getProductListSummary(filter = {}, options = {}) {
     {
       $group: {
         _id: '$productId',
-        totalReviews: { $sum: 1 },
         averageRating: { $avg: '$rating' },
+        totalReviews: { $sum: 1 },
       },
     },
   ]);
 
-  const reviewStatsMap = reviewStats.reduce((acc, stat) => {
-    if (stat._id) {
-      acc[stat._id.toString()] = {
-        totalReviews: stat.totalReviews || 0,
-        averageRating: stat.averageRating ? Number(stat.averageRating.toFixed(1)) : 0,
-      };
-    }
-    return acc;
-  }, {});
+  const reviewMap = {};
+  reviewsData.forEach((r) => {
+    reviewMap[r._id.toString()] = {
+      averageRating: Number(r.averageRating.toFixed(1)),
+      totalReviews: r.totalReviews,
+    };
+  });
 
   const results = products.map((product) => {
     const productObj = product.toJSON ? product.toJSON() : product;
@@ -151,8 +149,7 @@ export async function getProductListSummary(filter = {}, options = {}) {
       totalStock = productObj.variants.reduce((sum, v) => sum + (v.quantity || 0), 0);
     }
 
-    const productIdStr = productObj._id ? productObj._id.toString() : '';
-    const stats = reviewStatsMap[productIdStr] || { totalReviews: 0, averageRating: 0 };
+    const reviewInfo = reviewMap[productObj._id.toString()] || { averageRating: 0, totalReviews: 0 };
 
     // Return ONLY the requested fields, keeping the original variants structure but clean of other fields
     return {
@@ -184,8 +181,8 @@ export async function getProductListSummary(filter = {}, options = {}) {
           ? productObj.variants[0].price
           : productObj.sellingPrice,
       status: productObj.isDeleted ? 'Inactive' : 'Active',
-      averageRating: stats.averageRating,
-      totalReviews: stats.totalReviews,
+      averageRating: reviewInfo.averageRating,
+      totalReviews: reviewInfo.totalReviews,
     };
   });
 
