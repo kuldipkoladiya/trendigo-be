@@ -131,10 +131,12 @@ export async function getProductListSummary(filter = {}, options = {}) {
   ]);
 
   const reviewStatsMap = reviewStats.reduce((acc, stat) => {
-    acc[stat._id.toString()] = {
-      totalReviews: stat.totalReviews || 0,
-      averageRating: stat.averageRating ? Number(stat.averageRating.toFixed(1)) : 0,
-    };
+    if (stat._id) {
+      acc[stat._id.toString()] = {
+        totalReviews: stat.totalReviews || 0,
+        averageRating: stat.averageRating ? Number(stat.averageRating.toFixed(1)) : 0,
+      };
+    }
     return acc;
   }, {});
 
@@ -149,7 +151,8 @@ export async function getProductListSummary(filter = {}, options = {}) {
       totalStock = productObj.variants.reduce((sum, v) => sum + (v.quantity || 0), 0);
     }
 
-    const stats = reviewStatsMap[productObj._id.toString()] || { totalReviews: 0, averageRating: 0 };
+    const productIdStr = productObj._id ? productObj._id.toString() : '';
+    const stats = reviewStatsMap[productIdStr] || { totalReviews: 0, averageRating: 0 };
 
     // Return ONLY the requested fields, keeping the original variants structure but clean of other fields
     return {
