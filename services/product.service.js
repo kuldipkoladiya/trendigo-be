@@ -175,6 +175,8 @@ export async function getProductListSummary(filter = {}, options = {}) {
       parentCategoryId: productObj.parentCategoryId,
       productTypeId: productObj.productTypeId,
       variantsEnabled: productObj.variantsEnabled,
+      tags: productObj.tags || productObj.tages || [],
+      tages: productObj.tages || productObj.tags || [],
       images: productObj.images || [],
       variants: (productObj.variants || []).map((v) => ({
         id: v.id,
@@ -257,6 +259,13 @@ export async function createProduct(body = {}) {
       throw new ApiError(httpStatus.BAD_REQUEST, 'field variants is not valid');
     }
   }
+  /* eslint-disable no-param-reassign */
+  if (body.tags) {
+    body.tages = body.tags;
+  } else if (body.tages) {
+    body.tags = body.tages;
+  }
+  /* eslint-enable no-param-reassign */
   const product = await Product.create(body);
   return product;
 }
@@ -298,6 +307,13 @@ export async function updateProduct(filter, body, options = {}) {
       throw new ApiError(httpStatus.BAD_REQUEST, 'field variants is not valid');
     }
   }
+  /* eslint-disable no-param-reassign */
+  if (body.tags) {
+    body.tages = body.tags;
+  } else if (body.tages) {
+    body.tags = body.tages;
+  }
+  /* eslint-enable no-param-reassign */
   const product = await Product.findOneAndUpdate(filter, body, options);
   return product;
 }
@@ -692,6 +708,8 @@ export async function getProductDetailsById(productId, userId = null) {
             1,
           ],
         },
+        tags: { $ifNull: ['$tags', '$tages'] },
+        tages: { $ifNull: ['$tages', '$tags'] },
       },
     },
 
