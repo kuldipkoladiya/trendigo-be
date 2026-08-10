@@ -37,6 +37,10 @@ const ProductSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'ProductCategories',
     },
+    parentCategoryId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'ProductCategories',
+    },
     brandId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'ProductBrand',

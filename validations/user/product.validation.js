@@ -18,6 +18,8 @@ export const createProduct = {
     storeId: Joi.objectId().optional(),
     sellerId: Joi.objectId().optional(),
     productCategoryId: Joi.objectId().optional(),
+    productCategoyId: Joi.objectId().optional(),
+    parentCategoryId: Joi.objectId().optional(),
     brandId: Joi.objectId().optional(),
 
     title: Joi.string().trim().required(),
@@ -66,6 +68,8 @@ export const updateProduct = {
     storeId: Joi.objectId().optional(),
     sellerId: Joi.objectId().optional(),
     productCategoryId: Joi.objectId().optional(),
+    productCategoyId: Joi.objectId().optional(),
+    parentCategoryId: Joi.objectId().optional(),
     brandId: Joi.objectId().optional(),
 
     title: Joi.string().trim().optional(),

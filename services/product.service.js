@@ -15,6 +15,7 @@ export async function getOne(filter, options = {}) {
     .populate({ path: 'productTypeId', select: 'value' })
     .populate({ path: 'brandId', select: 'name logo' })
     .populate({ path: 'productCategoryId', select: 'value parentCategoryId' })
+    .populate({ path: 'parentCategoryId', select: 'value parentCategoryId' })
     .populate({
       path: 'variants',
       match: { isDeleted: false },
@@ -63,6 +64,10 @@ export async function getProductList(filter = {}) {
       select: 'value parentCategoryId',
     })
     .populate({
+      path: 'parentCategoryId',
+      select: 'value parentCategoryId',
+    })
+    .populate({
       path: 'variants',
       match: { isDeleted: false },
       populate: {
@@ -97,6 +102,10 @@ export async function getProductListSummary(filter = {}, options = {}) {
     })
     .populate({
       path: 'productCategoryId',
+      select: 'value parentCategoryId',
+    })
+    .populate({
+      path: 'parentCategoryId',
       select: 'value parentCategoryId',
     })
     .populate({
@@ -163,6 +172,7 @@ export async function getProductListSummary(filter = {}, options = {}) {
       productCode: productObj.productCode,
       sku: productObj.sku,
       productCategoryId: productObj.productCategoryId,
+      parentCategoryId: productObj.parentCategoryId,
       productTypeId: productObj.productTypeId,
       variantsEnabled: productObj.variantsEnabled,
       images: productObj.images || [],
@@ -223,6 +233,18 @@ export async function createProduct(body = {}) {
       throw new ApiError(httpStatus.BAD_REQUEST, 'field productCategoyId is not valid');
     }
   }
+  if (body.productCategoryId) {
+    const productCategoryId = await ProductCategories.findOne({ _id: body.productCategoryId });
+    if (!productCategoryId) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'field productCategoryId is not valid');
+    }
+  }
+  if (body.parentCategoryId) {
+    const parentCategoryId = await ProductCategories.findOne({ _id: body.parentCategoryId });
+    if (!parentCategoryId) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'field parentCategoryId is not valid');
+    }
+  }
   if (body.brandId) {
     const brandId = await ProductBrand.findOne({ _id: body.brandId });
     if (!brandId) {
@@ -250,6 +272,18 @@ export async function updateProduct(filter, body, options = {}) {
     const productCategoyId = await ProductCategories.findOne({ _id: body.productCategoyId });
     if (!productCategoyId) {
       throw new ApiError(httpStatus.BAD_REQUEST, 'field productCategoyId is not valid');
+    }
+  }
+  if (body.productCategoryId) {
+    const productCategoryId = await ProductCategories.findOne({ _id: body.productCategoryId });
+    if (!productCategoryId) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'field productCategoryId is not valid');
+    }
+  }
+  if (body.parentCategoryId) {
+    const parentCategoryId = await ProductCategories.findOne({ _id: body.parentCategoryId });
+    if (!parentCategoryId) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'field parentCategoryId is not valid');
     }
   }
   if (body.brandId) {
@@ -305,6 +339,7 @@ export async function getProductListPaginated(filter = {}, options = {}) {
       { path: 'productTypeId', select: 'value' },
       { path: 'brandId', select: 'name logo' },
       { path: 'productCategoryId', select: 'value parentCategoryId' },
+      { path: 'parentCategoryId', select: 'value parentCategoryId' },
       {
         path: 'variants',
         perDocumentLimit: 1,
@@ -802,6 +837,24 @@ export async function getProductDetailsById(productId, userId = null) {
     {
       $unwind: {
         path: '$productCategoryId',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+
+    //------------------------------------------------
+    // PARENT CATEGORY
+    //------------------------------------------------
+    {
+      $lookup: {
+        from: 'ProductCategories',
+        localField: 'parentCategoryId',
+        foreignField: '_id',
+        as: 'parentCategoryId',
+      },
+    },
+    {
+      $unwind: {
+        path: '$parentCategoryId',
         preserveNullAndEmptyArrays: true,
       },
     },
@@ -1956,6 +2009,7 @@ export async function sellerSearchProducts(filterParams, options = {}) {
       { path: 'productTypeId', select: 'value' },
       { path: 'brandId', select: 'name logo' },
       { path: 'productCategoryId', select: 'value parentCategoryId' },
+      { path: 'parentCategoryId', select: 'value parentCategoryId' },
       {
         path: 'variants',
         match: { isDeleted: false },
