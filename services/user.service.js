@@ -95,11 +95,17 @@ export async function addDeviceToken(user, body) {
   if (!isFCMValid) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'The FCM Token is invalid!');
   }
-  const deviceTokenList = user.deviceTokens.map((data) => data.deviceToken);
+  const deviceTokenList = (user.deviceTokens || []).map((data) => data.deviceToken);
   if (_.indexOf(deviceTokenList, deviceToken) === -1) {
     user.deviceTokens.push({ deviceToken, platform });
     Object.assign(user, { password: undefined });
     const updatedUser = await updateUser({ _id: user._id }, user, { new: true });
+
+    // Send Welcome Notification to the user's newly registered device
+    notificationService.sendWelcomeNotification(deviceToken, user.name || '').catch((err) => {
+      console.error('⚠️ Failed to dispatch welcome push notification:', err.message);
+    });
+
     return updatedUser;
   }
   return user;

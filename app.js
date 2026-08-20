@@ -51,6 +51,7 @@ app.use(sendResponse);
 app.use(cors());
 app.options('*', cors());
 app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, 'public')));
 // jwt authentication
 app.use(passport.initialize());
 passport.use('jwt', jwtStrategy);

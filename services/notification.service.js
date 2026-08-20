@@ -107,3 +107,32 @@ export const sendToUser = async (user, message = {}) => {
 
   return sendMulticastNotification(tokens, message);
 };
+
+/**
+ * Send Welcome Notification to customer
+ * @param {Object|string} target - User document or FCM device token string
+ * @param {string} [userName] - Customer's name
+ * @returns {Promise<any>}
+ */
+export const sendWelcomeNotification = async (target, userName = '') => {
+  const greeting = userName ? `Hi ${userName}, welcome` : 'Welcome';
+  const message = {
+    title: '🎉 Welcome to Trendigo!',
+    body: `${greeting} to Trendigo! Explore trending products and exclusive deals.`,
+    data: {
+      type: 'WELCOME',
+      action: 'EXPLORE_STORE',
+      timestamp: String(Date.now()),
+    },
+  };
+
+  try {
+    if (typeof target === 'string') {
+      return await sendNotification(target, message);
+    }
+    return await sendToUser(target, message);
+  } catch (error) {
+    console.error('⚠️ Failed to send welcome notification:', error.message);
+    return null;
+  }
+};

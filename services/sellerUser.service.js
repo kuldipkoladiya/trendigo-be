@@ -95,7 +95,7 @@ export async function aggregateSellerUser(query) {
 
 export async function addDeviceToken(user, body) {
   const { deviceToken, platform } = body;
-  const isFCMValid = notificationService.verifyFCMToken(deviceToken);
+  const isFCMValid = await notificationService.verifyFCMToken(deviceToken);
   if (!isFCMValid) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'The FCM Token is invalid!');
   }
