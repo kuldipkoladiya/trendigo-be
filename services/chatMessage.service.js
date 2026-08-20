@@ -3,6 +3,8 @@ import ApiError from 'utils/ApiError';
 import httpStatus from 'http-status';
 import { ChatMessage, Role, User } from 'models';
 import mongoose from 'mongoose';
+import { logger } from '../config/logger';
+import * as notificationService from './notification.service';
 
 function formatMessage(doc) {
   if (!doc) return doc;
@@ -89,6 +91,7 @@ function filterPrivacyInfo(text) {
   const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
 
   // Regex to match phone/mobile numbers (8-15 digits, ignoring symbols/spaces)
+  // eslint-disable-next-line security/detect-unsafe-regex
   const phoneRegex = /(\+?\d{1,4}[\s-]?)?\(?\d{2,4}\)?[\s-]?\d{3,4}[\s-]?\d{3,4}/g;
 
   return text.replace(emailRegex, '[Email Blocked]').replace(phoneRegex, (match) => {
@@ -125,6 +128,20 @@ export async function sendMessage(body = {}) {
       },
     ])
     .lean();
+
+  // 🔔 Trigger real-time chat push notification asynchronously
+  notificationService
+    .sendChatNotification({
+      senderId: body.senderId,
+      senderModel: body.senderModel,
+      receiverId: body.receiverId,
+      receiverModel: body.receiverModel,
+      message: body.message,
+      chatMessage: populatedMessage,
+    })
+    .catch((err) => {
+      logger.warn(`⚠️ Failed to dispatch chat push notification: ${err.message}`);
+    });
 
   return formatMessage(populatedMessage);
 }

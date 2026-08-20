@@ -3,6 +3,8 @@ import httpStatus from 'http-status';
 import mongoose from 'mongoose';
 import { Product } from 'models';
 import ProductVarientByProductId from '../models/productVarientByProductId.model';
+import { logger } from '../config/logger';
+import * as notificationService from './notification.service';
 
 export async function getProductVarientByProductIdById(id, options = {}) {
   const productVarientByProductId = await ProductVarientByProductId.findById(id, options.projection, options);
@@ -60,7 +62,44 @@ export async function updateProductVarientByProductId(filter, body, options = {}
       throw new ApiError(httpStatus.BAD_REQUEST, 'field productId is not valid');
     }
   }
+
+  const previousVariant = await ProductVarientByProductId.findOne(filter);
   const productVarientByProductId = await ProductVarientByProductId.findOneAndUpdate(filter, body, options);
+
+  if (previousVariant && productVarientByProductId) {
+    const { productId } = previousVariant;
+
+    // 🔔 1. Wishlist Price Drop Alert
+    if (body.price !== undefined && previousVariant.price && body.price < previousVariant.price) {
+      Product.findById(productId)
+        .select('name title')
+        .lean()
+        .then((prod) => {
+          notificationService.sendWishlistPriceDropNotification({
+            productId,
+            productName: prod ? prod.title || prod.name : '',
+            oldPrice: previousVariant.price,
+            newPrice: body.price,
+          });
+        })
+        .catch((e) => logger.warn(`Price drop notification error: ${e.message}`));
+    }
+
+    // 🔔 2. Back in Stock Alert
+    if (previousVariant.quantity === 0 && body.quantity > 0) {
+      Product.findById(productId)
+        .select('name title')
+        .lean()
+        .then((prod) => {
+          notificationService.sendBackInStockNotification({
+            productId,
+            productName: prod ? prod.title || prod.name : '',
+          });
+        })
+        .catch((e) => logger.warn(`Back in stock notification error: ${e.message}`));
+    }
+  }
+
   return productVarientByProductId;
 }
 
@@ -210,6 +249,8 @@ export async function updateProductVarientById(id, body, user) {
     },
   };
 
+  const previousVariant = await ProductVarientByProductId.findById(id);
+
   // ✅ normal fields → $set
   if (body.variants) updateQuery.$set.variants = body.variants;
   if (body.quantity !== undefined) updateQuery.$set.quantity = body.quantity;
@@ -233,6 +274,40 @@ export async function updateProductVarientById(id, body, user) {
 
   if (!updated) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Product variant not found');
+  }
+
+  if (previousVariant && updated) {
+    const { productId } = previousVariant;
+
+    // 🔔 1. Wishlist Price Drop Alert
+    if (body.price !== undefined && previousVariant.price && body.price < previousVariant.price) {
+      Product.findById(productId)
+        .select('name title')
+        .lean()
+        .then((prod) => {
+          notificationService.sendWishlistPriceDropNotification({
+            productId,
+            productName: prod ? prod.title || prod.name : '',
+            oldPrice: previousVariant.price,
+            newPrice: body.price,
+          });
+        })
+        .catch((e) => logger.warn(`Price drop notification error: ${e.message}`));
+    }
+
+    // 🔔 2. Back in Stock Alert
+    if (previousVariant.quantity === 0 && body.quantity > 0) {
+      Product.findById(productId)
+        .select('name title')
+        .lean()
+        .then((prod) => {
+          notificationService.sendBackInStockNotification({
+            productId,
+            productName: prod ? prod.title || prod.name : '',
+          });
+        })
+        .catch((e) => logger.warn(`Back in stock notification error: ${e.message}`));
+    }
   }
 
   return updated;
