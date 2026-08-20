@@ -89,15 +89,25 @@ export async function aggregateUser(query) {
 //   return user;
 // }
 
-export async function addDeviceToken(user, body) {
+export async function addDeviceToken(user, body = {}, throwOnError = false) {
   const { deviceToken, platform } = body;
+  if (!deviceToken || typeof deviceToken !== 'string' || !deviceToken.trim()) {
+    return user;
+  }
+
   const isFCMValid = await notificationService.verifyFCMToken(deviceToken);
   if (!isFCMValid) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'The FCM Token is invalid!');
+    if (throwOnError) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'The FCM Token is invalid!');
+    }
+    console.warn(`⚠️ [FCM Warning] Invalid or unverified deviceToken skipped: ${deviceToken}`);
+    return user;
   }
-  const deviceTokenList = (user.deviceTokens || []).map((data) => data.deviceToken);
+
+  const deviceTokenList = (user.deviceTokens || []).map((data) => (typeof data === 'string' ? data : data.deviceToken));
   if (_.indexOf(deviceTokenList, deviceToken) === -1) {
-    user.deviceTokens.push({ deviceToken, platform });
+    const tokenObj = { deviceToken, ...(platform && { platform }) };
+    user.deviceTokens.push(tokenObj);
     Object.assign(user, { password: undefined });
     const updatedUser = await updateUser({ _id: user._id }, user, { new: true });
 

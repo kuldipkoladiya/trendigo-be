@@ -1,4 +1,5 @@
 import admin from 'firebase-admin';
+import { logger } from '../config/logger';
 
 let messaging = null;
 
@@ -13,7 +14,7 @@ try {
   }
   messaging = admin.messaging();
 } catch (error) {
-  console.warn('⚠️ Firebase Admin SDK Initialization Warning:', error.message);
+  logger.warn(`⚠️ Firebase Admin SDK Initialization Warning: ${error.message}`);
 }
 
 /**
@@ -23,7 +24,7 @@ try {
  */
 export const verifyFCMToken = async (fcmToken) => {
   if (!messaging) {
-    console.warn('Firebase Messaging not initialized.');
+    logger.warn('Firebase Messaging not initialized.');
     return false;
   }
   try {
@@ -35,7 +36,7 @@ export const verifyFCMToken = async (fcmToken) => {
     );
     return !!isValid;
   } catch (er) {
-    console.error('FCM Token verification error:', er.message);
+    logger.warn(`FCM Token verification warning: ${er.message}`);
     return false;
   }
 };
@@ -61,7 +62,18 @@ export const sendNotification = async (deviceToken, message = {}) => {
     data: message.data ? Object.fromEntries(Object.entries(message.data).map(([k, v]) => [k, String(v)])) : {},
   };
 
-  return messaging.send(payload);
+  try {
+    const response = await messaging.send(payload);
+    logger.info(
+      `📱 [FCM Notification Sent] Title: "${payload.notification.title}" | Body: "${
+        payload.notification.body
+      }" | Token: ${deviceToken.substring(0, 25)}... | MessageId: ${response}`
+    );
+    return response;
+  } catch (error) {
+    logger.error(`❌ [FCM Notification Error] Token: ${deviceToken.substring(0, 25)}... | Reason: ${error.message}`);
+    throw error;
+  }
 };
 
 /**
@@ -89,7 +101,16 @@ export const sendMulticastNotification = async (deviceTokens = [], message = {})
     data: message.data ? Object.fromEntries(Object.entries(message.data).map(([k, v]) => [k, String(v)])) : {},
   };
 
-  return messaging.sendEachForMulticast(payload);
+  try {
+    const response = await messaging.sendEachForMulticast(payload);
+    logger.info(
+      `📢 [FCM Multicast Sent] Title: "${payload.notification.title}" | Success: ${response.successCount}/${deviceTokens.length} | Failure: ${response.failureCount}`
+    );
+    return response;
+  } catch (error) {
+    logger.error(`❌ [FCM Multicast Error] Title: "${payload.notification.title}" | Reason: ${error.message}`);
+    throw error;
+  }
 };
 
 /**
@@ -102,7 +123,7 @@ export const sendToUser = async (user, message = {}) => {
     return null;
   }
 
-  const tokens = user.deviceTokens.map((dt) => dt.deviceToken).filter(Boolean);
+  const tokens = user.deviceTokens.map((dt) => (typeof dt === 'string' ? dt : dt.deviceToken)).filter(Boolean);
   if (!tokens.length) return null;
 
   return sendMulticastNotification(tokens, message);
@@ -127,12 +148,13 @@ export const sendWelcomeNotification = async (target, userName = '') => {
   };
 
   try {
+    logger.info(`✨ [Welcome Notification] Dispatching welcome push notification...`);
     if (typeof target === 'string') {
       return await sendNotification(target, message);
     }
     return await sendToUser(target, message);
   } catch (error) {
-    console.error('⚠️ Failed to send welcome notification:', error.message);
+    logger.error(`⚠️ Failed to send welcome notification: ${error.message}`);
     return null;
   }
 };
